@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { X } from 'lucide-react'
+import { X, UploadCloud, Link2 } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import { Select, fieldClass, textAreaClass, labelClass } from '../../../components/shared/fields'
 import { COUNTRIES } from '../../../lib/countries'
@@ -78,13 +78,40 @@ export function InfluencerFormModal({
 }: InfluencerFormModalProps) {
   const isEditing = Boolean(influencer)
   const [form, setForm] = useState<FormState>(defaultForm)
+  const [imageSource, setImageSource] = useState<'upload' | 'url'>('upload')
 
   // Re-sync the form whenever the modal is opened, either with the
   // creator being edited or a blank slate for a new one.
   useEffect(() => {
     if (!isOpen) return
-    setForm(influencer ? formFromInfluencer(influencer) : defaultForm)
+    const initialForm = influencer ? formFromInfluencer(influencer) : defaultForm
+    setForm(initialForm)
+
+    // Auto-detect whether current image is an upload (base64) or a direct url
+    if (initialForm.profileImage && (initialForm.profileImage.startsWith('http://') || initialForm.profileImage.startsWith('https://'))) {
+      setImageSource('url')
+    } else {
+      setImageSource('upload')
+    }
   }, [isOpen, influencer])
+
+  const handleImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File is too large. Max file size is 2MB.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      setForm((current) => ({ ...current, profileImage: base64 }))
+    }
+    reader.readAsDataURL(file)
+  }
 
   if (!isOpen) {
     return null
@@ -325,18 +352,105 @@ export function InfluencerFormModal({
             </label>
           </div>
 
-          <label className={`${labelClass} md:col-span-2`}>
-            <span className="mb-2 block">Profile image URL</span>
-            <div className="flex items-center gap-3">
-              <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={40} />
-              <input
-                value={form.profileImage}
-                onChange={(event) => setForm((current) => ({ ...current, profileImage: event.target.value }))}
-                placeholder="https://…"
-                className={fieldClass}
-              />
+          <div className="md:col-span-2 border-t border-slate-800/80 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-slate-300">Profile image</span>
+              <div className="flex gap-1.5 p-1 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                <button
+                  type="button"
+                  onClick={() => setImageSource('upload')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                    imageSource === 'upload'
+                      ? 'bg-cyan-500 text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <UploadCloud size={12} /> Upload file
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageSource('url')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                    imageSource === 'url'
+                      ? 'bg-cyan-500 text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Link2 size={12} /> URL path
+                </button>
+              </div>
             </div>
-          </label>
+
+            {imageSource === 'upload' ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 bg-slate-950/20 p-3 rounded-2xl border border-slate-800/50">
+                  <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={56} />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-200">
+                      {form.profileImage ? 'Ready to save image' : 'No image loaded'}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {form.profileImage ? 'Your uploaded file will be saved directly in Cloudflare.' : 'Drag an image below or click to choose.'}
+                    </p>
+                    {form.profileImage && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((c) => ({ ...c, profileImage: '' }))}
+                        className="mt-1 text-xs font-semibold text-rose-400 hover:text-rose-300 transition"
+                      >
+                        Clear image
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const file = e.dataTransfer.files?.[0]
+                    if (file) handleImageFile(file)
+                  }}
+                  onClick={() => document.getElementById('profile-upload-input')?.click()}
+                  className="border-2 border-dashed border-slate-800 hover:border-cyan-500/50 hover:bg-slate-950/20 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition text-center gap-2 group"
+                >
+                  <input
+                    id="profile-upload-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageFile(file)
+                    }}
+                    className="hidden"
+                  />
+                  <div className="p-3 rounded-full bg-slate-950/40 text-slate-400 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 transition">
+                    <UploadCloud size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-300">
+                      <span className="text-cyan-400 group-hover:underline">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">Supports PNG, JPG, JPEG, WEBP or GIF (max 2MB)</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={40} />
+                <input
+                  value={form.profileImage}
+                  onChange={(event) => setForm((current) => ({ ...current, profileImage: event.target.value }))}
+                  placeholder="https://…"
+                  className={fieldClass}
+                />
+              </div>
+            )}
+          </div>
           <label className={`${labelClass} md:col-span-2`}>
             <span className="mb-2 block">Notes</span>
             <textarea

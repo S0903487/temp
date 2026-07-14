@@ -8,6 +8,7 @@ import {
   Users,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { Logo } from '../shared/Logo'
 import styles from './Sidebar.module.css'
 
 type NavItem = {
@@ -30,7 +31,7 @@ function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brandBlock}>
-        <div className={styles.brandIcon}>IO</div>
+        <Logo size={44} />
         <div>
           <p className={styles.brandLabel}>InfluenceOS</p>
           <p className={styles.brandSubtext}>Growth Studio</p>
