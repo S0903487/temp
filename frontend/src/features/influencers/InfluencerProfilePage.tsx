@@ -1,15 +1,18 @@
-import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Mail, Phone, ShieldCheck } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, BadgeCheck, Mail, Pencil, Phone, ShieldCheck, Trash2 } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { Avatar } from '../../components/shared/Avatar'
 import { CampaignHistoryList } from './components/CampaignHistoryList'
 import { GrowthChart } from './components/GrowthChart'
+import { InfluencerFormModal } from './components/AddInfluencerModal'
 import { NotesPanel } from './components/NotesPanel'
 import { PipelineStatusSelect } from './components/PipelineStatusSelect'
 import { TagSelector } from './components/TagSelector'
 import {
   useAddInfluencerNote,
   useAddInfluencerTag,
+  useDeleteInfluencer,
   useInfluencer,
   useInfluencerCampaignHistory,
   useInfluencerNotes,
@@ -33,6 +36,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 function InfluencerProfilePage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   const { data: influencer, isLoading, isError } = useInfluencer(id)
   const { data: tags = [] } = useInfluencerTags(id)
@@ -46,6 +50,10 @@ function InfluencerProfilePage() {
   const addNote = useAddInfluencerNote(id ?? '')
   const removeNote = useRemoveInfluencerNote(id ?? '')
   const updateInfluencer = useUpdateInfluencer()
+  const deleteInfluencer = useDeleteInfluencer()
+
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
   if (isLoading) {
     return (
@@ -70,6 +78,13 @@ function InfluencerProfilePage() {
     updateInfluencer.mutate({ id, data: { pipelineStatus } })
   }
 
+  const handleDeleteConfirmed = () => {
+    if (!id) return
+    deleteInfluencer.mutate(id, {
+      onSuccess: () => navigate('/influencers'),
+    })
+  }
+
   return (
     <PageShell
       title={influencer.fullName}
@@ -78,9 +93,57 @@ function InfluencerProfilePage() {
       action={<PipelineStatusSelect value={influencer.pipelineStatus} onChange={handlePipelineChange} disabled={updateInfluencer.isPending} />}
     >
       <div className="space-y-6">
-        <Link to="/influencers" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
-          <ArrowLeft size={14} /> Back to all creators
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link to="/influencers" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
+            <ArrowLeft size={14} /> Back to all creators
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {isConfirmingDelete ? (
+              <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-1.5">
+                <span className="text-sm text-rose-200">Delete this creator?</span>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirmed}
+                  disabled={deleteInfluencer.isPending}
+                  className="rounded-lg bg-rose-500 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  {deleteInfluencer.isPending ? 'Deleting…' : 'Yes, delete'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingDelete(false)}
+                  className="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+                >
+                  <Pencil size={14} /> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingDelete(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 px-3 py-1.5 text-sm text-rose-300 hover:border-rose-500/60 hover:bg-rose-500/10"
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {deleteInfluencer.isError && (
+          <p className="text-sm text-red-400">
+            Couldn't delete this creator{deleteInfluencer.error instanceof Error ? `: ${deleteInfluencer.error.message}` : '.'}
+          </p>
+        )}
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
           <div className="flex flex-wrap items-center gap-4">
@@ -162,6 +225,21 @@ function InfluencerProfilePage() {
           </section>
         </div>
       </div>
+
+      <InfluencerFormModal
+        isOpen={isEditOpen}
+        influencer={influencer}
+        isSubmitting={updateInfluencer.isPending}
+        errorMessage={updateInfluencer.error instanceof Error ? updateInfluencer.error.message : null}
+        onClose={() => setIsEditOpen(false)}
+        onSubmit={(data) => {
+          if (!id) return
+          updateInfluencer.mutate(
+            { id, data },
+            { onSuccess: () => setIsEditOpen(false) }
+          )
+        }}
+      />
     </PageShell>
   )
 }
