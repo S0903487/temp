@@ -1,0 +1,13 @@
+{
+  "name": "influenceos-backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@cloudflare/workers-types": "^4.202"
+  }
+}

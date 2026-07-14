@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "InfluenceOS",
+  "description": "An AI-powered influencer marketing platform that helps agencies and brands discover creators, manage campaigns, organize influencer relationships, and automate outreach.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

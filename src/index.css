@@ -1,1 +1,68 @@
 @import "tailwindcss";
+
+:root {
+  font-family: Inter, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #f8fafc;
+  background-color: #020617;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  background: radial-gradient(circle at top left, #111827 0%, #020617 45%, #01040d 100%);
+  color: #f8fafc;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+img {
+  display: block;
+}
+
+/* Native form controls default to light-mode popups even in a dark app;
+   force dark rendering so <select> option lists and date pickers are readable. */
+select,
+input[type='date'] {
+  color-scheme: dark;
+}
+
+/* The native date-picker icon defaults to a dim, hard-to-see glyph even
+   with color-scheme: dark; brighten it and give it a hover state so it
+   reads as an actual clickable control. */
+input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px;
+  opacity: 0.75;
+  transition: opacity 120ms ease, background-color 120ms ease;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: rgba(148, 163, 184, 0.16);
+}
+
+select option {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
