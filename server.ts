@@ -15,6 +15,10 @@ const DB_PATH = path.join(process.cwd(), 'influenceos.db');
 const dbExists = fs.existsSync(DB_PATH);
 const sqliteDb = new Database(DB_PATH);
 
+// Optimize SQLite database for virtualized filesystems (like Cloud Run) to eliminate 20s latency
+sqliteDb.pragma('journal_mode = WAL');
+sqliteDb.pragma('synchronous = NORMAL');
+
 // If database is new, apply schema.sql
 try {
   const tables = sqliteDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='organizations'").get();
