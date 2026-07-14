@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { List, Kanban } from 'lucide-react'
+import { List, Kanban, Grid } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { ColumnSelector } from './components/ColumnSelector'
 import { Pagination } from './components/Pagination'
@@ -11,6 +11,7 @@ import { InfluencerPipelineBoard } from './components/InfluencerPipelineBoard'
 import { InfluencerDetailsDrawer } from './components/InfluencerDetailsDrawer'
 import { ImportModal } from './components/ImportModal'
 import { AddInfluencerModal } from './components/AddInfluencerModal'
+import { InfluencerCard } from './components/InfluencerCard'
 
 import { useInfluencerState } from './hooks/useInfluencerState'
 import {
@@ -209,6 +210,16 @@ export default function InfluencersPage() {
               <span>Spreadsheet</span>
             </button>
             <button
+              onClick={() => state.setViewMode('card')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                state.viewMode === 'card' ? 'bg-slate-900 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              }`}
+              title="Creator Cards Grid"
+            >
+              <Grid size={13} />
+              <span>Grid View</span>
+            </button>
+            <button
               onClick={() => state.setViewMode('pipeline')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 state.viewMode === 'pipeline' ? 'bg-slate-900 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
@@ -279,15 +290,28 @@ export default function InfluencersPage() {
                 onUpdatePipeline={handleUpdatePipeline}
                 onDelete={(id) => deleteInfluencer.mutate(id)}
               />
+            ) : state.viewMode === 'card' ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {paginated.map((influencer) => (
+                  <InfluencerCard
+                    key={influencer.id}
+                    influencer={influencer}
+                    onOpenDrawer={state.setActiveInfluencerId}
+                    onDelete={(id) => deleteInfluencer.mutate(id)}
+                  />
+                ))}
+              </div>
             ) : (
-              <InfluencerPipelineBoard
-                influencers={filtered}
-                onUpdatePipeline={handleUpdatePipeline}
-                onOpenDrawer={state.setActiveInfluencerId}
-              />
+              <div className="w-full max-w-full overflow-hidden">
+                <InfluencerPipelineBoard
+                  influencers={filtered}
+                  onUpdatePipeline={handleUpdatePipeline}
+                  onOpenDrawer={state.setActiveInfluencerId}
+                />
+              </div>
             )}
 
-            {state.viewMode === 'table' && (
+            {state.viewMode !== 'pipeline' && (
               <Pagination
                 totalItems={filtered.length}
                 currentPage={state.currentPage}

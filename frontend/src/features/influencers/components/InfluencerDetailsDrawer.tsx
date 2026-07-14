@@ -28,6 +28,8 @@ export function InfluencerDetailsDrawer({ influencerId, onClose }: InfluencerDet
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'notes' | 'campaigns'>('overview')
   const [noteBody, setNoteBody] = useState('')
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [isEditingBio, setIsEditingBio] = useState(false)
+  const [bioVal, setBioVal] = useState('')
 
   // Freshly query details
   const { data: influencer, isLoading } = useInfluencer(influencerId ?? undefined)
@@ -76,16 +78,31 @@ export function InfluencerDetailsDrawer({ influencerId, onClose }: InfluencerDet
       {/* Slide-over Drawer Panel */}
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-slate-950 border-l border-slate-800 shadow-2xl p-6 flex flex-col h-full overflow-hidden animate-in slide-in-from-right duration-300">
         {/* Header toolbar */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Creator Profile Inspector</span>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
+          {influencer ? (
             <Link
-              to={`/influencers/${influencerId}`}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-800 px-3 text-xs font-semibold text-slate-400 hover:text-white hover:border-slate-600 transition"
+              to={`/influencers/${influencer.id}`}
+              className="flex items-center gap-2.5 p-1.5 hover:bg-slate-900/60 rounded-xl transition group flex-1 min-w-0"
+              title="Click to view full detail page"
             >
-              <ExternalLink size={12} />
-              <span>Full Page</span>
+              <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={36} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <h4 className="text-xs font-bold text-white group-hover:text-cyan-400 transition truncate">{influencer.fullName}</h4>
+                  {influencer.verified && (
+                    <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-cyan-500/15 text-cyan-400 text-[8px] font-bold">✓</span>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500 truncate">
+                  @{influencer.username} · {influencer.platform} · {influencer.followers?.toLocaleString() || 0} followers
+                </p>
+              </div>
+              <ExternalLink size={11} className="text-slate-500 group-hover:text-cyan-400 transition flex-shrink-0" />
             </Link>
+          ) : (
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Creator Profile Inspector</span>
+          )}
+          <div className="flex items-center gap-2">
             <button
               onClick={onClose}
               className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-800 text-slate-400 hover:text-white transition"
@@ -146,8 +163,68 @@ export function InfluencerDetailsDrawer({ influencerId, onClose }: InfluencerDet
                 <div className="space-y-4">
                   {/* Bio */}
                   <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-3.5">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">About / Bio</p>
-                    <p className="text-xs text-slate-300 leading-relaxed">{influencer.bio || 'No bio on file.'}</p>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">About / Bio</p>
+                      {!isEditingBio ? (
+                        <button
+                          onClick={() => {
+                            setBioVal(influencer.bio || '')
+                            setIsEditingBio(true)
+                          }}
+                          className="text-[10px] font-bold text-cyan-400 hover:underline"
+                        >
+                          {influencer.bio ? 'Edit' : 'Add Bio'}
+                        </button>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setIsEditingBio(false)
+                              setBioVal(influencer.bio || '')
+                            }}
+                            className="text-[10px] font-semibold text-slate-400 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              updateInfluencer.mutate(
+                                { id: influencer.id, data: { bio: bioVal } },
+                                {
+                                  onSuccess: () => setIsEditingBio(false),
+                                }
+                              )
+                            }}
+                            className="text-[10px] font-bold text-cyan-400 hover:underline"
+                            disabled={updateInfluencer.isPending}
+                          >
+                            {updateInfluencer.isPending ? 'Saving...' : 'Save'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {isEditingBio ? (
+                      <textarea
+                        value={bioVal}
+                        onChange={(e) => setBioVal(e.target.value)}
+                        placeholder="Write something about this creator..."
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition h-20 resize-none"
+                      />
+                    ) : (
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {influencer.bio || (
+                          <span
+                            className="text-slate-600 italic cursor-pointer"
+                            onClick={() => {
+                              setBioVal(influencer.bio || '')
+                              setIsEditingBio(true)
+                            }}
+                          >
+                            No bio on file. Click to add one.
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* Quick Profile fields */}

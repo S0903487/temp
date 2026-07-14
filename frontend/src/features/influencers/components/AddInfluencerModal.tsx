@@ -21,6 +21,7 @@ type InfluencerFormModalProps = {
 const defaultForm = {
   fullName: '',
   username: '',
+  bio: '',
   platform: 'Instagram' as Platform,
   category: 'Lifestyle',
   country: 'United States',
@@ -47,6 +48,7 @@ function formFromInfluencer(influencer: Influencer): FormState {
   return {
     fullName: influencer.fullName,
     username: influencer.username,
+    bio: influencer.bio ?? '',
     platform: influencer.platform,
     category: influencer.category,
     country: influencer.country,
@@ -68,6 +70,14 @@ function formFromInfluencer(influencer: Influencer): FormState {
   }
 }
 
+function validateUsername(username: string): boolean {
+  const clean = username.replace(/^@/, '')
+  if (!clean || clean.length < 2) return false
+  // TikTok/Instagram usernames only allow alphanumeric, underscore, dot
+  const regex = /^[a-zA-Z0-9._]+$/
+  return regex.test(clean)
+}
+
 export function InfluencerFormModal({
   isOpen,
   isSubmitting,
@@ -79,6 +89,7 @@ export function InfluencerFormModal({
   const isEditing = Boolean(influencer)
   const [form, setForm] = useState<FormState>(defaultForm)
   const [imageSource, setImageSource] = useState<'upload' | 'url'>('upload')
+  const [localValError, setLocalValError] = useState<string | null>(null)
 
   // Re-sync the form whenever the modal is opened, either with the
   // creator being edited or a blank slate for a new one.
@@ -86,6 +97,7 @@ export function InfluencerFormModal({
     if (!isOpen) return
     const initialForm = influencer ? formFromInfluencer(influencer) : defaultForm
     setForm(initialForm)
+    setLocalValError(null)
 
     // Auto-detect whether current image is an upload (base64) or a direct url
     if (initialForm.profileImage && (initialForm.profileImage.startsWith('http://') || initialForm.profileImage.startsWith('https://'))) {
@@ -123,10 +135,18 @@ export function InfluencerFormModal({
     event.preventDefault()
     if (!form.fullName.trim()) return
 
-    const safeUsername = form.username.trim() || `@${form.fullName.replace(/\s+/g, '').toLowerCase()}`
+    const safeUsername = form.username.trim() ? (form.username.trim().startsWith('@') ? form.username.trim() : `@${form.username.trim()}`) : `@${form.fullName.replace(/\s+/g, '').toLowerCase()}`
+
+    if (!validateUsername(safeUsername)) {
+      setLocalValError('Invalid handle structure. Social handles can only contain letters, numbers, underscores, and dots (no spaces).')
+      return
+    }
+
+    setLocalValError(null)
     onSubmit({
       fullName: form.fullName.trim(),
       username: safeUsername,
+      bio: form.bio.trim() || undefined,
       platform: form.platform,
       category: form.category,
       country: form.country,
@@ -149,6 +169,8 @@ export function InfluencerFormModal({
     })
   }
 
+  const isUsernameValid = form.username ? validateUsername(form.username) : true
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6">
       <div className="w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-slate-950/40 flex flex-col overflow-hidden">
@@ -166,8 +188,10 @@ export function InfluencerFormModal({
           </button>
         </div>
 
-        {errorMessage && (
-          <p className="mt-4 rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-300 flex-shrink-0">{errorMessage}</p>
+        {(errorMessage || localValError) && (
+          <p className="mt-4 rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-300 flex-shrink-0">
+            {errorMessage || localValError}
+          </p>
         )}
 
         <form className="mt-6 flex-1 overflow-y-auto pr-1 grid gap-4 md:grid-cols-2 themed-scrollbar" onSubmit={handleSubmit}>
@@ -180,15 +204,39 @@ export function InfluencerFormModal({
               required
             />
           </label>
-          <label className={labelClass}>
-            <span className="mb-2 block">Username</span>
-            <input
-              value={form.username}
-              onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-              className={fieldClass}
-              required
-            />
-          </label>
+          <div className="flex flex-col">
+            <label className={labelClass}>
+              <span className="mb-2 block flex items-center justify-between">
+                <span>Username / Handle</span>
+                {form.username && (
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                    isUsernameValid ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>
+                    {isUsernameValid ? '✓ Valid format' : '✗ Invalid handle'}
+                  </span>
+                )}
+              </span>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-slate-500 font-bold select-none">@</span>
+                <input
+                  value={form.username.replace(/^@/, '')}
+                  onChange={(event) => {
+                    const val = event.target.value.replace(/\s+/g, '') // remove spaces directly
+                    setForm((current) => ({ ...current, username: val ? `@${val}` : '' }))
+                    setLocalValError(null)
+                  }}
+                  placeholder="creator_handle"
+                  className={`${fieldClass} pl-7`}
+                  required
+                />
+              </div>
+            </label>
+            {form.username && !isUsernameValid && (
+              <p className="text-[10px] text-rose-400 mt-1">
+                Handles can only contain alphanumeric characters, underscores, and dots.
+              </p>
+            )}
+          </div>
           <label className={labelClass}>
             <span className="mb-2 block">Platform</span>
             <Select
@@ -451,6 +499,16 @@ export function InfluencerFormModal({
               </div>
             )}
           </div>
+          <label className={`${labelClass} md:col-span-2`}>
+            <span className="mb-2 block">Biography / Bio</span>
+            <textarea
+              value={form.bio}
+              onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))}
+              placeholder="A brief bio of the creator (e.g., Lifestyle and travel content creator based in NYC)..."
+              className={textAreaClass}
+              rows={2}
+            />
+          </label>
           <label className={`${labelClass} md:col-span-2`}>
             <span className="mb-2 block">Notes</span>
             <textarea
