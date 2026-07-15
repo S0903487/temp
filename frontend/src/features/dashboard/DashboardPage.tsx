@@ -52,7 +52,7 @@ function DashboardPage() {
               : 'Keep every creator relationship and campaign milestone in one polished workspace.'}
           </p>
         </div>
-        <div className={styles.heroBadge}>Live insights</div>
+        <div className={styles.heroBadge}>** Live insights</div>
       </div>
 
       <div className={styles.statsGrid}>
@@ -62,9 +62,9 @@ function DashboardPage() {
       </div>
 
       {/* Two-column dense informative layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
         {/* Active Campaigns List */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Campaigns</h2>
             <span className="text-[10px] font-bold text-slate-400">Total: {campaigns?.length ?? 0}</span>
@@ -110,7 +110,7 @@ function DashboardPage() {
         </div>
 
         {/* Top Influencers in Outreach Pipeline */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pipeline Status Overview</h2>
             <span className="text-[10px] font-bold text-slate-400">Active roster: {influencers?.length ?? 0}</span>

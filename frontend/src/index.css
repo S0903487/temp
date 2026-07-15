@@ -5,6 +5,8 @@
   line-height: 1.5;
   font-weight: 400;
   color: #0f172a;
+  --color-blk-lgh: #363636;
+  --color-blk-lgher:rgb(109, 109, 109)2;
   background-color: #f8fafc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,11 +33,13 @@ body {
   color: #0f172a;
 }
 
-button,
-input,
 select,
 textarea {
   font: inherit;
+}
+
+input {
+  color: var(--color-blk-lgh);
 }
 
 img {

@@ -36,12 +36,16 @@ function Topbar() {
 
       <label className={styles.searchBox}>
         <Search size={16} />
-        <input type="search" placeholder="Search campaigns, influencers, clients" />
+        <input type="search" placeholder="** Search campaigns, influencers, clients.." />
       </label>
 
       <div className={styles.actions}>
+
         <button type="button" className={styles.iconButton} aria-label="Notifications">
-          <Bell size={18} />
+          <Bell
+            size={30}
+            type="button"
+          />
         </button>
 
         <div className="relative" ref={menuRef}>
@@ -52,7 +56,7 @@ function Topbar() {
             aria-expanded={isMenuOpen}
             className={styles.avatarButton}
           >
-            <Avatar name={user?.name ?? 'User'} size={40} />
+            <Avatar name={user?.name ?? 'User'} size={30} />
           </button>
 
           {isMenuOpen && (
@@ -75,6 +79,7 @@ function Topbar() {
             </div>
           )}
         </div>
+
       </div>
     </header>
   )

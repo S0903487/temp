@@ -1,3 +1,6 @@
+
+
+
 .topbar {
   display: flex;
   align-items: center;
@@ -9,6 +12,7 @@
 }
 
 .brand {
+  cursor: default;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -24,10 +28,11 @@
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border-radius: 2px;
+  border-radius: 999px;
   background: #f9fafb;
   color: #6b7280;
   border: 1px solid #e5e7eb;
+  transition: box-shadow 120ms ease;
 }
 
 .searchBox input {
@@ -42,28 +47,16 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3.5px;
 }
 
-.iconButton {
-  border: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 2px;
-  background: #f9fafb;
-  color: #4b5563;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: background 120ms ease, color 120ms ease;
+.iconButton svg {
+  color: var(--color-neutral-700);
+  padding: 6px;
 }
 
-.iconButton:hover {
-  background: #f3f4f6;
-  color: #111827;
-}
 
-.avatarButton {
+.avatarButton, .iconButton {
   display: grid;
   place-items: center;
   border: 0;
@@ -75,8 +68,11 @@
 }
 
 .avatarButton:hover,
-.avatarButton[aria-expanded='true'] {
-  box-shadow: 0 0 0 1.5px #111827;
+.avatarButton[aria-expanded='true'],
+.iconButton:hover,
+.searchBox:focus-within
+{
+  box-shadow: 0 0 0 1px var(--color-blk-lgh);
 }
 
 .avatar {

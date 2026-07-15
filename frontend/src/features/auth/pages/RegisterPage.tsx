@@ -16,7 +16,7 @@ export function RegisterPage() {
       }
       footer={
         <span className="text-[10px] text-slate-400">
-          By creating an account, you agree to our Terms of Service and Privacy Policy
+          Sarmad Hussain's Influencer Marketing Agency OS
         </span>
       }
     >

@@ -9,11 +9,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 10px;
-  border-radius: 2px;
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #e5e7eb;
+  padding-bottom: 5px;
 }
 
 .eyebrow {
