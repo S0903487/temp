@@ -7,6 +7,7 @@ import * as campaignHandlers from './handlers/campaigns';
 import * as influencerHandlers from './handlers/influencers';
 import * as analyticsHandlers from './handlers/analytics';
 import * as tagHandlers from './handlers/tags';
+import * as uploadHandlers from './handlers/uploads';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -39,6 +40,15 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     return new Response(JSON.stringify({ status: 'ok', time: new Date().toISOString() }), {
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  // ---- Public image serving ----
+  // <img src="..."> requests never carry our Authorization header, so this
+  // route (and only this one) has to stay outside the auth gate below.
+  // Uploading (POST) still requires auth — see the authenticated section.
+  if (resource === 'uploads' && method === 'GET') {
+    const key = parts.slice(1).join('/');
+    return uploadHandlers.serve(request, env, key);
   }
 
   // ---- Public auth routes ----
@@ -108,6 +118,12 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     if (id && sub === 'tags' && subId && method === 'DELETE')
       return influencerHandlers.removeInfluencerTag(request, env, auth, id, subId);
 
+    return notFound();
+  }
+
+  if (resource === 'uploads') {
+    if (id === 'file' && method === 'POST') return uploadHandlers.uploadFile(request, env, auth);
+    if (id === 'from-url' && method === 'POST') return uploadHandlers.uploadFromUrl(request, env, auth);
     return notFound();
   }
 

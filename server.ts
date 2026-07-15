@@ -121,10 +121,62 @@ class LocalD1Database {
 
 const localD1 = new LocalD1Database(sqliteDb);
 
+// ---- Local R2 shim ----
+// Cloudflare R2 (env.IMAGES, see worker/handlers/uploads.ts) doesn't exist
+// outside Cloudflare, so for local dev we back it with a plain directory on
+// disk: <key> -> the file bytes, plus a "<key>.meta.json" sidecar holding
+// the content type. This only needs to satisfy the handful of R2Bucket
+// methods uploads.ts actually calls (get/put), not the full R2 API.
+const R2_ROOT = path.join(process.cwd(), '.local-r2');
+
+class LocalR2Bucket {
+  private keyToPath(key: string): string {
+    // Uploaded keys are always our own generated `avatars/<org>/<id>.webp`
+    // strings (see worker/handlers/uploads.ts), never raw user input, so a
+    // simple join is fine here.
+    return path.join(R2_ROOT, key);
+  }
+
+  async put(key: string, value: ArrayBuffer | Uint8Array, options?: { httpMetadata?: { contentType?: string } }) {
+    const filePath = this.keyToPath(key);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, Buffer.from(value as ArrayBuffer));
+    fs.writeFileSync(
+      `${filePath}.meta.json`,
+      JSON.stringify({ contentType: options?.httpMetadata?.contentType ?? 'application/octet-stream' })
+    );
+  }
+
+  async get(key: string) {
+    const filePath = this.keyToPath(key);
+    if (!fs.existsSync(filePath)) return null;
+    const body = fs.readFileSync(filePath);
+    let contentType = 'application/octet-stream';
+    try {
+      contentType = JSON.parse(fs.readFileSync(`${filePath}.meta.json`, 'utf-8')).contentType;
+    } catch {
+      // no sidecar — fall back to the default above
+    }
+    return {
+      body,
+      httpMetadata: { contentType },
+      httpEtag: `"${body.length}"`,
+    };
+  }
+}
+
+const localR2 = new LocalR2Bucket();
+
 async function startServer() {
   const app = express();
 
   // Parse JSON and raw bodies
+  // The avatar-upload route sends raw image bytes (Content-Type: image/*),
+  // not JSON, so it needs its own raw parser registered ahead of the
+  // general JSON one — express.json() only touches application/json
+  // bodies and otherwise leaves req.body as {}, which would silently drop
+  // the uploaded file.
+  app.use('/api/uploads/file', express.raw({ type: '*/*', limit: '5mb' }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -148,7 +200,9 @@ async function startServer() {
 
       let requestBody: any = undefined;
       if (method !== 'GET' && method !== 'HEAD') {
-        if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+        if (Buffer.isBuffer(req.body)) {
+          requestBody = req.body;
+        } else if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
           requestBody = JSON.stringify(req.body);
         } else if (typeof req.body === 'string') {
           requestBody = req.body;
@@ -165,6 +219,7 @@ async function startServer() {
       // Execute worker's fetch
       const env = {
         DB: localD1 as any,
+        IMAGES: localR2 as any,
         ASSETS: {
           fetch: async () => new Response('Asset serving not handled by worker stub', { status: 404 }),
         } as any,

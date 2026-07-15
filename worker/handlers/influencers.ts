@@ -71,6 +71,10 @@ function toApi(row: Record<string, unknown>) {
 }
 
 export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  // profile_image is a short `/api/uploads/<key>` string (see
+  // worker/handlers/uploads.ts), not a base64 blob, so returning every
+  // column here for every row is cheap — this used to be the slowest
+  // request in the app back when profile_image held raw base64 image data.
   const { results } = await env.DB.prepare('SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC')
     .bind(auth.organizationId)
     .all();
