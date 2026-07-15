@@ -31,6 +31,17 @@ const COLS = [
   { key: 'category', label: 'Niche Category' },
   { key: 'contact', label: 'Contact Details' },
   { key: 'pipeline', label: 'Outreach Stage' },
+  { key: 'country', label: 'Country' },
+  { key: 'language', label: 'Language' },
+  { key: 'averageViews', label: 'Avg Views' },
+  { key: 'averageLikes', label: 'Avg Likes' },
+  { key: 'averageComments', label: 'Avg Comments' },
+  { key: 'pricePost', label: 'Price per Post' },
+  { key: 'priceStory', label: 'Price per Story' },
+  { key: 'verified', label: 'Verified Status' },
+  { key: 'brandSafe', label: 'Brand Safety' },
+  { key: 'status', label: 'Health Status' },
+  { key: 'notes', label: 'Notes' },
 ]
 
 export default function InfluencersPage() {

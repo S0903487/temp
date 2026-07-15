@@ -21,24 +21,26 @@ export function ColumnSelector({ columns, visibleColumns, onToggle }: ColumnSele
         type="button"
         id="col-selector-btn"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-sm font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition"
+        className={`inline-flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2.5 text-[11px] font-bold text-slate-700 hover:text-black hover:border-black transition cursor-pointer ${
+          isOpen ? 'border-black text-black bg-slate-50' : ''
+        }`}
       >
-        <Settings size={14} className="text-slate-400" />
+        <Settings size={11} className="text-slate-500" />
         <span>Columns</span>
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-800 bg-slate-950 p-3 shadow-xl z-20 space-y-2">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Display Columns</p>
+          <div className="absolute right-0 mt-1 w-48 rounded border border-slate-200 bg-white p-2.5 shadow-sm z-20 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Display Columns</p>
             {columns.map((col) => (
-              <label key={col.key} className="flex items-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none">
+              <label key={col.key} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 hover:text-black cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={visibleColumns.includes(col.key)}
                   onChange={() => onToggle(col.key)}
-                  className="rounded border-slate-800 bg-slate-900 text-cyan-500 focus:ring-0 focus:ring-offset-0"
+                  className="rounded border-slate-300 text-black focus:ring-0 cursor-pointer"
                 />
                 {col.label}
               </label>

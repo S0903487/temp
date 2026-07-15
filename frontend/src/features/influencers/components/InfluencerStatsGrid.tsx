@@ -96,24 +96,28 @@ export function InfluencerStatsGrid({ influencers }: InfluencerStatsGridProps) {
   }, [influencers])
 
   return (
-    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
           <div
             key={stat.label}
-            className="rounded border border-slate-200 bg-white p-3.5 shadow-xs transition-all duration-150 hover:border-slate-300"
+            className="rounded border border-slate-200 bg-white p-2 shadow-2xs transition-all duration-150 hover:border-slate-300 flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</span>
-              <div className={`p-1 rounded ${stat.color}`}>
-                <Icon size={12} />
+            <div className="flex items-start justify-between gap-1">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tight leading-tight">
+                {stat.label}
+              </span>
+              <div className={`p-0.5 rounded ${stat.color} shrink-0`}>
+                <Icon size={10} />
               </div>
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-xl font-extrabold text-slate-900 tracking-tight">{stat.value}</span>
+            <div className="mt-1">
+              <div className="text-sm font-black text-slate-900 tracking-tight leading-none">{stat.value}</div>
+              <div className="mt-0.5 text-[8.5px] font-semibold text-slate-400 leading-tight">
+                {stat.sub}
+              </div>
             </div>
-            <p className="mt-1 text-[10px] font-bold text-slate-400">{stat.sub}</p>
           </div>
         )
       })}

@@ -11,23 +11,21 @@ type PageShellProps = {
 function PageShell({ title, description, eyebrow, action, children }: PageShellProps) {
   return (
     <section className="space-y-4">
-      <header className="rounded border border-slate-200 bg-white p-4 shadow-xs">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            {eyebrow ? (
-              <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                {eyebrow}
-              </p>
-            ) : null}
-            <h1 className="text-base font-extrabold text-slate-900">{title}</h1>
-            <p className="mt-0.5 max-w-2xl text-xs text-slate-500 leading-relaxed">{description}</p>
-          </div>
-          {action ? (
-            <div className="rounded border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-              {action}
-            </div>
+      <header className="flex items-center justify-between gap-3 pb-1">
+        <div>
+          {eyebrow ? (
+            <p className="m-0 text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">
+              {eyebrow}
+            </p>
           ) : null}
+          <h1 className="m-0 text-[1.1rem] font-extrabold text-slate-900 tracking-tight leading-none">{title}</h1>
+          <p className="mt-1 max-w-2xl text-xs text-slate-500 leading-relaxed">{description}</p>
         </div>
+        {action ? (
+          <div className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-600 whitespace-nowrap self-start">
+            {action}
+          </div>
+        ) : null}
       </header>
       {children}
     </section>

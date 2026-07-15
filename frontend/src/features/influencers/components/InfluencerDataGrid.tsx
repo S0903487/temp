@@ -6,7 +6,20 @@ import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer, PipelineStatus } from '../types'
 import { PIPELINE_STATUSES } from '../types'
 
-export type SortField = 'fullName' | 'followers' | 'engagementRate' | 'category' | 'pipelineStatus'
+export type SortField =
+  | 'fullName'
+  | 'followers'
+  | 'engagementRate'
+  | 'category'
+  | 'pipelineStatus'
+  | 'country'
+  | 'language'
+  | 'averageViews'
+  | 'averageLikes'
+  | 'averageComments'
+  | 'pricePost'
+  | 'priceStory'
+  | 'status'
 
 type InfluencerDataGridProps = {
   influencers: Influencer[]
@@ -140,6 +153,61 @@ export function InfluencerDataGrid({
                   Outreach Stage {renderSortIndicator('pipelineStatus')}
                 </th>
               )}
+              {isColVisible('country') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('country')}>
+                  Country {renderSortIndicator('country')}
+                </th>
+              )}
+              {isColVisible('language') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('language')}>
+                  Language {renderSortIndicator('language')}
+                </th>
+              )}
+              {isColVisible('averageViews') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageViews')}>
+                  Avg Views {renderSortIndicator('averageViews')}
+                </th>
+              )}
+              {isColVisible('averageLikes') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageLikes')}>
+                  Avg Likes {renderSortIndicator('averageLikes')}
+                </th>
+              )}
+              {isColVisible('averageComments') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageComments')}>
+                  Avg Comments {renderSortIndicator('averageComments')}
+                </th>
+              )}
+              {isColVisible('pricePost') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('pricePost')}>
+                  Price/Post {renderSortIndicator('pricePost')}
+                </th>
+              )}
+              {isColVisible('priceStory') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('priceStory')}>
+                  Price/Story {renderSortIndicator('priceStory')}
+                </th>
+              )}
+              {isColVisible('verified') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+                  Verified
+                </th>
+              )}
+              {isColVisible('brandSafe') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+                  Brand Safe
+                </th>
+              )}
+              {isColVisible('status') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('status')}>
+                  Health Status {renderSortIndicator('status')}
+                </th>
+              )}
+              {isColVisible('notes') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+                  Notes
+                </th>
+              )}
               <th className="px-3 py-2 w-10" />
             </tr>
           </thead>
@@ -217,6 +285,90 @@ export function InfluencerDataGrid({
                   {isColVisible('pipeline') && (
                     <td className="px-3 py-1.5">
                       <PipelineStatusBadge status={influencer.pipelineStatus} />
+                    </td>
+                  )}
+
+                  {/* Country */}
+                  {isColVisible('country') && (
+                    <td className="px-3 py-1.5 text-slate-700 font-semibold text-[11px]">{influencer.country || '—'}</td>
+                  )}
+
+                  {/* Language */}
+                  {isColVisible('language') && (
+                    <td className="px-3 py-1.5 text-slate-700 font-semibold text-[11px]">{influencer.language || '—'}</td>
+                  )}
+
+                  {/* Average Views */}
+                  {isColVisible('averageViews') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.averageViews ? influencer.averageViews.toLocaleString() : '0'}
+                    </td>
+                  )}
+
+                  {/* Average Likes */}
+                  {isColVisible('averageLikes') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.averageLikes ? influencer.averageLikes.toLocaleString() : '0'}
+                    </td>
+                  )}
+
+                  {/* Average Comments */}
+                  {isColVisible('averageComments') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.averageComments ? influencer.averageComments.toLocaleString() : '0'}
+                    </td>
+                  )}
+
+                  {/* Price Post */}
+                  {isColVisible('pricePost') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      ${influencer.pricePost || '0'}
+                    </td>
+                  )}
+
+                  {/* Price Story */}
+                  {isColVisible('priceStory') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      ${influencer.priceStory || '0'}
+                    </td>
+                  )}
+
+                  {/* Verified */}
+                  {isColVisible('verified') && (
+                    <td className="px-3 py-1.5">
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${influencer.verified ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
+                        {influencer.verified ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                  )}
+
+                  {/* Brand Safe */}
+                  {isColVisible('brandSafe') && (
+                    <td className="px-3 py-1.5">
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${influencer.brandSafe ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
+                        {influencer.brandSafe ? 'Safe' : 'Unsafe'}
+                      </span>
+                    </td>
+                  )}
+
+                  {/* Status */}
+                  {isColVisible('status') && (
+                    <td className="px-3 py-1.5">
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                        influencer.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
+                        influencer.status === 'Booked' ? 'bg-purple-50 text-purple-700' :
+                        influencer.status === 'Review' ? 'bg-amber-50 text-amber-700' :
+                        'bg-slate-50 text-slate-500'
+                      }`}>
+                        {influencer.status}
+                      </span>
+                    </td>
+                  )}
+
+                  {/* Notes */}
+                  {isColVisible('notes') && (
+                    <td className="px-3 py-1.5 max-w-[150px] truncate text-[10px] text-slate-500 font-medium" title={influencer.notes}>
+                      {influencer.notes || '—'}
                     </td>
                   )}
 

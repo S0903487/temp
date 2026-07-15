@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Platform, PipelineStatus } from '../types'
-import type { SortField } from '../components/InfluencerTable'
+import type { SortField } from '../components/InfluencerDataGrid'
 
 export type FilterState = {
   query: string
@@ -56,15 +56,53 @@ export function useInfluencerState() {
   }, [filters.query])
 
   // View Settings
-  const [viewMode, setViewMode] = useState<'table' | 'card' | 'pipeline'>('table')
-  const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'platform',
-    'followers',
-    'engagement',
-    'category',
-    'contact',
-    'pipeline',
-  ])
+  const [viewMode, setViewMode] = useState<'table' | 'card' | 'pipeline'>(() => {
+    try {
+      const stored = localStorage.getItem('influenceos_view_mode')
+      if (stored === 'table' || stored === 'card' || stored === 'pipeline') {
+        return stored
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+    return 'table'
+  })
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('influenceos_visible_columns')
+      if (stored) {
+        return JSON.parse(stored)
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+    return [
+      'platform',
+      'followers',
+      'engagement',
+      'category',
+      'contact',
+      'pipeline',
+    ]
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('influenceos_view_mode', viewMode)
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [viewMode])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('influenceos_visible_columns', JSON.stringify(visibleColumns))
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [visibleColumns])
+
   const [sortField, setSortField] = useState<SortField>('followers')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [currentPage, setCurrentPage] = useState(1)
