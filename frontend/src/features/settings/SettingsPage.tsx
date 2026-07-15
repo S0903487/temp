@@ -36,22 +36,22 @@ function SettingsPage() {
       description="Workspace details and account information."
       eyebrow="Configuration"
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/20">
-          <h2 className="text-lg font-semibold text-white">Organization</h2>
-          <p className="mt-1 text-sm text-slate-400">Shown across InfluenceOS for your whole team.</p>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+          <h2 className="text-sm font-bold text-slate-900">Organization</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Shown across InfluenceOS for your whole team.</p>
 
-          {isLoading && <p className="mt-6 text-sm text-slate-400">Loading organization…</p>}
+          {isLoading && <p className="mt-4 text-xs text-slate-500">Loading organization…</p>}
           {isError && (
-            <p className="mt-6 text-sm text-red-400">
+            <p className="mt-4 text-xs text-red-600">
               Couldn't load organization{error instanceof Error ? `: ${error.message}` : '.'}
             </p>
           )}
 
           {organization && (
-            <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+            <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
               <label className={labelClass}>
-                <span className="mb-2 block">Organization name</span>
+                <span className="mb-1 block">Organization name</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
@@ -60,7 +60,7 @@ function SettingsPage() {
                 />
               </label>
               <label className={labelClass}>
-                <span className="mb-2 block">Description</span>
+                <span className="mb-1 block">Description</span>
                 <textarea
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
@@ -68,7 +68,7 @@ function SettingsPage() {
                 />
               </label>
               <label className={labelClass}>
-                <span className="mb-2 block">Currency</span>
+                <span className="mb-1 block">Currency</span>
                 <Select value={currency} onChange={(event) => setCurrency(event.target.value)}>
                   {CURRENCIES.map((code) => (
                     <option key={code} value={code}>
@@ -76,23 +76,23 @@ function SettingsPage() {
                     </option>
                   ))}
                 </Select>
-                <span className="mt-1 block text-xs text-slate-500">Used to format budgets and revenue across the app.</span>
+                <span className="mt-1 block text-[10px] text-slate-400 font-medium leading-normal">Used to format budgets and revenue across the app.</span>
               </label>
 
               {updateOrganization.isError && (
-                <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-300">
+                <p className="rounded border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700 font-semibold">
                   {updateOrganization.error instanceof Error ? updateOrganization.error.message : 'Update failed.'}
                 </p>
               )}
               {updateOrganization.isSuccess && (
-                <p className="rounded-lg bg-emerald-950/60 px-3 py-2 text-sm text-emerald-300">Saved.</p>
+                <p className="rounded border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 font-semibold">Saved.</p>
               )}
 
-              <div className="flex justify-end">
+              <div className="flex justify-end mt-1">
                 <button
                   type="submit"
                   disabled={updateOrganization.isPending}
-                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
+                  className="rounded bg-black px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer disabled:opacity-50"
                 >
                   {updateOrganization.isPending ? 'Saving…' : 'Save changes'}
                 </button>
@@ -101,19 +101,19 @@ function SettingsPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/20">
-          <h2 className="text-lg font-semibold text-white">Your account</h2>
-          <p className="mt-1 text-sm text-slate-400">Signed in as an admin on this workspace.</p>
+        <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+          <h2 className="text-sm font-bold text-slate-900">Your account</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Signed in as an admin on this workspace.</p>
 
           {user && (
-            <dl className="mt-6 space-y-3 text-sm">
-              <div className="flex justify-between border-b border-slate-800/60 pb-3">
-                <dt className="text-slate-400">Name</dt>
-                <dd className="text-white">{user.name}</dd>
+            <dl className="mt-4 space-y-2.5 text-xs">
+              <div className="flex justify-between border-b border-slate-100 pb-2.5">
+                <dt className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Name</dt>
+                <dd className="text-slate-900 font-bold">{user.name}</dd>
               </div>
-              <div className="flex justify-between border-b border-slate-800/60 pb-3">
-                <dt className="text-slate-400">Email</dt>
-                <dd className="text-white">{user.email}</dd>
+              <div className="flex justify-between border-b border-slate-100 pb-2.5">
+                <dt className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Email</dt>
+                <dd className="text-slate-900 font-bold">{user.email}</dd>
               </div>
             </dl>
           )}

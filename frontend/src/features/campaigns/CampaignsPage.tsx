@@ -9,11 +9,11 @@ import { formatCurrency } from '../../lib/currency'
 import type { CreateCampaignInput } from './types'
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: 'bg-slate-500/10 text-slate-300 border-slate-500/30',
-  active: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
-  paused: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
-  completed: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
-  cancelled: 'bg-red-500/10 text-red-300 border-red-500/30',
+  draft: 'bg-slate-50 text-slate-600 border-slate-200',
+  active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paused: 'bg-amber-50 text-amber-700 border-amber-200',
+  completed: 'bg-blue-50 text-blue-700 border-blue-200',
+  cancelled: 'bg-red-50 text-red-700 border-red-200',
 }
 
 function CampaignsPage() {
@@ -42,58 +42,58 @@ function CampaignsPage() {
       eyebrow="Operations"
       action={campaigns ? `${campaigns.length} campaigns` : undefined}
     >
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/20">
+      <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-white">Campaign pipeline</h2>
-            <p className="text-sm text-slate-400">Every active and past campaign.</p>
+            <h2 className="text-sm font-bold text-slate-900">Campaign pipeline</h2>
+            <p className="text-xs text-slate-500">Every active and past campaign.</p>
           </div>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+            className="inline-flex items-center gap-1.5 rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             New campaign
           </button>
         </div>
 
-        {isLoading && <p className="mt-6 text-sm text-slate-400">Loading campaigns…</p>}
+        {isLoading && <p className="mt-4 text-xs text-slate-500">Loading campaigns…</p>}
         {isError && (
-          <p className="mt-6 text-sm text-red-400">
+          <p className="mt-4 text-xs text-red-600">
             Couldn't load campaigns{error instanceof Error ? `: ${error.message}` : '.'}
           </p>
         )}
 
         {campaigns && campaigns.length === 0 && (
-          <p className="mt-6 text-sm text-slate-400">No campaigns yet. Create your first one.</p>
+          <p className="mt-4 text-xs text-slate-500">No campaigns yet. Create your first one.</p>
         )}
 
         {campaigns && campaigns.length > 0 && (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
-                  <th className="pb-3 pr-4">Campaign</th>
-                  <th className="pb-3 pr-4">Client</th>
-                  <th className="pb-3 pr-4">Timeline</th>
-                  <th className="pb-3 pr-4">Budget</th>
-                  <th className="pb-3 pr-4">Influencers</th>
-                  <th className="pb-3 pr-4">Status</th>
+                <tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="pb-2 pr-4 font-bold">Campaign</th>
+                  <th className="pb-2 pr-4 font-bold">Client</th>
+                  <th className="pb-2 pr-4 font-bold">Timeline</th>
+                  <th className="pb-2 pr-4 font-bold">Budget</th>
+                  <th className="pb-2 pr-4 font-bold">Influencers</th>
+                  <th className="pb-2 pr-4 font-bold">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-slate-600 divide-y divide-slate-100">
                 {campaigns.map((campaign) => (
-                  <tr key={campaign.id} className="border-b border-slate-800/60 text-slate-300">
-                    <td className="py-3 pr-4 font-medium text-white">{campaign.name}</td>
-                    <td className="py-3 pr-4">{clientNameById.get(campaign.clientId) ?? '—'}</td>
-                    <td className="py-3 pr-4">
+                  <tr key={campaign.id} className="hover:bg-slate-50/50">
+                    <td className="py-2.5 pr-4 font-bold text-slate-900">{campaign.name}</td>
+                    <td className="py-2.5 pr-4">{clientNameById.get(campaign.clientId) ?? '—'}</td>
+                    <td className="py-2.5 pr-4">
                       {campaign.startDate || '—'} → {campaign.endDate || '—'}
                     </td>
-                    <td className="py-3 pr-4">{formatCurrency(campaign.budget, organization?.currency)}</td>
-                    <td className="py-3 pr-4">{campaign.influencerIds.length}</td>
-                    <td className="py-3 pr-4">
-                      <span className={`rounded-full border px-2.5 py-1 text-xs capitalize ${STATUS_STYLES[campaign.status] ?? ''}`}>
+                    <td className="py-2.5 pr-4 font-semibold text-slate-800">{formatCurrency(campaign.budget, organization?.currency)}</td>
+                    <td className="py-2.5 pr-4">{campaign.influencerIds.length}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${STATUS_STYLES[campaign.status] ?? ''}`}>
                         {campaign.status}
                       </span>
                     </td>

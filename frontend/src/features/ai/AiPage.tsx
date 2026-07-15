@@ -7,7 +7,7 @@ function AiPage() {
       description="AI copilots and recommendations will live here."
       eyebrow="Intelligence"
     >
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-slate-300">
+      <div className="rounded border border-slate-200 bg-white p-5 text-slate-600 text-xs shadow-xs">
         Placeholder AI view.
       </div>
     </PageShell>

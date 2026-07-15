@@ -8,8 +8,8 @@ import type { CreateClientInput } from './types'
 
 function statusBadgeClasses(status: string) {
   return status === 'active'
-    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-    : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    : 'bg-amber-50 text-amber-700 border-amber-200'
 }
 
 function ClientsPage() {
@@ -30,57 +30,57 @@ function ClientsPage() {
       eyebrow="Accounts"
       action={clients ? `${clients.length} clients` : undefined}
     >
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/20">
+      <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-white">Client roster</h2>
-            <p className="text-sm text-slate-400">Prospects and active accounts.</p>
+            <h2 className="text-sm font-bold text-slate-900">Client roster</h2>
+            <p className="text-xs text-slate-500">Prospects and active accounts.</p>
           </div>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+            className="inline-flex items-center gap-1.5 rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             Add client
           </button>
         </div>
 
-        {isLoading && <p className="mt-6 text-sm text-slate-400">Loading clients…</p>}
+        {isLoading && <p className="mt-4 text-xs text-slate-500">Loading clients…</p>}
         {isError && (
-          <p className="mt-6 text-sm text-red-400">
+          <p className="mt-4 text-xs text-red-600">
             Couldn't load clients{error instanceof Error ? `: ${error.message}` : '.'}
           </p>
         )}
 
         {clients && clients.length === 0 && (
-          <p className="mt-6 text-sm text-slate-400">No clients yet. Add your first one to get started.</p>
+          <p className="mt-4 text-xs text-slate-500">No clients yet. Add your first one to get started.</p>
         )}
 
         {clients && clients.length > 0 && (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
-                  <th className="pb-3 pr-4">Name</th>
-                  <th className="pb-3 pr-4">Contact</th>
-                  <th className="pb-3 pr-4">Industry</th>
-                  <th className="pb-3 pr-4">Status</th>
+                <tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="pb-2 pr-4 font-bold">Name</th>
+                  <th className="pb-2 pr-4 font-bold">Contact</th>
+                  <th className="pb-2 pr-4 font-bold">Industry</th>
+                  <th className="pb-2 pr-4 font-bold">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-slate-600 divide-y divide-slate-100">
                 {clients.map((client) => (
-                  <tr key={client.id} className="border-b border-slate-800/60 text-slate-300">
-                    <td className="py-3 pr-4 font-medium text-white">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={client.name} size={32} />
+                  <tr key={client.id} className="hover:bg-slate-50/50">
+                    <td className="py-2 pr-4 font-bold text-slate-900">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={client.name} size={24} />
                         {client.name}
                       </div>
                     </td>
-                    <td className="py-3 pr-4">{client.contactEmail || '—'}</td>
-                    <td className="py-3 pr-4">{client.industry || '—'}</td>
-                    <td className="py-3 pr-4">
-                      <span className={`rounded-full border px-2.5 py-1 text-xs capitalize ${statusBadgeClasses(client.status)}`}>
+                    <td className="py-2 pr-4">{client.contactEmail || '—'}</td>
+                    <td className="py-2 pr-4">{client.industry || '—'}</td>
+                    <td className="py-2 pr-4">
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadgeClasses(client.status)}`}>
                         {client.status}
                       </span>
                     </td>

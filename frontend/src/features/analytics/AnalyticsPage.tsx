@@ -47,75 +47,75 @@ function AnalyticsPage() {
       eyebrow="Measurement"
       action={records ? `${records.length} records` : undefined}
     >
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg shadow-slate-950/20">
-          <p className="text-sm text-slate-400">Impressions</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{totals.impressions.toLocaleString()}</p>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Impressions</p>
+          <p className="mt-1 text-base font-extrabold text-slate-900">{totals.impressions.toLocaleString()}</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg shadow-slate-950/20">
-          <p className="text-sm text-slate-400">Clicks</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{totals.clicks.toLocaleString()}</p>
+        <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Clicks</p>
+          <p className="mt-1 text-base font-extrabold text-slate-900">{totals.clicks.toLocaleString()}</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg shadow-slate-950/20">
-          <p className="text-sm text-slate-400">Conversions</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{totals.conversions.toLocaleString()}</p>
+        <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Conversions</p>
+          <p className="mt-1 text-base font-extrabold text-slate-900">{totals.conversions.toLocaleString()}</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg shadow-slate-950/20">
-          <p className="text-sm text-slate-400">Revenue</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(totals.revenue, organization?.currency)}</p>
+        <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue</p>
+          <p className="mt-1 text-base font-extrabold text-slate-900">{formatCurrency(totals.revenue, organization?.currency)}</p>
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/20">
+      <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-white">Performance log</h2>
-            <p className="text-sm text-slate-400">Every logged record, most recent first.</p>
+            <h2 className="text-sm font-bold text-slate-900">Performance log</h2>
+            <p className="text-xs text-slate-500">Every logged record, most recent first.</p>
           </div>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+            className="inline-flex items-center gap-1.5 rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             Log record
           </button>
         </div>
 
-        {isLoading && <p className="mt-6 text-sm text-slate-400">Loading analytics…</p>}
+        {isLoading && <p className="mt-4 text-xs text-slate-500">Loading analytics…</p>}
         {isError && (
-          <p className="mt-6 text-sm text-red-400">
+          <p className="mt-4 text-xs text-red-600">
             Couldn't load analytics{error instanceof Error ? `: ${error.message}` : '.'}
           </p>
         )}
         {records && records.length === 0 && (
-          <p className="mt-6 text-sm text-slate-400">No analytics logged yet.</p>
+          <p className="mt-4 text-xs text-slate-500">No analytics logged yet.</p>
         )}
 
         {records && records.length > 0 && (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
-                  <th className="pb-3 pr-4">Date</th>
-                  <th className="pb-3 pr-4">Influencer</th>
-                  <th className="pb-3 pr-4">Impressions</th>
-                  <th className="pb-3 pr-4">Clicks</th>
-                  <th className="pb-3 pr-4">Conversions</th>
-                  <th className="pb-3 pr-4">Revenue</th>
+                <tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="pb-2 pr-4 font-bold">Date</th>
+                  <th className="pb-2 pr-4 font-bold">Influencer</th>
+                  <th className="pb-2 pr-4 font-bold">Impressions</th>
+                  <th className="pb-2 pr-4 font-bold">Clicks</th>
+                  <th className="pb-2 pr-4 font-bold">Conversions</th>
+                  <th className="pb-2 pr-4 font-bold">Revenue</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-slate-600 divide-y divide-slate-100">
                 {records.map((record) => (
-                  <tr key={record.id} className="border-b border-slate-800/60 text-slate-300">
-                    <td className="py-3 pr-4">{record.date}</td>
-                    <td className="py-3 pr-4 font-medium text-white">
+                  <tr key={record.id} className="hover:bg-slate-50/50">
+                    <td className="py-2.5 pr-4">{record.date}</td>
+                    <td className="py-2.5 pr-4 font-bold text-slate-900">
                       {influencerNameById.get(record.influencerId) ?? record.influencerId}
                     </td>
-                    <td className="py-3 pr-4">{(record.impressions ?? 0).toLocaleString()}</td>
-                    <td className="py-3 pr-4">{(record.clicks ?? 0).toLocaleString()}</td>
-                    <td className="py-3 pr-4">{(record.conversions ?? 0).toLocaleString()}</td>
-                    <td className="py-3 pr-4">{formatCurrency(record.revenue, organization?.currency)}</td>
+                    <td className="py-2.5 pr-4 font-medium">{(record.impressions ?? 0).toLocaleString()}</td>
+                    <td className="py-2.5 pr-4 font-medium">{(record.clicks ?? 0).toLocaleString()}</td>
+                    <td className="py-2.5 pr-4 font-medium">{(record.conversions ?? 0).toLocaleString()}</td>
+                    <td className="py-2.5 pr-4 font-bold text-slate-800">{formatCurrency(record.revenue, organization?.currency)}</td>
                   </tr>
                 ))}
               </tbody>

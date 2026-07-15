@@ -215,29 +215,29 @@ export function InfluencerFormModal({
   const isUsernameValid = form.username ? validateUsername(form.username) : true
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6">
-      <div className="w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-slate-950/40 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs px-4 py-6">
+      <div className="w-full max-w-2xl max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between flex-shrink-0">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               {isEditing ? 'Edit creator' : 'Quick capture'}
             </p>
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-base font-extrabold text-slate-900">
               {isEditing ? `Edit ${influencer?.fullName ?? 'influencer'}` : 'Add influencer'}
             </h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 transition">
-            <X size={16} />
+          <button type="button" onClick={onClose} className="rounded border border-slate-200 p-1 text-slate-400 hover:bg-slate-50 transition cursor-pointer">
+            <X size={14} />
           </button>
         </div>
 
         {(errorMessage || localValError || imageError) && (
-          <p className="mt-4 rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-300 flex-shrink-0">
+          <p className="mt-3 rounded border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700 font-semibold flex-shrink-0">
             {errorMessage || localValError || imageError}
           </p>
         )}
 
-        <form className="mt-6 flex-1 overflow-y-auto pr-1 grid gap-4 md:grid-cols-2 themed-scrollbar" onSubmit={handleSubmit}>
+        <form className="mt-4 flex-1 overflow-y-auto pr-1 grid gap-3 md:grid-cols-2 themed-scrollbar" onSubmit={handleSubmit}>
           <label className={labelClass}>
             <span className="mb-2 block">Full name</span>
             <input
@@ -341,9 +341,9 @@ export function InfluencerFormModal({
             />
           </label>
 
-          <div className="md:col-span-2 border-t border-slate-800 pt-4">
-            <p className="text-sm font-semibold text-slate-300">Stats</p>
-            <p className="text-xs text-slate-500">
+          <div className="md:col-span-2 border-t border-slate-100 pt-3">
+            <p className="text-xs font-bold text-slate-800">Stats</p>
+            <p className="text-[10px] text-slate-400 font-medium">
               Updating these logs a new growth snapshot, so the profile chart tracks change over time.
             </p>
           </div>
@@ -399,8 +399,8 @@ export function InfluencerFormModal({
             />
           </label>
 
-          <div className="md:col-span-2 border-t border-slate-800 pt-4">
-            <p className="text-sm font-semibold text-slate-300">Pricing &amp; trust</p>
+          <div className="md:col-span-2 border-t border-slate-100 pt-3">
+            <p className="text-xs font-bold text-slate-800">Pricing &amp; trust</p>
           </div>
           <label className={labelClass}>
             <span className="mb-2 block">Price per post</span>
@@ -423,64 +423,64 @@ export function InfluencerFormModal({
             />
           </label>
           <div className="flex items-center gap-6 md:col-span-2">
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.verified}
                 onChange={(event) => setForm((current) => ({ ...current, verified: event.target.checked }))}
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-cyan-500"
+                className="h-4 w-4 rounded border-slate-300 bg-white accent-black cursor-pointer"
               />
               Verified account
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.brandSafe}
                 onChange={(event) => setForm((current) => ({ ...current, brandSafe: event.target.checked }))}
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-cyan-500"
+                className="h-4 w-4 rounded border-slate-300 bg-white accent-black cursor-pointer"
               />
               Brand safe
             </label>
           </div>
 
-          <div className="md:col-span-2 border-t border-slate-800/80 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-slate-300">Profile image</span>
-              <div className="flex gap-1.5 p-1 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div className="md:col-span-2 border-t border-slate-100 pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-slate-800">Profile image</span>
+              <div className="flex gap-1 p-0.5 bg-slate-100 rounded border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setImageSource('upload')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-1 cursor-pointer ${
                     imageSource === 'upload'
-                      ? 'bg-cyan-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  <UploadCloud size={12} /> Upload file
+                  <UploadCloud size={10} /> Upload file
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageSource('url')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-1 cursor-pointer ${
                     imageSource === 'url'
-                      ? 'bg-cyan-500 text-slate-950 shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  <Link2 size={12} /> URL path
+                  <Link2 size={10} /> URL path
                 </button>
               </div>
             </div>
 
             {imageSource === 'upload' ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 bg-slate-950/20 p-3 rounded-2xl border border-slate-800/50">
-                  <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={56} />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded border border-slate-100">
+                  <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={40} />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-200">
+                    <p className="text-xs font-bold text-slate-700">
                       {imageUploading ? 'Processing…' : form.profileImage ? 'Ready to save image' : 'No image loaded'}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-[10px] text-slate-400 leading-normal font-medium">
                       {imageUploading
                         ? 'Resizing to 256×256…'
                         : form.profileImage
@@ -491,13 +491,13 @@ export function InfluencerFormModal({
                       <button
                         type="button"
                         onClick={() => setForm((c) => ({ ...c, profileImage: '' }))}
-                        className="mt-1 text-xs font-semibold text-rose-400 hover:text-rose-300 transition"
+                        className="mt-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 transition cursor-pointer"
                       >
                         Clear image
                       </button>
                     )}
                   </div>
-                  {imageUploading && <Loader2 size={18} className="animate-spin text-cyan-400 flex-shrink-0" />}
+                  {imageUploading && <Loader2 size={14} className="animate-spin text-slate-900 flex-shrink-0" />}
                 </div>
 
                 <div
@@ -512,7 +512,7 @@ export function InfluencerFormModal({
                     if (file) void handleImageFile(file)
                   }}
                   onClick={() => !imageUploading && document.getElementById('profile-upload-input')?.click()}
-                  className={`border-2 border-dashed border-slate-800 hover:border-cyan-500/50 hover:bg-slate-950/20 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition text-center gap-2 group ${imageUploading ? 'pointer-events-none opacity-60' : ''}`}
+                  className={`border-2 border-dashed border-slate-200 hover:border-black rounded p-4 flex flex-col items-center justify-center cursor-pointer transition text-center gap-1.5 group ${imageUploading ? 'pointer-events-none opacity-50' : ''}`}
                 >
                   <input
                     id="profile-upload-input"
@@ -526,23 +526,23 @@ export function InfluencerFormModal({
                     }}
                     className="hidden"
                   />
-                  <div className="p-3 rounded-full bg-slate-950/40 text-slate-400 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 transition">
-                    <UploadCloud size={20} />
+                  <div className="p-2 rounded-full bg-slate-50 text-slate-400 group-hover:text-black group-hover:bg-slate-100 transition">
+                    <UploadCloud size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-300">
-                      <span className="text-cyan-400 group-hover:underline">Click to upload</span> or drag and drop
+                    <p className="text-xs font-bold text-slate-700">
+                      <span className="text-slate-950 group-hover:underline">Click to upload</span> or drag and drop
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-normal">
                       Any image, any size — we resize it to a 256×256 WebP automatically (source max 8MB)
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={40} />
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={32} />
                   <input
                     value={urlDraft}
                     onChange={(event) => setUrlDraft(event.target.value)}
@@ -554,13 +554,13 @@ export function InfluencerFormModal({
                     type="button"
                     onClick={() => void handleImportUrl()}
                     disabled={imageUploading || !urlDraft.trim()}
-                    className="flex-shrink-0 rounded-xl bg-cyan-500 px-3 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    className="flex-shrink-0 rounded bg-black px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
                   >
-                    {imageUploading ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />}
+                    {imageUploading ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
                     Import
                   </button>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-[10px] text-slate-400 leading-normal">
                   Profile picture links from Instagram/TikTok/etc usually won't load if pasted directly — hit
                   "Import" and we'll fetch, resize, and re-host a copy so it always renders.
                 </p>
@@ -586,14 +586,14 @@ export function InfluencerFormModal({
             />
           </label>
 
-          <div className="sticky bottom-0 bg-slate-900 pt-4 pb-1 mt-4 flex justify-end gap-3 md:col-span-2 border-t border-slate-800/80">
-            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 transition">
+          <div className="sticky bottom-0 bg-white pt-3 pb-0.5 mt-3 flex justify-end gap-2 md:col-span-2 border-t border-slate-100">
+            <button type="button" onClick={onClose} className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-500 font-bold hover:bg-slate-50 transition cursor-pointer">
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || imageUploading}
-              className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60 hover:bg-cyan-400 transition"
+              className="rounded bg-black px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Saving…' : isEditing ? 'Save changes' : 'Save influencer'}
             </button>

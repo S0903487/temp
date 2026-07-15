@@ -27,9 +27,9 @@ import type { PipelineStatus } from './types'
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className="mt-2 text-xl font-semibold text-white">{value}</p>
+    <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-extrabold text-slate-900">{value}</p>
     </div>
   )
 }
@@ -58,7 +58,7 @@ function InfluencerProfilePage() {
   if (isLoading) {
     return (
       <PageShell title="Influencer Profile" description="Loading creator details…" eyebrow="Creator operations">
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-xs text-slate-400">Loading…</p>
       </PageShell>
     )
   }
@@ -66,7 +66,7 @@ function InfluencerProfilePage() {
   if (isError || !influencer) {
     return (
       <PageShell title="Influencer Profile" description="We couldn't find this creator." eyebrow="Creator operations">
-        <Link to="/influencers" className="text-sm text-cyan-400 hover:underline">
+        <Link to="/influencers" className="text-xs text-slate-900 font-bold hover:underline">
           ← Back to influencers
         </Link>
       </PageShell>
@@ -92,28 +92,28 @@ function InfluencerProfilePage() {
       eyebrow="Creator profile"
       action={<PipelineStatusSelect value={influencer.pipelineStatus} onChange={handlePipelineChange} disabled={updateInfluencer.isPending} />}
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link to="/influencers" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
-            <ArrowLeft size={14} /> Back to all creators
+          <Link to="/influencers" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-black font-bold">
+            <ArrowLeft size={13} /> Back to all creators
           </Link>
 
           <div className="flex items-center gap-2">
             {isConfirmingDelete ? (
-              <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-1.5">
-                <span className="text-sm text-rose-200">Delete this creator?</span>
+              <div className="flex items-center gap-2 rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                <span>Delete this creator?</span>
                 <button
                   type="button"
                   onClick={handleDeleteConfirmed}
                   disabled={deleteInfluencer.isPending}
-                  className="rounded-lg bg-rose-500 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                  className="rounded bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-rose-700 transition cursor-pointer"
                 >
                   {deleteInfluencer.isPending ? 'Deleting…' : 'Yes, delete'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsConfirmingDelete(false)}
-                  className="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300"
+                  className="rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-500 font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -123,16 +123,16 @@ function InfluencerProfilePage() {
                 <button
                   type="button"
                   onClick={() => setIsEditOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+                  className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
                 >
-                  <Pencil size={14} /> Edit
+                  <Pencil size={12} /> Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsConfirmingDelete(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 px-3 py-1.5 text-sm text-rose-300 hover:border-rose-500/60 hover:bg-rose-500/10"
+                  className="inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 size={12} /> Delete
                 </button>
               </>
             )}
@@ -140,64 +140,64 @@ function InfluencerProfilePage() {
         </div>
 
         {deleteInfluencer.isError && (
-          <p className="text-sm text-red-400">
+          <p className="text-xs text-red-600">
             Couldn't delete this creator{deleteInfluencer.error instanceof Error ? `: ${deleteInfluencer.error.message}` : '.'}
           </p>
         )}
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
+        <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex flex-wrap items-center gap-4">
-            <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={64} />
+            <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={48} />
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold text-white">{influencer.fullName}</h2>
-                {influencer.verified && <BadgeCheck size={18} className="text-sky-400" />}
-                {influencer.brandSafe && <ShieldCheck size={18} className="text-emerald-400" />}
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-sm font-extrabold text-slate-900">{influencer.fullName}</h2>
+                {influencer.verified && <BadgeCheck size={14} className="text-sky-500" />}
+                {influencer.brandSafe && <ShieldCheck size={14} className="text-emerald-500" />}
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {influencer.username} · {influencer.platform} · {influencer.category}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                 {influencer.country}
                 {influencer.language ? ` · ${influencer.language}` : ''}
               </p>
             </div>
-            <div className="ml-auto flex flex-col gap-1 text-sm text-slate-300">
+            <div className="ml-auto flex flex-col gap-0.5 text-xs text-slate-600">
               {influencer.email && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Mail size={14} className="text-slate-500" /> {influencer.email}
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  <Mail size={12} className="text-slate-400" /> {influencer.email}
                 </span>
               )}
               {influencer.phone && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Phone size={14} className="text-slate-500" /> {influencer.phone}
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  <Phone size={12} className="text-slate-400" /> {influencer.phone}
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Followers" value={influencer.followers.toLocaleString()} />
           <StatCard label="Engagement" value={`${influencer.engagementRate.toFixed(1)}%`} />
           <StatCard label="Avg. Views" value={influencer.averageViews.toLocaleString()} />
           <StatCard label="Avg. Likes / Comments" value={`${influencer.averageLikes.toLocaleString()} / ${influencer.averageComments.toLocaleString()}`} />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-            <h3 className="mb-3 text-lg font-semibold text-white">Growth history</h3>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+            <h3 className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5">Growth history</h3>
             <GrowthChart snapshots={snapshots} metric="followers" />
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-            <h3 className="mb-3 text-lg font-semibold text-white">Engagement history</h3>
+          <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+            <h3 className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5">Engagement history</h3>
             <GrowthChart snapshots={snapshots} metric="engagementRate" />
           </section>
         </div>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-          <h3 className="mb-3 text-lg font-semibold text-white">Tags</h3>
+        <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+          <h3 className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5">Tags</h3>
           <TagSelector
             tags={tags}
             suggestions={orgTags}
@@ -207,9 +207,9 @@ function InfluencerProfilePage() {
           />
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-            <h3 className="mb-3 text-lg font-semibold text-white">Notes</h3>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+            <h3 className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5">Notes</h3>
             <NotesPanel
               notes={notes}
               isLoading={notesLoading}
@@ -219,8 +219,8 @@ function InfluencerProfilePage() {
             />
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-            <h3 className="mb-3 text-lg font-semibold text-white">Campaign history</h3>
+          <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">
+            <h3 className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5">Campaign history</h3>
             <CampaignHistoryList items={campaignHistory} isLoading={campaignsLoading} />
           </section>
         </div>

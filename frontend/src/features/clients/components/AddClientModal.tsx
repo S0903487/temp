@@ -31,25 +31,25 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6">
-      <div className="w-full max-w-lg max-h-[90vh] rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-slate-950/40 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs px-4 py-6">
+      <div className="w-full max-w-md max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between flex-shrink-0">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">New account</p>
-            <h2 className="text-xl font-semibold text-white">Add client</h2>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">New account</p>
+            <h2 className="text-base font-extrabold text-slate-900">Add client</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 transition">
-            <X size={16} />
+          <button type="button" onClick={onClose} className="rounded border border-slate-200 p-1 text-slate-400 hover:bg-slate-50 transition cursor-pointer">
+            <X size={14} />
           </button>
         </div>
 
         {errorMessage && (
-          <p className="mt-4 rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-300 flex-shrink-0">{errorMessage}</p>
+          <p className="mt-3 rounded border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700 font-semibold flex-shrink-0">{errorMessage}</p>
         )}
 
-        <form className="mt-6 flex-1 overflow-y-auto pr-1 grid gap-4" onSubmit={handleSubmit}>
+        <form className="mt-4 flex-1 overflow-y-auto pr-1 grid gap-3" onSubmit={handleSubmit}>
           <label className={labelClass}>
-            <span className="mb-2 block">Client name</span>
+            <span className="mb-1 block">Client name</span>
             <input
               value={form.name}
               onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
@@ -58,7 +58,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Contact email</span>
+            <span className="mb-1 block">Contact email</span>
             <input
               type="email"
               value={form.contactEmail}
@@ -67,7 +67,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Industry</span>
+            <span className="mb-1 block">Industry</span>
             <input
               value={form.industry}
               onChange={(event) => setForm((current) => ({ ...current, industry: event.target.value }))}
@@ -75,7 +75,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Status</span>
+            <span className="mb-1 block">Status</span>
             <Select
               value={form.status}
               onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as ClientStatus }))}
@@ -85,14 +85,14 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
             </Select>
           </label>
 
-          <div className="sticky bottom-0 bg-slate-900 pt-4 pb-1 mt-4 flex justify-end gap-3 border-t border-slate-800/80">
-            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 transition">
+          <div className="sticky bottom-0 bg-white pt-3 pb-0.5 mt-3 flex justify-end gap-2 border-t border-slate-100">
+            <button type="button" onClick={onClose} className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-500 font-bold hover:bg-slate-50 transition cursor-pointer">
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60 hover:bg-cyan-400 transition"
+              className="rounded bg-black px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Saving…' : 'Save client'}
             </button>
