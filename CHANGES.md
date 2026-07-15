@@ -7,24 +7,29 @@ of the codebase. Summary of what changed and why:
 `GET /api/influencers` (used by the dashboard, grid, table, pipeline
 board — everywhere) was returning every influencer's profile photo as a
 full base64 string on every request, because the upload form saved
-`FileReader.readAsDataURL()` output straight into the database. That's
-the main reason list/search pages felt slow. Photos are now uploaded,
-resized to 256×256, converted to WebP, and stored in R2; the database
-only ever holds a short `/api/uploads/<key>` URL.
+`FileReader.readAsDataURL()` output straight into the database at
+whatever size the original file happened to be. That's the main reason
+list/search pages felt slow. Photos are now always resized to 256×256
+WebP client-side (~10-40KB) before being embedded the same way, so the
+payload just never gets big again. The backend also rejects (400) any
+`profileImage` over 200KB on create/update as a backstop.
 
 ## Fixed: broken / non-loading images (incl. Instagram/TikTok links)
 Pasting a TikTok/Instagram CDN URL directly often rendered as a broken
 image because those CDNs reject cross-origin hotlinking. There's now an
-"Import" step (`POST /api/uploads/from-url`) that fetches the image
-server-side (not subject to the same restrictions), resizes it, and
-re-hosts it from our own origin. New/edited files:
+"Import" step (`POST /api/images/fetch-url`) that fetches the image
+server-side (not subject to the same restrictions) and hands the bytes
+back to the browser, which resizes them exactly like a local upload.
+Nothing is stored server-side. New/edited files:
 `worker/handlers/uploads.ts`, `frontend/src/lib/image.ts`,
-`frontend/src/lib/uploads.ts`, `frontend/src/features/influencers/components/AddInfluencerModal.tsx`.
+`frontend/src/lib/uploads.ts`,
+`frontend/src/features/influencers/components/AddInfluencerModal.tsx`.
 
-Requires one-time setup before deploying: create the R2 bucket with
-`npx wrangler r2 bucket create influenceos-images` (binding already added
-to `wrangler.jsonc`). Local dev needs nothing extra — `server.ts` now
-includes a filesystem-backed R2 shim.
+No extra Cloudflare setup needed — this intentionally avoids R2 (an
+earlier version of this fix used R2, but Cloudflare requires a payment
+method on file to enable it even on the free tier, so it was dropped in
+favor of embedding the small resized image directly, same as before but
+now actually small).
 
 ## Removed dead code (the "confusing structure" problem)
 These were never imported by the running app — leftovers from an earlier

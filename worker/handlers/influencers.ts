@@ -71,10 +71,11 @@ function toApi(row: Record<string, unknown>) {
 }
 
 export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  // profile_image is a short `/api/uploads/<key>` string (see
-  // worker/handlers/uploads.ts), not a base64 blob, so returning every
-  // column here for every row is cheap — this used to be the slowest
-  // request in the app back when profile_image held raw base64 image data.
+  // profile_image is a small (~10-40KB) base64 data URL — a resized
+  // 256x256 WebP, never the original picked/fetched image (see
+  // frontend/src/lib/image.ts) — so returning it for every row here is
+  // cheap. This used to be the slowest request in the app back when
+  // profile_image held an unresized, multi-MB base64 original.
   const { results } = await env.DB.prepare('SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC')
     .bind(auth.organizationId)
     .all();
@@ -92,6 +93,13 @@ export async function getById(_request: Request, env: Env, auth: AuthedRequest, 
 export async function create(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
   const body = await readJson<InfluencerBody>(request);
   if (!body.fullName) return badRequest('fullName is required');
+  // The client resizes photos to a 256x256 WebP data URL (a few tens of
+  // KB) before sending them — see frontend/src/lib/image.ts. This cap is
+  // just a backstop against a buggy/malicious client sending something
+  // huge, which is what made list endpoints slow in the first place.
+  if (body.profileImage && body.profileImage.length > 200_000) {
+    return badRequest('profileImage is too large — it should be a resized (256x256) image');
+  }
 
   const id = generateId('inf');
   const now = nowIso();
@@ -190,6 +198,9 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   if (!existing) return notFound();
 
   const body = await readJson<InfluencerBody>(request);
+  if (body.profileImage && body.profileImage.length > 200_000) {
+    return badRequest('profileImage is too large — it should be a resized (256x256) image');
+  }
   const sets: string[] = [];
   const values: unknown[] = [];
 

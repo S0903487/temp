@@ -2,39 +2,18 @@ import { getAuthToken } from '../features/auth/services/authService';
 import { ApiError } from './api';
 
 /**
- * Uploads an already-resized image blob (see lib/image.ts) to
- * POST /api/uploads/file and returns the stable `/api/uploads/...` URL to
- * store on the record (e.g. influencer.profileImage). Unlike apiRequest,
- * this sends raw bytes rather than JSON.
- */
-export async function uploadImageFile(blob: Blob): Promise<string> {
-  const token = getAuthToken();
-  const response = await fetch('/api/uploads/file', {
-    method: 'POST',
-    headers: {
-      'Content-Type': blob.type || 'image/webp',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: blob,
-  });
-
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new ApiError((data as { error?: string } | null)?.error ?? 'Image upload failed', response.status);
-  }
-  return (data as { url: string }).url;
-}
-
-/**
  * Asks the backend to fetch a remote image URL (e.g. a pasted Instagram or
- * TikTok profile picture link), resize it, and re-host it from our own
- * origin. Needed because those CDNs commonly block direct hotlinking from
- * the browser, so just saving the pasted URL as-is renders as a broken
- * image for everyone viewing the influencer.
+ * TikTok profile picture link) and hand back the raw bytes as a Blob.
+ * Needed because those CDNs commonly block direct hotlinking from the
+ * browser (they check Referer/Origin/User-Agent) — a Worker-to-origin
+ * fetch isn't subject to the same restriction. The caller then runs the
+ * result through the same resizeImageToWebp() used for a local file pick
+ * (see lib/image.ts), so both paths end up producing an identical small,
+ * self-contained data URL — nothing is stored server-side.
  */
-export async function uploadImageFromUrl(url: string): Promise<string> {
+export async function fetchRemoteImage(url: string): Promise<Blob> {
   const token = getAuthToken();
-  const response = await fetch('/api/uploads/from-url', {
+  const response = await fetch('/api/images/fetch-url', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,9 +22,10 @@ export async function uploadImageFromUrl(url: string): Promise<string> {
     body: JSON.stringify({ url }),
   });
 
-  const data = await response.json().catch(() => null);
   if (!response.ok) {
+    const data = await response.json().catch(() => null);
     throw new ApiError((data as { error?: string } | null)?.error ?? 'Could not import that image URL', response.status);
   }
-  return (data as { url: string }).url;
+
+  return response.blob();
 }

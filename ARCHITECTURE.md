@@ -8,26 +8,25 @@ really running, and is the one to trust when they disagree.)
 
 ```
 frontend/   React 19 + Vite + Tailwind SPA. Everything the user sees.
-worker/     The real backend — a Cloudflare Worker + D1 (SQLite) + R2.
+worker/     The real backend — a Cloudflare Worker + D1 (SQLite).
             This is what actually runs in production.
 server.ts   A local-only dev harness. It runs the SAME worker/index.ts
             fetch handler, but wires it up to a plain SQLite file
-            (via better-sqlite3) instead of D1, and a local folder
-            instead of R2, so you can `npm run dev` without a
-            Cloudflare account. It is not a second backend
+            (via better-sqlite3) instead of D1, so you can `npm run dev`
+            without a Cloudflare account. It is not a second backend
             implementation — it's a shim around the one in worker/.
 ```
 
 Production request flow: browser → Cloudflare Worker (`worker/index.ts`)
 → either serves the built SPA (`ASSETS` binding) or routes `/api/*` to a
-handler in `worker/handlers/*` → D1 for data, R2 (`IMAGES` binding) for
-avatar images.
+handler in `worker/handlers/*` → D1 for everything, including avatar
+images (stored as small resized data URLs — see below, no separate
+image storage product is used).
 
 Local dev flow: `npm run dev` → `server.ts` starts Express + Vite →
 `/api/*` requests are converted into Fetch `Request` objects and handed
-to the exact same `worker.fetch()` used in production, with `env.DB` and
-`env.IMAGES` backed by `influenceos.db` (SQLite file) and `.local-r2/`
-(a plain folder) respectively. Everything else is served by Vite's dev
+to the exact same `worker.fetch()` used in production, with `env.DB`
+backed by `influenceos.db` (a SQLite file). Everything else is served by Vite's dev
 middleware with HMR.
 
 ## Frontend structure (`frontend/src`)
@@ -93,19 +92,20 @@ handlers/*.ts    One file per resource (influencers, campaigns, clients,
                  no ORM.
 utils.ts         json()/errorResponse() helpers, ID generation, PBKDF2
                  password hashing, session token generation.
-types.ts         Env (the bindings available to the Worker: DB, ASSETS,
-                 IMAGES) and AuthedRequest.
+types.ts         Env (the bindings available to the Worker: DB, ASSETS)
+                 and AuthedRequest.
 ```
 
 Every table lives in `schema.sql` (+ incremental changes in
 `migrations/*.sql`); that file is the source of truth for the data model,
 not `docs/database.md`.
 
-## Avatar images: upload, resize, and why URLs used to be slow/broken
+## Avatar images: resize client-side, no external storage needed
 
 Profile photos used to be read client-side into a base64 string and
-saved directly into the `influencers.profile_image` D1 column. Two
-problems came from that:
+saved directly into the `influencers.profile_image` D1 column, at
+whatever size the original file happened to be. Two problems came from
+that:
 
 1. **Slow list pages** — `GET /api/influencers` (used by the dashboard,
    the influencer grid/table/pipeline board, everywhere) returned every
@@ -117,29 +117,36 @@ problems came from that:
    those CDNs commonly reject direct `<img>` hotlinking from another
    origin (they check Referer/Origin/User-Agent).
 
-Both are fixed by the same pipeline now (`worker/handlers/uploads.ts`,
-`frontend/src/lib/image.ts`, `frontend/src/lib/uploads.ts`):
+Both are fixed without needing any external storage product
+(`frontend/src/lib/image.ts`, `frontend/src/lib/uploads.ts`,
+`worker/handlers/uploads.ts`,
+`frontend/src/features/influencers/components/AddInfluencerModal.tsx`):
 
-- **File upload**: the browser resizes the image to 256×256 WebP with
-  `<canvas>` (`resizeImageToWebp`) *before* sending it anywhere, then
-  `POST /api/uploads/file` stores just that small file in R2.
-- **Pasted URL**: `POST /api/uploads/from-url` fetches the image
+- **File upload**: the browser resizes the image to a 256×256 WebP with
+  `<canvas>` (`resizeImageToWebp`) and embeds *that* — not the original —
+  as a `data:image/webp;base64,...` URL directly on the record. A
+  resized photo is only ~10-40KB, so this is what actually fixes the
+  slow-list problem: the record just never holds anything bigger again.
+- **Pasted URL**: `POST /api/images/fetch-url` fetches the image
   server-side (a Worker-to-origin fetch isn't subject to the browser's
-  hotlink/CORS restrictions a TikTok/Instagram CDN checks for), attempts
-  a 256×256 WebP resize via Cloudflare Image Resizing if the zone has it
-  enabled, and stores the result in R2 either way.
-- Either path returns a short `/api/uploads/<key>` URL. **That's** what
-  gets saved on the influencer record — never raw bytes, never someone
-  else's CDN link.
-- `GET /api/uploads/<key>` serves the file back out of R2, publicly
-  (no auth), because `<img src>` requests can't attach our Bearer token.
+  hotlink/CORS restrictions a TikTok/Instagram CDN checks for) and
+  streams the raw bytes back to the browser, which then runs them
+  through the exact same `resizeImageToWebp` step as a local upload.
+  Nothing is stored server-side — the Worker is just a pass-through that
+  dodges hotlink blocking.
+- The backend also rejects (`400`) any `profileImage` over 200KB on
+  create/update as a backstop, in case a client ever sends something
+  unresized.
 
-**One-time setup this requires** that wasn't needed before: an R2 bucket.
-`wrangler.jsonc` now declares an `IMAGES` binding pointing at a bucket
-named `influenceos-images` — create it once with
-`npx wrangler r2 bucket create influenceos-images` before deploying.
-Local dev doesn't need this — `server.ts`'s local R2 shim just uses a
-`.local-r2/` folder automatically.
+**Why not R2 (Cloudflare's object storage)?** It was the first design
+here, but Cloudflare requires a payment method on file to enable R2 even
+to stay within its free tier — not workable for every deployment target.
+Keeping images as small embedded data URLs avoids that entirely; no
+Cloudflare product beyond Workers + D1 needs to be enabled. If the app
+later wants a real image CDN (e.g. once traffic/photo count grows enough
+that embedding stops making sense), R2 is the natural next step, but
+that's a deliberate future upgrade, not something required to run the
+app today.
 
 ## Things intentionally not covered here
 

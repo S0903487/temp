@@ -31,8 +31,6 @@ dist-ssr
 !.env.example
 worker/tsconfig.tsbuildinfo
 
-# Local dev server (server.ts) storage — SQLite stand-in for D1, and a
-# plain-directory stand-in for the R2 avatar bucket. See server.ts.
+# Local dev server (server.ts) storage — SQLite stand-in for D1.
 influenceos.db
 influenceos.db-*
-.local-r2/

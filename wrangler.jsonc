@@ -21,13 +21,5 @@
       "database_id": "1f7eb06b-6759-4daf-b079-c0531d5ea75e",
       "remote": true
     }
-  ],
-  // Stores resized (256x256 WebP) avatar images uploaded via /api/uploads/*.
-  // Create it once with: npx wrangler r2 bucket create influenceos-images
-  "r2_buckets": [
-    {
-      "binding": "IMAGES",
-      "bucket_name": "influenceos-images"
-    }
   ]
 }

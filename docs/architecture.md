@@ -2,7 +2,7 @@
 
 > This was the pre-implementation plan. The app has since been built —
 > see [`/ARCHITECTURE.md`](../ARCHITECTURE.md) at the repo root for how
-> it actually works today (folder-by-folder structure, the Worker/D1/R2
+> it actually works today (folder-by-folder structure, the Worker/D1
 > backend, and the avatar upload pipeline). Keeping this note here so
 > nobody mistakes the old plan below for current behavior.
 

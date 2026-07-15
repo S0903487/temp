@@ -5,8 +5,8 @@ import { X, UploadCloud, Link2, Loader2 } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import { Select, fieldClass, textAreaClass, labelClass } from '../../../components/shared/fields'
 import { COUNTRIES } from '../../../lib/countries'
-import { resizeImageToWebp } from '../../../lib/image'
-import { uploadImageFile, uploadImageFromUrl } from '../../../lib/uploads'
+import { resizeImageToWebp, blobToDataUrl } from '../../../lib/image'
+import { fetchRemoteImage } from '../../../lib/uploads'
 import type { Influencer, Platform } from '../types'
 import type { CreateInfluencerInput } from '../services/influencerService'
 
@@ -95,8 +95,8 @@ export function InfluencerFormModal({
   const [imageUploading, setImageUploading] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
   // What the user typed in the URL tab — kept separate from form.profileImage,
-  // which only ever holds a URL we've actually verified renders (either our
-  // own /api/uploads/... URL after importing, or a URL the user confirmed).
+  // which only ever holds a data URL we've actually resized (either from a
+  // local file pick, or after importing+resizing a pasted external link).
   const [urlDraft, setUrlDraft] = useState('')
 
   // Re-sync the form whenever the modal is opened, either with the
@@ -130,12 +130,13 @@ export function InfluencerFormModal({
     setImageError(null)
     setImageUploading(true)
     try {
-      // Resize to a 256x256 WebP in-browser, then upload just that small
-      // file — not the multi-MB original — so the record only ever stores
-      // a short URL instead of a giant base64 blob.
+      // Resize to a 256x256 WebP in-browser, then store that small
+      // (~10-40KB) result directly as a data URL on the record — not the
+      // multi-MB original, which is what made list/search pages slow
+      // when this used to save the raw picked file as base64.
       const resized = await resizeImageToWebp(file, 256)
-      const url = await uploadImageFile(resized)
-      setForm((current) => ({ ...current, profileImage: url }))
+      const dataUrl = await blobToDataUrl(resized)
+      setForm((current) => ({ ...current, profileImage: dataUrl }))
     } catch (err) {
       setImageError(err instanceof Error ? err.message : 'Could not process that image.')
     } finally {
@@ -145,9 +146,10 @@ export function InfluencerFormModal({
 
   /**
    * Fetches a pasted external link (e.g. an Instagram/TikTok profile photo
-   * URL) through our backend so it gets re-hosted from our own origin at
-   * 256x256 WebP. Saving the raw external URL directly tends to render as
-   * a broken image, since those CDNs typically block hotlinking.
+   * URL) through our backend, since saving that URL directly tends to
+   * render as a broken image (those CDNs typically block hotlinking from
+   * another origin). The fetched bytes are then resized exactly like a
+   * local upload, so the end result is the same small data URL either way.
    */
   const handleImportUrl = async () => {
     const trimmed = urlDraft.trim()
@@ -155,8 +157,10 @@ export function InfluencerFormModal({
     setImageError(null)
     setImageUploading(true)
     try {
-      const url = await uploadImageFromUrl(trimmed)
-      setForm((current) => ({ ...current, profileImage: url }))
+      const remoteBlob = await fetchRemoteImage(trimmed)
+      const resized = await resizeImageToWebp(remoteBlob, 256)
+      const dataUrl = await blobToDataUrl(resized)
+      setForm((current) => ({ ...current, profileImage: dataUrl }))
     } catch (err) {
       setImageError(err instanceof Error ? err.message : 'Could not import that image URL.')
     } finally {
@@ -474,13 +478,13 @@ export function InfluencerFormModal({
                   <Avatar name={form.fullName || 'New Creator'} imageUrl={form.profileImage} size={56} />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-slate-200">
-                      {imageUploading ? 'Uploading…' : form.profileImage ? 'Ready to save image' : 'No image loaded'}
+                      {imageUploading ? 'Processing…' : form.profileImage ? 'Ready to save image' : 'No image loaded'}
                     </p>
                     <p className="text-xs text-slate-400">
                       {imageUploading
-                        ? 'Resizing to 256×256 and uploading…'
+                        ? 'Resizing to 256×256…'
                         : form.profileImage
-                          ? 'Saved to Cloudflare — this URL will be reused on every page.'
+                          ? 'Resized and ready — this stays attached to the record.'
                           : 'Drag an image below or click to choose.'}
                     </p>
                     {form.profileImage && !imageUploading && (

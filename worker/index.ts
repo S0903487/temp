@@ -42,15 +42,6 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     });
   }
 
-  // ---- Public image serving ----
-  // <img src="..."> requests never carry our Authorization header, so this
-  // route (and only this one) has to stay outside the auth gate below.
-  // Uploading (POST) still requires auth — see the authenticated section.
-  if (resource === 'uploads' && method === 'GET') {
-    const key = parts.slice(1).join('/');
-    return uploadHandlers.serve(request, env, key);
-  }
-
   // ---- Public auth routes ----
   if (resource === 'auth') {
     if (id === 'register' && method === 'POST') return authHandlers.register(request, env);
@@ -121,10 +112,8 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     return notFound();
   }
 
-  if (resource === 'uploads') {
-    if (id === 'file' && method === 'POST') return uploadHandlers.uploadFile(request, env, auth);
-    if (id === 'from-url' && method === 'POST') return uploadHandlers.uploadFromUrl(request, env, auth);
-    return notFound();
+  if (resource === 'images' && id === 'fetch-url' && method === 'POST') {
+    return uploadHandlers.fetchUrl(request, env, auth);
   }
 
   if (resource === 'tags' && !id && method === 'GET') return tagHandlers.list(request, env, auth);
