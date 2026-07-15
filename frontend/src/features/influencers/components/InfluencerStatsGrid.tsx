@@ -41,56 +41,56 @@ export function InfluencerStatsGrid({ influencers }: InfluencerStatsGridProps) {
         value: total.toLocaleString(),
         sub: 'Live directory',
         icon: Users,
-        color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/5',
+        color: 'bg-slate-50 text-slate-700',
       },
       {
         label: 'Instagram Ratio',
         value: `${igCount} / ${total}`,
         sub: `${((igCount / (total || 1)) * 100).toFixed(0)}% of database`,
         icon: Camera,
-        color: 'text-pink-400 border-pink-500/20 bg-pink-500/5',
+        color: 'bg-pink-50 text-pink-700',
       },
       {
         label: 'TikTok / YouTube',
         value: `${ttCount} / ${ytCount}`,
         sub: 'Cross-platform content',
         icon: Video,
-        color: 'text-red-400 border-red-500/20 bg-red-500/5',
+        color: 'bg-rose-50 text-rose-700',
       },
       {
         label: 'Avg Engagement',
         value: `${avgEngagement}%`,
         sub: 'Consistent performance',
         icon: Percent,
-        color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5',
+        color: 'bg-emerald-50 text-emerald-700',
       },
       {
         label: 'Avg Reach (Followers)',
         value: avgFollowers.toLocaleString(),
         sub: 'Individual creator reach',
         icon: BarChart3,
-        color: 'text-purple-400 border-purple-500/20 bg-purple-500/5',
+        color: 'bg-purple-50 text-purple-700',
       },
       {
         label: 'New This Week',
         value: `+${newThisWeek}`,
         sub: 'Creator velocity',
         icon: CalendarDays,
-        color: 'text-amber-400 border-amber-500/20 bg-amber-500/5',
+        color: 'bg-amber-50 text-amber-700',
       },
       {
         label: 'Contacted Stage',
         value: contactedCount.toLocaleString(),
         sub: 'Awaiting replies',
         icon: Send,
-        color: 'text-sky-400 border-sky-500/20 bg-sky-500/5',
+        color: 'bg-sky-50 text-sky-700',
       },
       {
         label: 'Booked / Campaigns',
         value: bookedCount.toLocaleString(),
         sub: `${activeCampaigns} campaigns active`,
         icon: Bookmark,
-        color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5',
+        color: 'bg-indigo-50 text-indigo-700',
       },
     ]
   }, [influencers])
@@ -102,16 +102,18 @@ export function InfluencerStatsGrid({ influencers }: InfluencerStatsGridProps) {
         return (
           <div
             key={stat.label}
-            className={`rounded-2xl border p-4 shadow-sm transition-all duration-200 hover:border-slate-700 hover:shadow-slate-950/20 ${stat.color}`}
+            className="rounded border border-slate-200 bg-white p-3.5 shadow-xs transition-all duration-150 hover:border-slate-300"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-              <Icon size={14} className="opacity-80" />
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</span>
+              <div className={`p-1 rounded ${stat.color}`}>
+                <Icon size={12} />
+              </div>
             </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-white tracking-tight">{stat.value}</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-xl font-extrabold text-slate-900 tracking-tight">{stat.value}</span>
             </div>
-            <p className="mt-1.5 text-[11px] font-medium text-slate-500">{stat.sub}</p>
+            <p className="mt-1 text-[10px] font-bold text-slate-400">{stat.sub}</p>
           </div>
         )
       })}

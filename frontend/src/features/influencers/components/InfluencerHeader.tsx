@@ -20,68 +20,68 @@ export function InfluencerHeader({
   selectedCount,
 }: InfluencerHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 border-b border-slate-800 bg-slate-900/10 pb-5 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-2 border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
       {/* Title and breadcrumbs */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
           <span>InfluenceOS</span>
           <span>/</span>
-          <span className="text-cyan-400">Creator Operations</span>
+          <span className="text-slate-900">Creator Operations</span>
         </div>
-        <div className="mt-1 flex items-baseline gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Influencers</h1>
-          <span className="rounded-full bg-slate-800/80 px-2.5 py-0.5 text-xs font-bold text-slate-400 border border-slate-700/50">
+        <div className="mt-0.5 flex items-baseline gap-2">
+          <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">Influencers</h1>
+          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200">
             {totalCount} Total
           </span>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500 font-semibold">
           <span className="inline-flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
             Live Sync: Connected
           </span>
-          <span className="hidden sm:inline text-slate-600">|</span>
+          <span className="hidden sm:inline text-slate-300">|</span>
           <span className="inline-flex items-center gap-1">
-            <Database size={11} className="text-cyan-400" />
-            Database: SQLite (WAL optimized)
+            <Database size={10} className="text-slate-700" />
+            Database: SQLite
           </span>
-          <span className="hidden sm:inline text-slate-600">|</span>
-          <span>Last updated: Just now</span>
+          <span className="hidden sm:inline text-slate-300">|</span>
+          <span>Updated: Just now</span>
         </div>
       </div>
 
       {/* Primary utility buttons */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           onClick={onRefetch}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-800/80 transition"
+          className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:text-black hover:border-black transition"
           title="Refresh Data"
         >
-          <RefreshCw size={14} className={isFetching ? 'animate-spin text-cyan-400' : ''} />
+          <RefreshCw size={12} className={isFetching ? 'animate-spin' : ''} />
         </button>
 
         <button
           type="button"
           onClick={onOpenImport}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-800/80 transition"
+          className="inline-flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2.5 text-[11px] font-bold text-slate-700 hover:text-black hover:border-black transition"
         >
-          <Upload size={13} className="text-slate-400" />
+          <Upload size={11} className="text-slate-500" />
           <span>Import</span>
         </button>
 
         <button
           type="button"
           onClick={onExport}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-800/80 transition"
+          className="inline-flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2.5 text-[11px] font-bold text-slate-700 hover:text-black hover:border-black transition"
         >
-          <Download size={13} className="text-slate-400" />
+          <Download size={11} className="text-slate-500" />
           <span>{selectedCount > 0 ? `Export (${selectedCount})` : 'Export CSV'}</span>
         </button>
 
         <button
           type="button"
           onClick={onOpenAdd}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-cyan-500 px-4 text-xs font-bold text-slate-950 hover:bg-cyan-400 transition shadow-md shadow-cyan-950/20"
+          className="inline-flex h-7 items-center gap-1 rounded bg-black px-3 text-[11px] font-bold text-white hover:bg-slate-800 active:bg-black transition shadow-sm"
         >
           <span>Add Influencer</span>
         </button>

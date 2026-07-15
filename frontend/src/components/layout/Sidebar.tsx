@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import {
   BarChart3,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   LayoutGrid,
   Megaphone,
   Settings,
@@ -27,13 +30,36 @@ const navItems: NavItem[] = [
 ]
 
 function Sidebar() {
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+
+  const toggleCollapse = () => {
+    const nextState = !isCollapsed
+    setIsCollapsed(nextState)
+    localStorage.setItem('sidebar-collapsed', String(nextState))
+  }
+
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
       <div className={styles.brandBlock}>
-        <div>
-          <p className={styles.brandLabel}>InfluenceOS</p>
-          <p className={styles.brandSubtext}>Growth Studio</p>
-        </div>
+        {!isCollapsed && (
+          <div className={styles.brandInfo}>
+            <p className={styles.brandLabel}>InfluenceOS</p>
+            <p className={styles.brandSubtext}>Sarmad Hussain's IMA</p>
+          </div>
+        )}
+        {isCollapsed && (
+          <div className={styles.brandLogoCollapsed}>IOS</div>
+        )}
+        <button
+          onClick={toggleCollapse}
+          className={styles.toggleButton}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={isCollapsed ? 'Expand' : 'Collapse'}
+        >
+          {isCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+        </button>
       </div>
 
       <nav className={styles.nav} aria-label="Sidebar navigation">
@@ -42,9 +68,10 @@ function Sidebar() {
             key={label}
             to={path}
             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+            title={isCollapsed ? label : undefined}
           >
-            <Icon size={18} />
-            <span>{label}</span>
+            <Icon size={16} />
+            {!isCollapsed && <span>{label}</span>}
           </NavLink>
         ))}
       </nav>

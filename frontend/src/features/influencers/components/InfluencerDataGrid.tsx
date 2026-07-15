@@ -96,11 +96,11 @@ export function InfluencerDataGrid({
 
   const renderSortIndicator = (field: SortField) => {
     if (sortField !== field) return null
-    return sortOrder === 'asc' ? <ArrowUp size={12} className="inline ml-1 text-cyan-400" /> : <ArrowDown size={12} className="inline ml-1 text-cyan-400" />
+    return sortOrder === 'asc' ? <ArrowUp size={12} className="inline ml-1 text-slate-900" /> : <ArrowDown size={12} className="inline ml-1 text-slate-900" />
   }
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm select-none">
+    <div className="relative overflow-hidden rounded border border-slate-200 bg-white shadow-xs select-none">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
           <thead className="bg-slate-50 text-slate-500 sticky top-0 z-10 border-b border-slate-200">
@@ -225,7 +225,7 @@ export function InfluencerDataGrid({
                     <button
                       type="button"
                       onClick={() => onOpenDrawer(influencer.id)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-900 transition"
+                      className="p-1 rounded text-slate-400 hover:text-slate-900 transition cursor-pointer"
                     >
                       <MoreVertical size={12} />
                     </button>
@@ -240,11 +240,11 @@ export function InfluencerDataGrid({
       {/* Right-Click Context Menu Popup */}
       {contextMenu.influencer && (
         <div
-          className="fixed z-50 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 min-w-[200px] bg-white border border-slate-200 rounded p-1 shadow-md animate-in fade-in zoom-in-95 duration-100"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-800/80 mb-1">
+          <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 mb-1">
             {contextMenu.influencer.fullName}
           </div>
 
@@ -252,7 +252,7 @@ export function InfluencerDataGrid({
             onClick={() => {
               if (contextMenu.influencer) onOpenDrawer(contextMenu.influencer.id)
             }}
-            className="w-full text-left px-2.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2"
+            className="w-full text-left px-2 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
           >
             <Eye size={12} />
             <span>Show Details Sheet</span>
@@ -262,15 +262,15 @@ export function InfluencerDataGrid({
             onClick={() => {
               if (contextMenu.influencer) navigate(`/influencers/${contextMenu.influencer.id}`)
             }}
-            className="w-full text-left px-2.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2"
+            className="w-full text-left px-2 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
           >
             <ExternalLink size={12} />
             <span>Open Profile Page</span>
           </button>
 
           {/* Nested Pipeline Selector options */}
-          <div className="border-t border-slate-800/80 my-1 pt-1">
-            <span className="block px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase">Change Stage</span>
+          <div className="border-t border-slate-100 my-1 pt-1">
+            <span className="block px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase">Change Stage</span>
             {PIPELINE_STATUSES.map((status) => (
               <button
                 key={status}
@@ -280,10 +280,10 @@ export function InfluencerDataGrid({
                     setContextMenu({ x: 0, y: 0, influencer: null })
                   }
                 }}
-                className={`w-full text-left px-4 py-1 text-xs rounded-lg ${
+                className={`w-full text-left px-3 py-0.5 text-xs rounded font-semibold cursor-pointer ${
                   contextMenu.influencer?.pipelineStatus === status
-                    ? 'text-cyan-400 font-semibold bg-slate-900/50'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    ? 'text-black font-bold bg-slate-100'
+                    : 'text-slate-600 hover:text-black hover:bg-slate-50'
                 }`}
               >
                 {status}
@@ -291,7 +291,7 @@ export function InfluencerDataGrid({
             ))}
           </div>
 
-          <div className="border-t border-slate-800/80 my-1 pt-1">
+          <div className="border-t border-slate-100 my-1 pt-1">
             <button
               onClick={() => {
                 if (contextMenu.influencer) {
@@ -299,7 +299,7 @@ export function InfluencerDataGrid({
                   setContextMenu({ x: 0, y: 0, influencer: null })
                 }
               }}
-              className="w-full text-left px-2.5 py-1.5 text-xs text-rose-400 hover:bg-rose-950/20 hover:text-rose-300 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
             >
               <Trash2 size={12} />
               <span>Delete Creator</span>

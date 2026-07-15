@@ -3,31 +3,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 24px;
+  padding: 4px 12px;
   background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #0f172a;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #111827;
 }
 
 .searchBox {
   flex: 1;
-  max-width: 480px;
+  max-width: 320px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  background: #f9fafb;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
 .searchBox input {
@@ -35,32 +35,32 @@
   outline: 0;
   width: 100%;
   background: transparent;
-  color: #0f172a;
-  font-size: 0.85rem;
+  color: #111827;
+  font-size: 0.75rem;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .iconButton {
   border: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #f1f5f9;
-  color: #475569;
+  width: 24px;
+  height: 24px;
+  border-radius: 2px;
+  background: #f9fafb;
+  color: #4b5563;
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .iconButton:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .avatarButton {
@@ -71,21 +71,21 @@
   background: transparent;
   border-radius: 999px;
   cursor: pointer;
-  transition: box-shadow 160ms ease;
+  transition: box-shadow 120ms ease;
 }
 
 .avatarButton:hover,
 .avatarButton[aria-expanded='true'] {
-  box-shadow: 0 0 0 2px #0f172a;
+  box-shadow: 0 0 0 1.5px #111827;
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: #0f172a;
+  background: #111827;
   color: white;
   font-weight: 700;
 }
@@ -93,7 +93,7 @@
 @media (max-width: 700px) {
   .topbar {
     flex-wrap: wrap;
-    padding: 10px 12px;
+    padding: 6px 12px;
   }
 
   .searchBox {

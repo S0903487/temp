@@ -49,31 +49,31 @@ export function InfluencerPipelineBoard({
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 select-none">
+    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 select-none themed-scrollbar">
       {PIPELINE_STATUSES.map((status) => {
         const list = columns[status] || []
         return (
           <div
             key={status}
-            className="flex-shrink-0 w-80 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 flex flex-col max-h-[640px]"
+            className="flex-shrink-0 w-72 rounded border border-slate-200 bg-slate-50 p-3.5 flex flex-col max-h-[600px]"
           >
             {/* Column Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                <h4 className="text-sm font-bold text-white">{status}</h4>
+            <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200">
+              <div className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                <h4 className="text-xs font-bold text-slate-800">{status}</h4>
               </div>
-              <span className="rounded-full bg-slate-900 border border-slate-800 px-2 py-0.5 text-xs font-bold text-slate-400">
+              <span className="rounded bg-slate-200 border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
                 {list.length}
               </span>
             </div>
 
             {/* Cards List */}
-            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[150px]">
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[150px] themed-scrollbar">
               {list.length === 0 && (
-                <div className="h-24 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-xl text-xs text-slate-600">
-                  <AlertCircle size={14} className="mb-1" />
-                  <span>No creators in this stage</span>
+                <div className="h-20 flex flex-col items-center justify-center border border-dashed border-slate-200 rounded text-xs text-slate-400">
+                  <AlertCircle size={12} className="mb-1 text-slate-300" />
+                  <span className="text-[11px] font-bold">No creators in this stage</span>
                 </div>
               )}
 
@@ -81,54 +81,54 @@ export function InfluencerPipelineBoard({
                 <div
                   key={inf.id}
                   onClick={() => onOpenDrawer(inf.id)}
-                  className="group bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-900/80 rounded-xl p-3 cursor-pointer shadow-sm transition duration-150 relative"
+                  className="group bg-white border border-slate-200 hover:border-slate-400 rounded p-3 cursor-pointer shadow-xs transition duration-150 relative"
                 >
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={inf.fullName} imageUrl={inf.profileImage} size={28} />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar name={inf.fullName} imageUrl={inf.profileImage} size={26} />
                       <div>
-                        <h5 className="text-xs font-bold text-white group-hover:text-cyan-400 transition">
+                        <h5 className="text-xs font-bold text-slate-900 group-hover:text-black transition">
                           {inf.fullName}
                         </h5>
-                        <p className="text-[10px] text-slate-500">@{inf.username}</p>
+                        <p className="text-[10px] text-slate-400">@{inf.username}</p>
                       </div>
                     </div>
                     {/* Platform indicators */}
-                    <span className="text-[10px] text-slate-500 font-semibold uppercase">{inf.platform}</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase">{inf.platform}</span>
                   </div>
 
                   {/* Stats snippet */}
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/60 pt-2.5">
+                  <div className="mt-2.5 flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-100 pt-2">
                     <div>
-                      <span className="text-slate-500">Reach:</span>{' '}
-                      <span className="font-semibold text-slate-200">{inf.followers.toLocaleString()}</span>
+                      <span className="text-slate-400 font-semibold">Reach:</span>{' '}
+                      <span className="font-bold text-slate-700">{inf.followers.toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Eng:</span>{' '}
-                      <span className="font-semibold text-cyan-400">{inf.engagementRate.toFixed(1)}%</span>
+                      <span className="text-slate-400 font-semibold">Eng:</span>{' '}
+                      <span className="font-bold text-slate-700">{inf.engagementRate.toFixed(1)}%</span>
                     </div>
                   </div>
 
                   {/* Funnel quick shifting arrow indicators */}
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-800/60 pt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-1.5" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       disabled={PIPELINE_STATUSES.indexOf(status) === 0}
                       onClick={() => handleMoveStage(inf.id, status, 'backward')}
-                      className="p-1 rounded text-slate-500 hover:text-white hover:bg-slate-800/50 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                      className="p-1 rounded text-slate-400 hover:text-black hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer"
                       title="Move back"
                     >
-                      <ArrowLeft size={12} />
+                      <ArrowLeft size={11} />
                     </button>
-                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Move Stage</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Move Stage</span>
                     <button
                       type="button"
                       disabled={PIPELINE_STATUSES.indexOf(status) === PIPELINE_STATUSES.length - 1}
                       onClick={() => handleMoveStage(inf.id, status, 'forward')}
-                      className="p-1 rounded text-slate-500 hover:text-white hover:bg-slate-800/50 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                      className="p-1 rounded text-slate-400 hover:text-black hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer"
                       title="Move forward"
                     >
-                      <ArrowRight size={12} />
+                      <ArrowRight size={11} />
                     </button>
                   </div>
                 </div>

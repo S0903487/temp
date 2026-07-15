@@ -197,36 +197,36 @@ export default function InfluencersPage() {
         />
 
         {/* View Mode Toolbar: Table, Grid or Kanban Board */}
-        <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
-          <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+          <div className="flex items-center bg-white border border-slate-200 rounded p-0.5">
             <button
               onClick={() => state.setViewMode('table')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                state.viewMode === 'table' ? 'bg-slate-900 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition ${
+                state.viewMode === 'table' ? 'bg-black text-white' : 'text-slate-600 hover:text-black'
               }`}
               title="Spreadsheet Table"
             >
-              <List size={13} />
+              <List size={12} />
               <span>Spreadsheet</span>
             </button>
             <button
               onClick={() => state.setViewMode('card')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                state.viewMode === 'card' ? 'bg-slate-900 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition ${
+                state.viewMode === 'card' ? 'bg-black text-white' : 'text-slate-600 hover:text-black'
               }`}
               title="Creator Cards Grid"
             >
-              <Grid size={13} />
+              <Grid size={12} />
               <span>Grid View</span>
             </button>
             <button
               onClick={() => state.setViewMode('pipeline')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                state.viewMode === 'pipeline' ? 'bg-slate-900 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition ${
+                state.viewMode === 'pipeline' ? 'bg-black text-white' : 'text-slate-600 hover:text-black'
               }`}
               title="Kanban Pipeline Board"
             >
-              <Kanban size={13} />
+              <Kanban size={12} />
               <span>Pipeline Funnel</span>
             </button>
           </div>
@@ -247,23 +247,23 @@ export default function InfluencersPage() {
         {/* Primary Data rendering views */}
         {isLoading && (
           <div className="py-24 text-center">
-            <span className="h-8 w-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin inline-block" />
-            <p className="mt-3 text-xs text-slate-500 font-semibold animate-pulse">Syncing talent repository...</p>
+            <span className="h-8 w-8 rounded-full border-2 border-slate-950 border-t-transparent animate-spin inline-block" />
+            <p className="mt-3 text-xs text-slate-500 font-bold animate-pulse">Syncing talent repository...</p>
           </div>
         )}
 
         {isError && (
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 text-xs text-rose-300 text-center">
+          <div className="rounded border border-red-200 bg-red-50 p-4 text-xs text-red-700 text-center">
             Error loading directory: {error instanceof Error ? error.message : 'Unknown network failure'}
           </div>
         )}
 
         {!isLoading && !isError && filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-slate-800 p-16 text-center">
-            <p className="text-xs text-slate-500 font-semibold">No creators found matching the chosen search criteria or filters.</p>
+          <div className="rounded border border-dashed border-slate-200 p-16 text-center bg-white">
+            <p className="text-xs text-slate-500 font-bold">No creators found matching the chosen search criteria or filters.</p>
             <button
               onClick={state.resetFilters}
-              className="mt-3 inline-flex items-center gap-1 text-xs text-cyan-400 font-bold hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-xs text-slate-900 font-bold hover:underline cursor-pointer"
             >
               Reset active filter states
             </button>

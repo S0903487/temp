@@ -1,31 +1,31 @@
 .card {
-  padding: 14px 18px;
-  border-radius: 8px;
+  padding: 6px 10px;
+  border-radius: 2px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e5e7eb;
 }
 
 .title {
-  margin: 0 0 4px;
-  font-size: 0.75rem;
+  margin: 0 0 2px;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .value {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #111827;
 }
 
 .detail {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-  color: #64748b;
+  margin: 1px 0 0;
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 .violet,

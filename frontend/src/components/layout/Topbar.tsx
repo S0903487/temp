@@ -56,20 +56,20 @@ function Topbar() {
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl shadow-slate-950/40">
+            <div className="absolute right-0 top-10 z-50 w-48 rounded border border-slate-200 bg-white p-1 shadow-md">
               {user && (
-                <div className="border-b border-slate-800 px-3 py-2">
-                  <p className="truncate text-sm font-semibold text-white">{user.name}</p>
-                  <p className="truncate text-xs text-slate-400">{user.email}</p>
+                <div className="border-b border-slate-100 px-2 py-1.5">
+                  <p className="truncate text-xs font-bold text-slate-900">{user.name}</p>
+                  <p className="truncate text-[10px] text-slate-500">{user.email}</p>
                 </div>
               )}
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={logout.isPending}
-                className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-500/10 disabled:opacity-60"
+                className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-xs text-red-600 transition hover:bg-red-50 disabled:opacity-60 font-semibold"
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
                 {logout.isPending ? 'Logging out…' : 'Log out'}
               </button>
             </div>

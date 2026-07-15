@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { SlidersHorizontal, Save, Trash2, RotateCcw } from 'lucide-react'
-import { Select, labelClass, fieldClass } from '../../../components/shared/fields'
+import { Select } from '../../../components/shared/fields'
 import type { FilterState, SavedFilterPreset } from '../hooks/useInfluencerState'
 import type { Platform, PipelineStatus } from '../types'
 
@@ -34,7 +34,7 @@ export function InfluencerFiltersPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 shadow-sm">
+    <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
       {/* Top Toolbar: Search + Toggle Filters + Quick Preset selector */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Search */}
@@ -44,7 +44,7 @@ export function InfluencerFiltersPanel({
             value={filters.query}
             onChange={(e) => onFilterChange('query', e.target.value)}
             placeholder="Search name, handle, email, tags, notes..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition"
+            className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-black transition"
           />
         </div>
 
@@ -54,13 +54,13 @@ export function InfluencerFiltersPanel({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-bold transition ${
               isOpen
-                ? 'bg-cyan-500 text-slate-950 border-cyan-400'
-                : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
+                ? 'bg-black text-white border-black'
+                : 'bg-white border-slate-200 text-slate-600 hover:text-black hover:border-slate-400'
             }`}
           >
-            <SlidersHorizontal size={14} />
+            <SlidersHorizontal size={12} />
             <span>Filters</span>
           </button>
 
@@ -68,37 +68,37 @@ export function InfluencerFiltersPanel({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 transition"
+            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:border-red-300 transition"
             title="Reset Filters"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={12} />
           </button>
         </div>
       </div>
 
       {/* Preset Presets List Row */}
       {savedPresets.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-800/40 pt-3">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-1.5">Saved Presets:</span>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1.5">Saved Presets:</span>
           {savedPresets.map((preset) => (
             <div
               key={preset.id}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/80 pl-2.5 pr-1 py-1 text-xs text-slate-300 hover:text-white hover:border-slate-700 transition"
+              className="inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-50 pl-2 pr-0.5 py-0.5 text-xs text-slate-600 transition"
             >
               <button
                 type="button"
                 onClick={() => onApplyPreset(preset.filters)}
-                className="font-medium text-slate-300 hover:text-cyan-400"
+                className="font-bold text-slate-700 hover:text-black"
               >
                 {preset.name}
               </button>
               <button
                 type="button"
                 onClick={() => onDeletePreset(preset.id)}
-                className="text-slate-500 hover:text-rose-400 p-0.5"
+                className="text-slate-400 hover:text-red-500 p-0.5"
                 title="Delete preset"
               >
-                <Trash2 size={11} />
+                <Trash2 size={10} />
               </button>
             </div>
           ))}
@@ -107,22 +107,22 @@ export function InfluencerFiltersPanel({
 
       {/* Expandable Advanced Filters Drawer */}
       {isOpen && (
-        <div className="mt-4 border-t border-slate-800/80 pt-4 animate-in fade-in slide-in-from-top-2 duration-250">
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+        <div className="mt-3.5 border-t border-slate-100 pt-3.5 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
             {/* Platform */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Platform</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Platform</span>
               <Select value={filters.platform} onChange={(e) => onFilterChange('platform', e.target.value as 'All' | Platform)}>
                 <option value="All">All Platforms</option>
                 <option value="Instagram">Instagram</option>
                 <option value="TikTok">TikTok</option>
                 <option value="YouTube">YouTube</option>
               </Select>
-            </label>
+            </div>
 
             {/* Category */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Category</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Category</span>
               <Select value={filters.category} onChange={(e) => onFilterChange('category', e.target.value)}>
                 <option value="All">All Categories</option>
                 <option value="Fashion">Fashion</option>
@@ -135,11 +135,11 @@ export function InfluencerFiltersPanel({
                 <option value="Finance">Finance</option>
                 <option value="Lifestyle">Lifestyle</option>
               </Select>
-            </label>
+            </div>
 
             {/* Followers range */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Followers (Reach)</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Followers (Reach)</span>
               <Select value={filters.followers} onChange={(e) => onFilterChange('followers', e.target.value)}>
                 <option value="All">All Sizes</option>
                 <option value="Micro (<50k)">Micro (&lt;50k)</option>
@@ -147,21 +147,21 @@ export function InfluencerFiltersPanel({
                 <option value="Macro (200k-1M)">Macro (200k-1M)</option>
                 <option value="Mega (>1M)">Mega (&gt;1M)</option>
               </Select>
-            </label>
+            </div>
 
             {/* Engagement */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Engagement</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Engagement</span>
               <Select value={filters.engagement} onChange={(e) => onFilterChange('engagement', e.target.value)}>
                 <option value="All">All Rates</option>
                 <option value="High (>5%)">High (&gt;5%)</option>
                 <option value="Medium (>2%)">Medium (&gt;2%)</option>
               </Select>
-            </label>
+            </div>
 
             {/* Pipeline Stage */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Pipeline Stage</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pipeline Stage</span>
               <Select value={filters.pipelineStatus} onChange={(e) => onFilterChange('pipelineStatus', e.target.value as 'All' | PipelineStatus)}>
                 <option value="All">All Stages</option>
                 <option value="New">New</option>
@@ -173,107 +173,107 @@ export function InfluencerFiltersPanel({
                 <option value="Completed">Completed</option>
                 <option value="Inactive">Inactive</option>
               </Select>
-            </label>
+            </div>
 
             {/* Contact Details */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Contact Channels</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Contact Channels</span>
               <Select value={filters.contact} onChange={(e) => onFilterChange('contact', e.target.value as FilterState['contact'])}>
                 <option value="All">All Contact</option>
                 <option value="Has email">Has email</option>
                 <option value="Has phone">Has phone</option>
                 <option value="Has both">Has both</option>
               </Select>
-            </label>
+            </div>
 
             {/* Country */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Country</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Country</span>
               <input
                 type="text"
                 value={filters.country === 'All' ? '' : filters.country}
                 onChange={(e) => onFilterChange('country', e.target.value || 'All')}
-                placeholder="e.g. US, United Kingdom"
-                className={fieldClass}
+                placeholder="e.g. US, UK"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-black"
               />
-            </label>
+            </div>
 
             {/* Language */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Language</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Language</span>
               <input
                 type="text"
                 value={filters.language === 'All' ? '' : filters.language}
                 onChange={(e) => onFilterChange('language', e.target.value || 'All')}
                 placeholder="e.g. English, Spanish"
-                className={fieldClass}
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-black"
               />
-            </label>
+            </div>
 
             {/* Subcategory */}
-            <label className={labelClass}>
-              <span className="mb-1.5 block text-xs font-semibold text-slate-400">Niche Subcategory</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Niche Subcategory</span>
               <input
                 type="text"
                 value={filters.subcategory === 'All' ? '' : filters.subcategory}
                 onChange={(e) => onFilterChange('subcategory', e.target.value || 'All')}
-                placeholder="e.g. Streetwear, PC Tech"
-                className={fieldClass}
+                placeholder="e.g. Streetwear"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-black"
               />
-            </label>
+            </div>
 
             {/* Boolean Toggles */}
             <div className="flex flex-col gap-2.5 sm:col-span-2 md:col-span-3 lg:col-span-3 justify-end pb-1.5">
               <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={filters.verified === 'Verified only'}
                     onChange={(e) => onFilterChange('verified', e.target.checked ? 'Verified only' : 'All')}
-                    className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0"
+                    className="rounded border-slate-300 text-black focus:ring-0 cursor-pointer"
                   />
-                  Verified Accounts Only
+                  Verified Only
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={filters.brandSafe === 'Brand Safe only'}
                     onChange={(e) => onFilterChange('brandSafe', e.target.checked ? 'Brand Safe only' : 'All')}
-                    className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0"
+                    className="rounded border-slate-300 text-black focus:ring-0 cursor-pointer"
                   />
-                  Brand Safe Creators
+                  Brand Safe
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={filters.favorite}
                     onChange={(e) => onFilterChange('favorite', e.target.checked)}
-                    className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0"
+                    className="rounded border-slate-300 text-black focus:ring-0 cursor-pointer"
                   />
-                  Starred Favorites
+                  Starred
                 </label>
               </div>
             </div>
           </div>
 
           {/* Preset Saving Mini Form */}
-          <form onSubmit={handleSavePreset} className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-800/60 pt-4">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Save Current Filters:</span>
+          <form onSubmit={handleSavePreset} className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3.5">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Save Current Filters:</span>
             <input
               type="text"
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
-              placeholder="e.g. High-Engage Fashion"
-              className="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition max-w-xs"
+              placeholder="e.g. Fashion High-Engage"
+              className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-black transition max-w-xs"
             />
             <button
               type="submit"
               disabled={!presetName.trim()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-200 hover:text-white hover:border-slate-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 rounded bg-black px-3 py-1 text-xs font-bold text-white hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              <Save size={12} />
+              <Save size={11} />
               <span>Save Preset</span>
             </button>
           </form>
