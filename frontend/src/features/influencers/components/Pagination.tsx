@@ -26,13 +26,13 @@ export function Pagination({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 pt-4 border-t border-slate-800/80">
-      <div className="flex items-center gap-2 text-xs text-slate-400">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-3.5 border-t border-slate-100">
+      <div className="flex items-center gap-2 text-xs text-slate-500">
         <span>Show</span>
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300 focus:outline-none focus:ring-0"
+          className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 font-bold focus:outline-none focus:ring-0 cursor-pointer"
         >
           {[10, 25, 50, 100].map((size) => (
             <option key={size} value={size}>
@@ -42,7 +42,7 @@ export function Pagination({
         </select>
         <span>per page</span>
         {totalItems > 0 && (
-          <span className="ml-2 font-medium">
+          <span className="ml-1.5 font-bold text-slate-600">
             (Showing {startItem}–{endItem} of {totalItems})
           </span>
         )}
@@ -53,7 +53,7 @@ export function Pagination({
           type="button"
           disabled={currentPage === 1}
           onClick={handlePrev}
-          className="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-xs text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition font-semibold"
+          className="px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-600 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
         >
           Prev
         </button>
@@ -64,10 +64,10 @@ export function Pagination({
               key={page}
               type="button"
               onClick={() => onPageChange(page)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-3 py-1.5 rounded text-xs font-bold transition cursor-pointer ${
                 currentPage === page
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'border border-slate-800 bg-slate-900/40 text-slate-300 hover:text-white'
+                  ? 'bg-black text-white'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
               {page}
@@ -77,7 +77,7 @@ export function Pagination({
           type="button"
           disabled={currentPage === totalPages}
           onClick={handleNext}
-          className="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-xs text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition font-semibold"
+          className="px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-600 font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
         >
           Next
         </button>

@@ -39,19 +39,19 @@ export function GrowthChart({ snapshots, metric = 'followers' }: GrowthChartProp
   return (
     <div>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-40 w-full">
-        <path d={areaPath} fill="url(#growthGradient)" opacity={0.25} />
-        <path d={path} fill="none" stroke="#22d3ee" strokeWidth={2} />
+        <path d={areaPath} fill="url(#growthGradient)" opacity={0.1} />
+        <path d={path} fill="none" stroke="#0f172a" strokeWidth={2} />
         {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={3} fill="#22d3ee" />
+          <circle key={i} cx={p.x} cy={p.y} r={3.5} fill="#0f172a" />
         ))}
         <defs>
           <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22d3ee" />
-            <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+            <stop offset="0%" stopColor="#0f172a" />
+            <stop offset="100%" stopColor="#0f172a" stopOpacity={0} />
           </linearGradient>
         </defs>
       </svg>
-      <p className={`mt-1 text-xs ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+      <p className={`mt-1.5 text-xs font-semibold ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
         {deltaLabel} since {new Date(first.date).toLocaleDateString()}
       </p>
     </div>

@@ -39,30 +39,30 @@ export function NotesPanel({ notes, isLoading, isSubmitting, onAdd, onRemove }: 
         <button
           type="submit"
           disabled={isSubmitting || !draft.trim()}
-          className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
         >
           Add note
         </button>
       </form>
 
-      {isLoading && <p className="text-sm text-slate-500">Loading notes…</p>}
-      {!isLoading && notes.length === 0 && <p className="text-sm text-slate-500">No notes yet.</p>}
+      {isLoading && <p className="text-xs text-slate-500">Loading notes…</p>}
+      {!isLoading && notes.length === 0 && <p className="text-xs text-slate-500">No notes yet.</p>}
 
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {notes.map((note) => (
-          <li key={note.id} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+          <li key={note.id} className="rounded border border-slate-200 bg-white p-3 shadow-xs">
             <div className="flex items-start justify-between gap-3">
-              <p className="text-sm text-slate-200">{note.body}</p>
+              <p className="text-xs text-slate-800 font-medium">{note.body}</p>
               <button
                 type="button"
                 aria-label="Delete note"
                 onClick={() => onRemove(note.id)}
-                className="shrink-0 text-slate-500 transition hover:text-rose-400"
+                className="shrink-0 text-slate-400 transition hover:text-rose-600 cursor-pointer"
               >
-                <Trash2 size={14} />
+                <Trash2 size={13} />
               </button>
             </div>
-            <p className="mt-2 text-xs text-slate-500">{formatDate(note.createdAt)}</p>
+            <p className="mt-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">{formatDate(note.createdAt)}</p>
           </li>
         ))}
       </ul>

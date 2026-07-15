@@ -33,24 +33,24 @@ export function TagSelector({ tags, suggestions, isBusy, onAdd, onRemove }: TagS
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {tags.map((tag) => (
           <span
             key={tag.id}
-            className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-200"
+            className="inline-flex items-center gap-1.5 rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-bold text-slate-700"
           >
             {tag.name}
             <button
               type="button"
               aria-label={`Remove ${tag.name}`}
               onClick={() => onRemove(tag.id)}
-              className="text-violet-300/70 transition hover:text-violet-100"
+              className="text-slate-400 hover:text-slate-900 transition cursor-pointer"
             >
               <X size={12} />
             </button>
           </span>
         ))}
-        {tags.length === 0 && <p className="text-sm text-slate-500">No tags yet.</p>}
+        {tags.length === 0 && <p className="text-xs text-slate-400">No tags yet.</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
@@ -59,14 +59,14 @@ export function TagSelector({ tags, suggestions, isBusy, onAdd, onRemove }: TagS
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Add a tag…"
           disabled={isBusy}
-          className={`${fieldClass} max-w-[200px]`}
+          className={`${fieldClass} max-w-[150px]`}
         />
         <button
           type="submit"
           disabled={isBusy || !draft.trim()}
-          className="inline-flex items-center gap-1 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <Plus size={14} />
+          <Plus size={12} />
           Add
         </button>
       </form>
@@ -79,7 +79,7 @@ export function TagSelector({ tags, suggestions, isBusy, onAdd, onRemove }: TagS
               type="button"
               onClick={() => onAdd(name)}
               disabled={isBusy}
-              className="rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-xs text-slate-400 transition hover:border-violet-400/50 hover:text-violet-200"
+              className="rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:border-slate-900 hover:text-slate-900 transition cursor-pointer"
             >
               + {name}
             </button>
