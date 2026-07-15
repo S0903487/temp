@@ -9,7 +9,7 @@ export function LoginPage() {
       subtitle={
         <>
           Or{' '}
-          <Link to="/register" className="font-medium text-violet-300 hover:text-violet-200">
+          <Link to="/register" className="font-semibold text-slate-700 hover:text-slate-900 underline underline-offset-2">
             create a new account
           </Link>
         </>
@@ -17,7 +17,7 @@ export function LoginPage() {
       footer={
         <>
           Forgot your password?{' '}
-          <Link to="/forgot-password" className="font-medium text-violet-300 hover:text-violet-200">
+          <Link to="/forgot-password" className="font-semibold text-slate-700 hover:text-slate-900 underline underline-offset-2">
             Reset it here
           </Link>
         </>

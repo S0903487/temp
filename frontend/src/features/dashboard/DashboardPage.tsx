@@ -60,6 +60,104 @@ function DashboardPage() {
           <StatCard key={stat.title} {...stat} />
         ))}
       </div>
+
+      {/* Two-column dense informative layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
+        {/* Active Campaigns List */}
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Campaigns</h2>
+            <span className="text-[10px] font-bold text-slate-400">Total: {campaigns?.length ?? 0}</span>
+          </div>
+          {isLoading ? (
+            <p className="text-xs text-slate-400">Loading active campaigns...</p>
+          ) : campaigns && campaigns.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400">
+                    <th className="py-1.5 font-bold">Campaign Name</th>
+                    <th className="py-1.5 font-bold text-right">Budget</th>
+                    <th className="py-1.5 font-bold text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-slate-700">
+                  {campaigns.slice(0, 5).map((campaign) => (
+                    <tr key={campaign.id} className="hover:bg-slate-50/50">
+                      <td className="py-1.5 font-bold text-slate-900 truncate max-w-[180px]">
+                        {campaign.name}
+                      </td>
+                      <td className="py-1.5 text-right font-semibold text-slate-800">
+                        ${Number(campaign.budget || 0).toLocaleString()}
+                      </td>
+                      <td className="py-1.5 text-right">
+                        <span className={`inline-flex rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                          campaign.status === 'active'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 py-3 text-center">No campaigns found.</p>
+          )}
+        </div>
+
+        {/* Top Influencers in Outreach Pipeline */}
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pipeline Status Overview</h2>
+            <span className="text-[10px] font-bold text-slate-400">Active roster: {influencers?.length ?? 0}</span>
+          </div>
+          {isLoading ? (
+            <p className="text-xs text-slate-400">Loading top creators...</p>
+          ) : influencers && influencers.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400">
+                    <th className="py-1.5 font-bold">Creator</th>
+                    <th className="py-1.5 font-bold text-right">Followers</th>
+                    <th className="py-1.5 font-bold text-right">Outreach Stage</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-slate-700">
+                  {influencers.slice(0, 5).map((creator) => (
+                    <tr key={creator.id} className="hover:bg-slate-50/50">
+                      <td className="py-1.5">
+                        <div className="truncate max-w-[150px] font-bold text-slate-900">
+                          {creator.fullName}
+                        </div>
+                        <div className="text-[10px] text-slate-400">@{creator.username}</div>
+                      </td>
+                      <td className="py-1.5 text-right font-semibold text-slate-800">
+                        {creator.followers >= 1000000
+                          ? `${(creator.followers / 1000000).toFixed(1)}M`
+                          : creator.followers >= 1000
+                          ? `${(creator.followers / 1000).toFixed(0)}k`
+                          : creator.followers}
+                      </td>
+                      <td className="py-1.5 text-right">
+                        <span className="inline-flex rounded border border-slate-200 bg-slate-50 px-1 py-0.5 text-[9px] font-bold uppercase text-slate-700">
+                          {creator.pipelineStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 py-3 text-center">No creators in pipeline.</p>
+          )}
+        </div>
+      </div>
     </section>
   )
 }

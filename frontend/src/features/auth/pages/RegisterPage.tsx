@@ -9,13 +9,13 @@ export function RegisterPage() {
       subtitle={
         <>
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-violet-300 hover:text-violet-200">
+          <Link to="/login" className="font-semibold text-slate-700 hover:text-slate-900 underline underline-offset-2">
             Sign in here
           </Link>
         </>
       }
       footer={
-        <span className="text-xs text-slate-500">
+        <span className="text-[10px] text-slate-400">
           By creating an account, you agree to our Terms of Service and Privacy Policy
         </span>
       }

@@ -8,20 +8,20 @@ type PipelineStatusSelectProps = {
 }
 
 const COLORS: Record<PipelineStatus, string> = {
-  New: 'border-slate-500/40 bg-slate-500/10 text-slate-300',
-  Reviewed: 'border-sky-500/40 bg-sky-500/10 text-sky-300',
-  Contacted: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300',
-  Replied: 'border-teal-500/40 bg-teal-500/10 text-teal-300',
-  Negotiating: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  Booked: 'border-violet-500/40 bg-violet-500/10 text-violet-300',
-  Completed: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
-  Inactive: 'border-rose-500/40 bg-rose-500/10 text-rose-300',
+  New: 'border-slate-200 bg-slate-50 text-slate-700',
+  Reviewed: 'border-blue-200 bg-blue-50/50 text-blue-700',
+  Contacted: 'border-cyan-200 bg-cyan-50/50 text-cyan-700',
+  Replied: 'border-teal-200 bg-teal-50/50 text-teal-700',
+  Negotiating: 'border-amber-200 bg-amber-50/50 text-amber-700',
+  Booked: 'border-indigo-200 bg-indigo-50/50 text-indigo-700',
+  Completed: 'border-emerald-200 bg-emerald-50/50 text-emerald-700',
+  Inactive: 'border-rose-200 bg-rose-50/50 text-rose-700',
 }
 
 /** Badge for read-only display in tables/cards. */
 export function PipelineStatusBadge({ status }: { status: PipelineStatus }) {
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${COLORS[status]}`}>
+    <span className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${COLORS[status]}`}>
       {status}
     </span>
   )
@@ -34,10 +34,10 @@ export function PipelineStatusSelect({ value, onChange, disabled }: PipelineStat
       value={value}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value as PipelineStatus)}
-      className={`rounded-full border px-3 py-1.5 text-sm font-medium outline-none transition ${COLORS[value]}`}
+      className={`rounded border px-2 py-0.5 text-xs font-semibold outline-none transition ${COLORS[value]}`}
     >
       {PIPELINE_STATUSES.map((status) => (
-        <option key={status} value={status} className="bg-slate-900 text-slate-100">
+        <option key={status} value={status} className="bg-white text-slate-900">
           {status}
         </option>
       ))}

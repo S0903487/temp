@@ -8,12 +8,12 @@ type AvatarProps = {
 }
 
 const PALETTE = [
-  'bg-violet-500/20 text-violet-300',
-  'bg-cyan-500/20 text-cyan-300',
-  'bg-amber-500/20 text-amber-300',
-  'bg-emerald-500/20 text-emerald-300',
-  'bg-rose-500/20 text-rose-300',
-  'bg-sky-500/20 text-sky-300',
+  'bg-slate-100 text-slate-700 border border-slate-200',
+  'bg-zinc-100 text-zinc-700 border border-zinc-200',
+  'bg-stone-100 text-stone-700 border border-stone-200',
+  'bg-neutral-100 text-neutral-700 border border-neutral-200',
+  'bg-gray-100 text-gray-700 border border-gray-200',
+  'bg-slate-200 text-slate-800 border border-slate-300',
 ]
 
 function initialsFor(name: string) {

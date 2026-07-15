@@ -1,7 +1,7 @@
 .shell {
   min-height: 100vh;
   display: flex;
-  background: transparent;
+  background: #f8fafc;
 }
 
 .mainContent {
@@ -12,7 +12,7 @@
 }
 
 .page {
-  padding: 24px;
+  padding: 18px 24px;
   flex: 1;
   min-width: 0;
 }
@@ -23,6 +23,6 @@
   }
 
   .page {
-    padding: 16px;
+    padding: 12px;
   }
 }

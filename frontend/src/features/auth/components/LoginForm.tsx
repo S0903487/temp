@@ -6,7 +6,7 @@ import { loginSchema, type LoginFormData } from '../validators/loginSchema';
 import { useLogin } from '../hooks/useAuth';
 
 const inputClass =
-  'mt-1.5 block w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 shadow-inner shadow-black/20 outline-none transition focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/30';
+  'block w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-black/60 focus:ring-2 focus:ring-black/10';
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -31,16 +31,16 @@ export function LoginForm() {
   const serverError = error instanceof Error ? error.message : null;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       {serverError && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-300">
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-2 text-red-700">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          <p className="text-sm">{serverError}</p>
+          <p className="text-xs">{serverError}</p>
         </div>
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+        <label htmlFor="email" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
           Email
         </label>
         <input
@@ -50,11 +50,11 @@ export function LoginForm() {
           className={inputClass}
           placeholder="you@example.com"
         />
-        {errors.email && <p className="mt-1.5 text-sm text-red-400">{errors.email.message}</p>}
+        {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+        <label htmlFor="password" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
           Password
         </label>
         <input
@@ -64,13 +64,13 @@ export function LoginForm() {
           className={inputClass}
           placeholder="••••••••"
         />
-        {errors.password && <p className="mt-1.5 text-sm text-red-400">{errors.password.message}</p>}
+        {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
       </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-sky-400 px-4 py-2.5 font-medium text-slate-950 shadow-lg shadow-violet-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-850 active:bg-slate-950 disabled:cursor-not-allowed disabled:opacity-60 text-sm shadow-sm"
       >
         {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         {isPending ? 'Logging in...' : 'Log In'}

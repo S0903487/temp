@@ -2,32 +2,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
-  background: rgba(2, 6, 23, 0.75);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  gap: 12px;
+  padding: 10px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .searchBox {
   flex: 1;
+  max-width: 480px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.8);
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #f1f5f9;
   color: #64748b;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid #e2e8f0;
 }
 
 .searchBox input {
@@ -35,22 +35,23 @@
   outline: 0;
   width: 100%;
   background: transparent;
-  color: #f8fafc;
+  color: #0f172a;
+  font-size: 0.85rem;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .iconButton {
   border: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.8);
-  color: #cbd5e1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -58,8 +59,8 @@
 }
 
 .iconButton:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .avatarButton {
@@ -75,16 +76,16 @@
 
 .avatarButton:hover,
 .avatarButton[aria-expanded='true'] {
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.45);
+  box-shadow: 0 0 0 2px #0f172a;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #8b5cf6, #38bdf8);
+  background: #0f172a;
   color: white;
   font-weight: 700;
 }
@@ -92,10 +93,12 @@
 @media (max-width: 700px) {
   .topbar {
     flex-wrap: wrap;
+    padding: 10px 12px;
   }
 
   .searchBox {
     order: 3;
     width: 100%;
+    max-width: 100%;
   }
 }

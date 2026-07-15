@@ -17,11 +17,10 @@ export function Logo({ size = 40, className = '' }: LogoProps) {
       aria-hidden="true"
     >
       <defs>
-        {/* Vibrant purple to pink gradient matching the brand image */}
+        {/* Sleek monochrome gradient matching the minimalist brand */}
         <linearGradient id="io-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a855f7" /> {/* Vibrant Purple */}
-          <stop offset="50%" stopColor="#d946ef" /> {/* Magenta */}
-          <stop offset="100%" stopColor="#ec4899" /> {/* Warm Pink */}
+          <stop offset="0%" stopColor="#09090b" />
+          <stop offset="100%" stopColor="#27272a" />
         </linearGradient>
       </defs>
 
@@ -41,7 +40,7 @@ export function Logo({ size = 40, className = '' }: LogoProps) {
       {/* Beautiful 4-point sparkle at the top right of the 'o' */}
       <path
         d="M80,18 Q80,32 94,32 Q80,32 80,46 Q80,32 66,32 Q80,32 80,18 Z"
-        fill="#f472b6"
+        fill="#71717a"
       />
     </svg>
   )

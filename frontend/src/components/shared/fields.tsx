@@ -8,13 +8,13 @@ import { ChevronDown } from 'lucide-react'
  * analytics, Settings…) visually consistent instead of drifting.
  */
 export const fieldClass =
-  'w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 shadow-inner shadow-black/20 outline-none transition focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/30'
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-black/60 focus:ring-2 focus:ring-black/10'
 
 /** Same visual language, sized for a multi-line textarea. */
-export const textAreaClass = `min-h-24 ${fieldClass}`
+export const textAreaClass = `min-h-20 ${fieldClass}`
 
 /** Shared label style used above every field. */
-export const labelClass = 'text-sm text-slate-300'
+export const labelClass = 'text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1'
 
 /**
  * Drop-in replacement for a native <select> that matches fieldClass and

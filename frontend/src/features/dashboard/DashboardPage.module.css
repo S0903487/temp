@@ -1,60 +1,67 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 28px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%);
-  color: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: 0 25px 45px rgba(2, 6, 23, 0.35);
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
 }
 
 .eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
-  font-size: 0.78rem;
-  color: #8b5cf6;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  color: #fff;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .description {
-  margin-top: 8px;
+  margin-top: 4px;
   max-width: 620px;
-  color: #cbd5e1;
+  color: #475569;
+  font-size: 0.85rem;
 }
 
 .heroBadge {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 @media (max-width: 900px) {
   .hero {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
   .statsGrid {

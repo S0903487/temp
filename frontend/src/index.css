@@ -1,11 +1,87 @@
 @import "tailwindcss";
 
+@theme {
+  --color-white: #ffffff;
+  --color-black: #09090b;
+
+  /* Color-Inversion Scale for Slate:
+     Makes components that previously relied on dark Slate automatically 
+     render as light, clean, and highly readable with dark charcoal typography! */
+  --color-slate-50: #020617;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #8c9ba5;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+  --color-slate-950: #ffffff;
+
+  /* Grayscale mappings for neon accents (violet, cyan, amber, blue, sky, teal) 
+     for a highly professional, pure monochrome look */
+  --color-violet-50: #f8fafc;
+  --color-violet-100: #f1f5f9;
+  --color-violet-200: #e2e8f0;
+  --color-violet-300: #cbd5e1;
+  --color-violet-400: #475569;
+  --color-violet-500: #1e293b;
+  --color-violet-600: #0f172a;
+  --color-violet-700: #020617;
+  --color-violet-800: #000000;
+  --color-violet-950: #ffffff;
+
+  --color-cyan-50: #f8fafc;
+  --color-cyan-100: #f1f5f9;
+  --color-cyan-200: #e2e8f0;
+  --color-cyan-300: #cbd5e1;
+  --color-cyan-400: #475569;
+  --color-cyan-500: #1e293b;
+  --color-cyan-600: #0f172a;
+  --color-cyan-700: #020617;
+  --color-cyan-900: #000000;
+  --color-cyan-950: #ffffff;
+
+  --color-amber-50: #fcf6e8;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #f59e0b;
+  --color-amber-400: #d97706;
+  --color-amber-500: #b45309;
+  --color-amber-600: #78350f;
+
+  --color-sky-50: #f8fafc;
+  --color-sky-100: #f1f5f9;
+  --color-sky-200: #e2e8f0;
+  --color-sky-300: #cbd5e1;
+  --color-sky-400: #475569;
+  --color-sky-500: #1e293b;
+  --color-sky-600: #0f172a;
+
+  --color-teal-50: #f8fafc;
+  --color-teal-100: #f1f5f9;
+  --color-teal-200: #e2e8f0;
+  --color-teal-300: #cbd5e1;
+  --color-teal-400: #475569;
+  --color-teal-500: #1e293b;
+  --color-teal-600: #0f172a;
+
+  --color-emerald-50: #f0fdf4;
+  --color-emerald-100: #dcfce7;
+  --color-emerald-200: #bbf7d0;
+  --color-emerald-300: #15803d;
+  --color-emerald-400: #166534;
+  --color-emerald-500: #14532d;
+  --color-emerald-600: #14532d;
+}
+
 :root {
   font-family: Inter, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
+  line-height: 1.4;
   font-weight: 400;
-  color: #f8fafc;
-  background-color: #020617;
+  color: #0f172a;
+  background-color: #f8fafc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -21,17 +97,19 @@ body,
 #root {
   margin: 0;
   min-height: 100%;
+  background-color: #f8fafc;
 }
 
 body {
   min-width: 320px;
-  background: radial-gradient(circle at top left, #111827 0%, #020617 45%, #01040d 100%);
-  color: #f8fafc;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -39,45 +117,55 @@ img {
   display: block;
 }
 
-/* Native form controls default to light-mode popups even in a dark app;
-   force dark rendering so <select> option lists and date pickers are readable. */
 select,
 input[type='date'] {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
-/* The native date-picker icon defaults to a dim, hard-to-see glyph even
-   with color-scheme: dark; brighten it and give it a hover state so it
-   reads as an actual clickable control. */
+/* Brighten datepicker controls for light theme */
 input[type='date']::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  border-radius: 6px;
-  padding: 3px;
-  opacity: 0.75;
+  border-radius: 4px;
+  padding: 2px;
+  opacity: 0.6;
   transition: opacity 120ms ease, background-color 120ms ease;
 }
 
 input[type='date']::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
-  background-color: rgba(148, 163, 184, 0.16);
+  background-color: rgba(15, 23, 42, 0.06);
 }
 
 select option {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
-/* Dark, app-matching scrollbar for scrollable panels (modals, long lists)
-   instead of the default OS-themed one. Opt-in via .themed-scrollbar so it
-   doesn't affect the page's main scrollbar. */
+/* Force dark-mode texts to be beautifully dark and high contrast on our light white cards */
+.text-white,
+p.text-white,
+span.text-white,
+h1.text-white,
+h2.text-white,
+h3.text-white,
+h4.text-white,
+h5.text-white,
+h6.text-white,
+td .text-white,
+div .text-white,
+label .text-white {
+  color: #0f172a !important;
+}
+
+/* Light, elegant scrollbar matching light monochrome theme */
 .themed-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .themed-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .themed-scrollbar::-webkit-scrollbar-track {
@@ -85,12 +173,24 @@ select option {
 }
 
 .themed-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #334155;
+  background-color: #cbd5e1;
   border-radius: 9999px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 .themed-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #475569;
+  background-color: #94a3b8;
+}
+
+/* Uniform high-contrast styling for tables and dialog borders */
+table {
+  border-collapse: collapse;
+}
+
+/* Uniform design for scroll containers */
+.overflow-x-auto,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }

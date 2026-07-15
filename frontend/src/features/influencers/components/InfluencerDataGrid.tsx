@@ -100,50 +100,50 @@ export function InfluencerDataGrid({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 shadow-lg select-none">
+    <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm select-none">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-          <thead className="bg-slate-900/90 text-slate-400 sticky top-0 z-10">
+        <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
+          <thead className="bg-slate-50 text-slate-500 sticky top-0 z-10 border-b border-slate-200">
             <tr>
               {/* Bulk Checkbox Column */}
-              <th className="px-4 py-3.5 w-12 text-center">
+              <th className="px-3 py-2 w-10 text-center">
                 <input
                   type="checkbox"
                   checked={isAllSelected}
                   onChange={handleSelectAll}
-                  className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0"
+                  className="rounded border-slate-300 bg-white text-slate-900 focus:ring-0"
                 />
               </th>
               {/* Main Columns */}
-              <th className="px-4 py-3.5 font-semibold text-slate-300 cursor-pointer hover:text-white transition" onClick={() => onSort('fullName')}>
+              <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('fullName')}>
                 Creator {renderSortIndicator('fullName')}
               </th>
-              {isColVisible('platform') && <th className="px-4 py-3.5 font-semibold text-slate-300">Platform</th>}
+              {isColVisible('platform') && <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">Platform</th>}
               {isColVisible('followers') && (
-                <th className="px-4 py-3.5 font-semibold text-slate-300 cursor-pointer hover:text-white transition text-right" onClick={() => onSort('followers')}>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('followers')}>
                   Followers {renderSortIndicator('followers')}
                 </th>
               )}
               {isColVisible('engagement') && (
-                <th className="px-4 py-3.5 font-semibold text-slate-300 cursor-pointer hover:text-white transition text-right" onClick={() => onSort('engagementRate')}>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('engagementRate')}>
                   Eng. Rate {renderSortIndicator('engagementRate')}
                 </th>
               )}
               {isColVisible('category') && (
-                <th className="px-4 py-3.5 font-semibold text-slate-300 cursor-pointer hover:text-white transition" onClick={() => onSort('category')}>
-                  Niche Niche {renderSortIndicator('category')}
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('category')}>
+                  Niche Category {renderSortIndicator('category')}
                 </th>
               )}
-              {isColVisible('contact') && <th className="px-4 py-3.5 font-semibold text-slate-300">Contact Channels</th>}
+              {isColVisible('contact') && <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">Contact Channels</th>}
               {isColVisible('pipeline') && (
-                <th className="px-4 py-3.5 font-semibold text-slate-300 cursor-pointer hover:text-white transition" onClick={() => onSort('pipelineStatus')}>
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('pipelineStatus')}>
                   Outreach Stage {renderSortIndicator('pipelineStatus')}
                 </th>
               )}
-              <th className="px-4 py-3.5 w-12" />
+              <th className="px-3 py-2 w-10" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-300">
+          <tbody className="divide-y divide-slate-100 text-slate-700">
             {influencers.map((influencer, idx) => {
               const isSelected = selectedIds.includes(influencer.id)
               const isActive = activeRowIndex === idx
@@ -153,53 +153,53 @@ export function InfluencerDataGrid({
                   key={influencer.id}
                   onContextMenu={(e) => handleRowContextMenu(e, influencer)}
                   onClick={() => onOpenDrawer(influencer.id)}
-                  className={`group border-l-2 cursor-pointer transition duration-150 ${
+                  className={`group cursor-pointer transition duration-150 ${
                     isSelected
-                      ? 'bg-cyan-950/25 border-cyan-500 hover:bg-cyan-950/30'
+                      ? 'bg-slate-50 hover:bg-slate-100'
                       : isActive
-                      ? 'bg-slate-800/60 border-cyan-400/60'
-                      : 'border-transparent hover:bg-slate-900/40'
+                      ? 'bg-slate-100'
+                      : 'hover:bg-slate-50'
                   }`}
                 >
                   {/* Row Checkbox */}
-                  <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-1.5 text-center" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onSelectToggle(influencer.id)}
-                      className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0"
+                      className="rounded border-slate-300 bg-white text-slate-900 focus:ring-0"
                     />
                   </td>
 
                   {/* Profile details */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={36} />
+                  <td className="px-3 py-1.5">
+                    <div className="flex items-center gap-2">
+                      <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={24} />
                       <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-white group-hover:text-cyan-400 transition">{influencer.fullName}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold text-slate-900 group-hover:text-black transition">{influencer.fullName}</span>
                           {influencer.verified && (
-                            <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 text-[8px]" title="Verified">✓</span>
+                            <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-slate-100 border border-slate-300 text-slate-700 text-[8px]" title="Verified">✓</span>
                           )}
                         </div>
-                        <span className="text-xs text-slate-500">@{influencer.username}</span>
+                        <span className="text-[10px] text-slate-500">@{influencer.username}</span>
                       </div>
                     </div>
                   </td>
 
                   {/* Platform */}
-                  {isColVisible('platform') && <td className="px-4 py-3 text-xs font-semibold text-slate-400">{influencer.platform}</td>}
+                  {isColVisible('platform') && <td className="px-3 py-1.5 text-[10px] font-bold text-slate-500">{influencer.platform}</td>}
 
                   {/* Followers */}
-                  {isColVisible('followers') && <td className="px-4 py-3 text-right font-medium text-slate-200">{influencer.followers.toLocaleString()}</td>}
+                  {isColVisible('followers') && <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{influencer.followers.toLocaleString()}</td>}
 
                   {/* Engagement */}
-                  {isColVisible('engagement') && <td className="px-4 py-3 text-right text-cyan-400 font-semibold">{influencer.engagementRate.toFixed(1)}%</td>}
+                  {isColVisible('engagement') && <td className="px-3 py-1.5 text-right text-slate-800 font-bold">{influencer.engagementRate.toFixed(1)}%</td>}
 
                   {/* Category */}
                   {isColVisible('category') && (
-                    <td className="px-4 py-3">
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
+                    <td className="px-3 py-1.5">
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600">
                         {influencer.category}
                       </span>
                     </td>
@@ -207,27 +207,27 @@ export function InfluencerDataGrid({
 
                   {/* Contact Channels */}
                   {isColVisible('contact') && (
-                    <td className="px-4 py-3 text-xs space-y-0.5">
-                      <p className="text-slate-300 font-medium">{influencer.email || '—'}</p>
-                      {influencer.phone && <p className="text-slate-500">{influencer.phone}</p>}
+                    <td className="px-3 py-1.5 text-[11px] space-y-0.5">
+                      <p className="text-slate-800 font-medium">{influencer.email || '—'}</p>
+                      {influencer.phone && <p className="text-slate-400 text-[10px]">{influencer.phone}</p>}
                     </td>
                   )}
 
                   {/* Pipeline */}
                   {isColVisible('pipeline') && (
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-1.5">
                       <PipelineStatusBadge status={influencer.pipelineStatus} />
                     </td>
                   )}
 
                   {/* Row Actions Trigger */}
-                  <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-1.5 text-center" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       onClick={() => onOpenDrawer(influencer.id)}
-                      className="p-1 rounded text-slate-500 hover:text-white transition"
+                      className="p-1 rounded text-slate-400 hover:text-slate-900 transition"
                     >
-                      <MoreVertical size={14} />
+                      <MoreVertical size={12} />
                     </button>
                   </td>
                 </tr>

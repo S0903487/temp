@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Bell, LogOut, Search } from 'lucide-react'
 import { useAuthUser, useLogout } from '../../features/auth'
 import { Avatar } from '../shared/Avatar'
-import { Logo } from '../shared/Logo'
 import styles from './Topbar.module.css'
 
 function Topbar() {
@@ -32,7 +31,6 @@ function Topbar() {
   return (
     <header className={styles.topbar}>
       <div className={styles.brand}>
-        <Logo size={28} />
         <span>InfluenceOS</span>
       </div>
 
