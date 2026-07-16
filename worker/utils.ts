@@ -34,7 +34,8 @@ export class HttpError extends Error {
 // ============ IDs ============
 
 export function generateId(prefix: string): string {
-  return `${prefix}_${crypto.randomUUID().replace(/-/g, '')}`;
+  const rand = Math.floor(10000000 + Math.random() * 90000000);
+  return `${prefix}_${rand}`;
 }
 
 export function nowIso(): string {

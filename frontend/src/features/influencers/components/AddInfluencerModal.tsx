@@ -42,6 +42,10 @@ const defaultForm = {
   priceStory: '',
   verified: false,
   brandSafe: true,
+  roi: '',
+  cpa: '',
+  cpi: '',
+  ltv: '',
 }
 
 type FormState = typeof defaultForm
@@ -69,15 +73,15 @@ function formFromInfluencer(influencer: Influencer): FormState {
     priceStory: influencer.priceStory ? String(influencer.priceStory) : '',
     verified: influencer.verified,
     brandSafe: influencer.brandSafe,
+    roi: influencer.roi !== undefined && influencer.roi !== null ? String(influencer.roi) : '',
+    cpa: influencer.cpa !== undefined && influencer.cpa !== null ? String(influencer.cpa) : '',
+    cpi: influencer.cpi !== undefined && influencer.cpi !== null ? String(influencer.cpi) : '',
+    ltv: influencer.ltv !== undefined && influencer.ltv !== null ? String(influencer.ltv) : '',
   }
 }
 
 function validateUsername(username: string): boolean {
-  const clean = username.replace(/^@/, '')
-  if (!clean || clean.length < 2) return false
-  // TikTok/Instagram usernames only allow alphanumeric, underscore, dot
-  const regex = /^[a-zA-Z0-9._]+$/
-  return regex.test(clean)
+  return username.trim().length > 0
 }
 
 export function InfluencerFormModal({
@@ -189,10 +193,10 @@ export function InfluencerFormModal({
     event.preventDefault()
     if (!form.fullName.trim()) return
 
-    const safeUsername = form.username.trim() ? (form.username.trim().startsWith('@') ? form.username.trim() : `@${form.username.trim()}`) : `@${form.fullName.replace(/\s+/g, '').toLowerCase()}`
+    const safeUsername = form.username.trim() || form.fullName.replace(/\s+/g, '').toLowerCase()
 
     if (!validateUsername(safeUsername)) {
-      setLocalValError('Invalid handle structure. Social handles can only contain letters, numbers, underscores, and dots (no spaces).')
+      setLocalValError('Username / Handle cannot be empty.')
       return
     }
 
@@ -218,12 +222,15 @@ export function InfluencerFormModal({
       averageComments: toNumber(form.averageComments),
       pricePost: toNumber(form.pricePost),
       priceStory: toNumber(form.priceStory),
+      roi: toNumber(form.roi),
+      cpa: toNumber(form.cpa),
+      cpi: toNumber(form.cpi),
+      ltv: toNumber(form.ltv),
       verified: form.verified,
       brandSafe: form.brandSafe,
     })
   }
 
-  const isUsernameValid = form.username ? validateUsername(form.username) : true
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6">
@@ -263,34 +270,18 @@ export function InfluencerFormModal({
             <label className={labelClass}>
               <span className="mb-2 block flex items-center justify-between">
                 <span>Username / Handle</span>
-                {form.username && (
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    isUsernameValid ? 'text-emerald-400' : 'text-rose-400'
-                  }`}>
-                    {isUsernameValid ? '✓ Valid format' : '✗ Invalid handle'}
-                  </span>
-                )}
               </span>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-500 font-bold select-none">@</span>
-                <input
-                  value={form.username.replace(/^@/, '')}
-                  onChange={(event) => {
-                    const val = event.target.value.replace(/\s+/g, '') // remove spaces directly
-                    setForm((current) => ({ ...current, username: val ? `@${val}` : '' }))
-                    setLocalValError(null)
-                  }}
-                  placeholder="creator_handle"
-                  className={`${fieldClass} pl-7`}
-                  required
-                />
-              </div>
+              <input
+                value={form.username}
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, username: event.target.value }))
+                  setLocalValError(null)
+                }}
+                placeholder="e.g. creator_handle or @handle"
+                className={fieldClass}
+                required
+              />
             </label>
-            {form.username && !isUsernameValid && (
-              <p className="text-[10px] text-rose-400 mt-1">
-                Handles can only contain alphanumeric characters, underscores, and dots.
-              </p>
-            )}
           </div>
           <label className={labelClass}>
             <span className="mb-2 block">Platform</span>
@@ -432,6 +423,54 @@ export function InfluencerFormModal({
               value={form.priceStory}
               onChange={(event) => setForm((current) => ({ ...current, priceStory: event.target.value }))}
               className={fieldClass}
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">ROI (%)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.roi}
+              onChange={(event) => setForm((current) => ({ ...current, roi: event.target.value }))}
+              className={fieldClass}
+              placeholder="e.g. 150"
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">CPA ($)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.cpa}
+              onChange={(event) => setForm((current) => ({ ...current, cpa: event.target.value }))}
+              className={fieldClass}
+              placeholder="e.g. 25.50"
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">CPI ($)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.cpi}
+              onChange={(event) => setForm((current) => ({ ...current, cpi: event.target.value }))}
+              className={fieldClass}
+              placeholder="e.g. 1.50"
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">LTV ($)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.ltv}
+              onChange={(event) => setForm((current) => ({ ...current, ltv: event.target.value }))}
+              className={fieldClass}
+              placeholder="e.g. 120"
             />
           </label>
           <div className="flex items-center gap-6 md:col-span-2">

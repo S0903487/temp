@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Mail, Pencil, Phone, ShieldCheck, Trash2 } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, HelpCircle, Mail, Pencil, Phone, ShieldCheck, Trash2 } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { Avatar } from '../../components/shared/Avatar'
 import { CampaignHistoryList } from './components/CampaignHistoryList'
@@ -25,10 +25,21 @@ import {
 } from './hooks/useInfluencers'
 import type { PipelineStatus } from './types'
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) {
   return (
-    <div className="rounded border border-slate-200 bg-white p-3.5 shadow-xs">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+    <div className="group relative rounded border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-slate-300">
+      <div className="flex items-center gap-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+        {tooltip && (
+          <div className="relative inline-block cursor-help text-slate-300 hover:text-slate-500 group/tooltip">
+            <HelpCircle size={10} />
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-25 mb-2 w-48 -translate-x-1/2 scale-90 rounded bg-slate-900 p-2 text-[10px] font-semibold leading-normal text-white opacity-0 shadow-lg transition-all duration-150 group-hover/tooltip:scale-100 group-hover/tooltip:opacity-100">
+              {tooltip}
+              <div className="absolute top-full left-1/2 h-1 w-1 -translate-x-1/2 -translate-y-0.5 rotate-45 bg-slate-900" />
+            </div>
+          </div>
+        )}
+      </div>
       <p className="mt-1 text-sm font-extrabold text-slate-900">{value}</p>
     </div>
   )
@@ -178,10 +189,17 @@ function InfluencerProfilePage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Followers" value={influencer.followers.toLocaleString()} />
-          <StatCard label="Engagement" value={`${influencer.engagementRate.toFixed(1)}%`} />
-          <StatCard label="Avg. Views" value={influencer.averageViews.toLocaleString()} />
-          <StatCard label="Avg. Likes / Comments" value={`${influencer.averageLikes.toLocaleString()} / ${influencer.averageComments.toLocaleString()}`} />
+          <StatCard label="Followers" value={influencer.followers ? influencer.followers.toLocaleString() : '0'} tooltip="Total registered follower or subscriber count across this specific social network." />
+          <StatCard label="Engagement" value={influencer.engagementRate ? `${influencer.engagementRate.toFixed(1)}%` : '0.0%'} tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts." />
+          <StatCard label="Avg. Views" value={influencer.averageViews ? influencer.averageViews.toLocaleString() : '0'} tooltip="Average video views or impressions recorded over the creator's last 30 active days." />
+          <StatCard label="Avg. Likes / Comments" value={`${(influencer.averageLikes || 0).toLocaleString()} / ${(influencer.averageComments || 0).toLocaleString()}`} tooltip="The baseline average count of post likes and comments per piece of published content." />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Price per Post" value={influencer.pricePost ? `$${influencer.pricePost.toLocaleString()}` : '—'} tooltip="Baseline flat fee charged by this creator for a single main-feed post publication." />
+          <StatCard label="Price per Story" value={influencer.priceStory ? `$${influencer.priceStory.toLocaleString()}` : '—'} tooltip="Baseline flat fee charged by this creator for a temporary (24-hour) story publication." />
+          <StatCard label="ROI" value={influencer.roi !== undefined && influencer.roi !== null ? `${influencer.roi}%` : '—'} tooltip="Return on Investment = (Campaign Revenue - Cost) / Cost. Indicates the financial efficiency and profitability of this creator." />
+          <StatCard label="CPA / CPI / LTV" value={`$${(influencer.cpa || 0).toFixed(0)} / $${(influencer.cpi || 0).toFixed(2)} / $${(influencer.ltv || 0).toFixed(0)}`} tooltip="Key funnels: Cost Per Acquisition (CPA), Cost Per Install/Click (CPI), and referred customer Lifetime Value (LTV)." />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">

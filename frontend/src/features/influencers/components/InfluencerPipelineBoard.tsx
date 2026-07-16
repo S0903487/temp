@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
@@ -15,6 +15,20 @@ export function InfluencerPipelineBoard({
   onUpdatePipeline,
 }: InfluencerPipelineBoardProps) {
   const navigate = useNavigate()
+  
+  const [pages, setPages] = useState<Record<PipelineStatus, number>>({
+    New: 1,
+    Reviewed: 1,
+    Contacted: 1,
+    Replied: 1,
+    Negotiating: 1,
+    Booked: 1,
+    Completed: 1,
+    Inactive: 1,
+  })
+
+  const PAGE_SIZE = 10
+
   // Group influencers by pipeline status
   const columns = useMemo(() => {
     const groups: Record<PipelineStatus, Influencer[]> = {
@@ -52,6 +66,14 @@ export function InfluencerPipelineBoard({
     <div className="flex gap-4 overflow-x-auto pb-4 pt-1 select-none themed-scrollbar">
       {PIPELINE_STATUSES.map((status) => {
         const list = columns[status] || []
+        const hasPagination = list.length > 25
+        const currentPage = pages[status] || 1
+        const totalPages = Math.ceil(list.length / PAGE_SIZE) || 1
+        
+        const displayedList = hasPagination 
+          ? list.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+          : list
+
         return (
           <div
             key={status}
@@ -70,14 +92,14 @@ export function InfluencerPipelineBoard({
 
             {/* Cards List */}
             <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[150px] themed-scrollbar">
-              {list.length === 0 && (
+              {displayedList.length === 0 && (
                 <div className="h-20 flex flex-col items-center justify-center border border-dashed border-slate-200 rounded text-xs text-slate-400">
                   <AlertCircle size={12} className="mb-1 text-slate-300" />
                   <span className="text-[11px] font-bold">No creators in this stage</span>
                 </div>
               )}
 
-              {list.map((inf) => (
+              {displayedList.map((inf) => (
                 <div
                   key={inf.id}
                   onClick={() => navigate(`/influencers/${inf.id}`)}
@@ -90,7 +112,7 @@ export function InfluencerPipelineBoard({
                         <h5 className="text-xs font-bold text-slate-900 group-hover:text-black transition">
                           {inf.fullName}
                         </h5>
-                        <p className="text-[10px] text-slate-400">@{inf.username}</p>
+                        <p className="text-[10px] text-slate-400">{inf.username}</p>
                       </div>
                     </div>
                     {/* Platform indicators */}
@@ -134,6 +156,31 @@ export function InfluencerPipelineBoard({
                 </div>
               ))}
             </div>
+
+            {/* Pagination Controls inside column if exceeds 25 */}
+            {hasPagination && (
+              <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setPages(prev => ({ ...prev, [status]: Math.max(1, currentPage - 1) }))}
+                  className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-bold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  Prev
+                </button>
+                <span className="font-semibold">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setPages(prev => ({ ...prev, [status]: Math.min(totalPages, currentPage + 1) }))}
+                  className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-bold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )
       })}

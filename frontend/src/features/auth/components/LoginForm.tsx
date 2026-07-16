@@ -6,7 +6,7 @@ import { loginSchema, type LoginFormData } from '../validators/loginSchema';
 import { useLogin } from '../hooks/useAuth';
 
 const inputClass =
-  'block w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-black/60 focus:ring-2 focus:ring-black/10';
+  'block w-full rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-black'
 
 export function LoginForm() {
   const navigate = useNavigate();
