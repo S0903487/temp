@@ -23,6 +23,7 @@ type InfluencerFormModalProps = {
 const defaultForm = {
   fullName: '',
   username: '',
+  profileLink: '',
   bio: '',
   platform: 'Instagram' as Platform,
   category: 'Lifestyle',
@@ -54,6 +55,7 @@ function formFromInfluencer(influencer: Influencer): FormState {
   return {
     fullName: influencer.fullName,
     username: influencer.username,
+    profileLink: influencer.profileLink ?? '',
     bio: influencer.bio ?? '',
     platform: influencer.platform,
     category: influencer.category,
@@ -187,7 +189,12 @@ export function InfluencerFormModal({
     return null
   }
 
-  const toNumber = (value: string) => (value.trim() === '' ? undefined : Number(value))
+  const toNumber = (value: string) => {
+    const trimmed = value.trim()
+    if (trimmed === '') return undefined
+    const parsed = Number(trimmed)
+    return Number.isNaN(parsed) ? undefined : parsed
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -204,6 +211,7 @@ export function InfluencerFormModal({
     onSubmit({
       fullName: form.fullName.trim(),
       username: safeUsername,
+      profileLink: form.profileLink.trim() || undefined,
       bio: form.bio.trim() || undefined,
       platform: form.platform,
       category: form.category,
@@ -283,6 +291,16 @@ export function InfluencerFormModal({
               />
             </label>
           </div>
+          <label className={labelClass}>
+            <span className="mb-2 block">Profile Link</span>
+            <input
+              type="url"
+              value={form.profileLink}
+              onChange={(event) => setForm((current) => ({ ...current, profileLink: event.target.value }))}
+              placeholder="e.g. https://instagram.com/creator_handle"
+              className={fieldClass}
+            />
+          </label>
           <label className={labelClass}>
             <span className="mb-2 block">Platform</span>
             <Select
@@ -372,7 +390,7 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Avg. views</span>
+            <span className="mb-2 block">Total views</span>
             <input
               type="number"
               min="0"
@@ -382,7 +400,7 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Avg. likes</span>
+            <span className="mb-2 block">Total likes</span>
             <input
               type="number"
               min="0"
@@ -392,7 +410,7 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Avg. comments</span>
+            <span className="mb-2 block">Total comments</span>
             <input
               type="number"
               min="0"

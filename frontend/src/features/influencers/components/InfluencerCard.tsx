@@ -89,9 +89,21 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
             )}
           </div>
           <p className="text-xs text-slate-400 truncate">@{influencer.username}</p>
-          <span className="inline-block mt-1 text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 text-slate-600 rounded font-bold">
-            {influencer.category}
-          </span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            <span className="inline-block text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 text-slate-600 rounded font-bold">
+              {influencer.category}
+            </span>
+            {influencer.country && (
+              <span className="inline-block text-[10px] bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 text-indigo-600 rounded font-bold">
+                {influencer.country}
+              </span>
+            )}
+            {influencer.roi !== undefined && influencer.roi !== null && (
+              <span className="inline-block text-[10px] bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 text-emerald-600 rounded font-bold">
+                ROI: {influencer.roi}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -113,13 +125,25 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Avg Views</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Views</p>
           <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.averageViews)}</p>
         </div>
         <div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Post Price</p>
           <p className="text-xs font-bold text-emerald-600">${influencer.pricePost || 'N/A'}</p>
         </div>
+        {influencer.cpa !== undefined && influencer.cpa !== null && (
+          <div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">CPA</p>
+            <p className="text-xs font-bold text-slate-800">${influencer.cpa}</p>
+          </div>
+        )}
+        {influencer.ltv !== undefined && influencer.ltv !== null && (
+          <div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">LTV</p>
+            <p className="text-xs font-bold text-slate-800">${influencer.ltv}</p>
+          </div>
+        )}
       </div>
 
       {/* Quick Contact & Action Bars */}

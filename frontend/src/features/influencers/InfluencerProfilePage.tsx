@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, HelpCircle, Mail, Pencil, Phone, ShieldCheck, Trash2 } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, HelpCircle, Mail, Pencil, Phone, ShieldCheck, Trash2, ExternalLink } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { Avatar } from '../../components/shared/Avatar'
 import { CampaignHistoryList } from './components/CampaignHistoryList'
@@ -165,8 +165,21 @@ function InfluencerProfilePage() {
                 {influencer.verified && <BadgeCheck size={14} className="text-sky-500" />}
                 {influencer.brandSafe && <ShieldCheck size={14} className="text-emerald-500" />}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {influencer.username} · {influencer.platform} · {influencer.category}
+              <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                {influencer.profileLink ? (
+                  <a
+                    href={influencer.profileLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline font-semibold"
+                  >
+                    {influencer.username}
+                    <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <span>{influencer.username}</span>
+                )}
+                <span> · {influencer.platform} · {influencer.category}</span>
               </p>
               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                 {influencer.country}
@@ -191,8 +204,8 @@ function InfluencerProfilePage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Followers" value={influencer.followers ? influencer.followers.toLocaleString() : '0'} tooltip="Total registered follower or subscriber count across this specific social network." />
           <StatCard label="Engagement" value={influencer.engagementRate ? `${influencer.engagementRate.toFixed(1)}%` : '0.0%'} tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts." />
-          <StatCard label="Avg. Views" value={influencer.averageViews ? influencer.averageViews.toLocaleString() : '0'} tooltip="Average video views or impressions recorded over the creator's last 30 active days." />
-          <StatCard label="Avg. Likes / Comments" value={`${(influencer.averageLikes || 0).toLocaleString()} / ${(influencer.averageComments || 0).toLocaleString()}`} tooltip="The baseline average count of post likes and comments per piece of published content." />
+          <StatCard label="Total Views" value={influencer.averageViews ? influencer.averageViews.toLocaleString() : '0'} tooltip="Total video views or impressions recorded across the creator's content." />
+          <StatCard label="Total Likes / Comments" value={`${(influencer.averageLikes || 0).toLocaleString()} / ${(influencer.averageComments || 0).toLocaleString()}`} tooltip="The overall count of post likes and comments across the creator's published content." />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

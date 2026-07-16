@@ -100,6 +100,18 @@ export async function getById(_request: Request, env: Env, auth: AuthedRequest, 
   return json(toApi(row));
 }
 
+function cleanNum(val: unknown, defaultVal = 0): number {
+  if (val === undefined || val === null) return defaultVal;
+  const parsed = Number(val);
+  return Number.isNaN(parsed) ? defaultVal : parsed;
+}
+
+function cleanNumOrNull(val: unknown): number | null {
+  if (val === undefined || val === null || val === '') return null;
+  const parsed = Number(val);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
 export async function create(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
   const body = await readJson<InfluencerBody>(request);
   if (!body.fullName) return badRequest('fullName is required');
@@ -132,15 +144,15 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
       body.category ?? null,
       body.country ?? null,
       body.language ?? null,
-      body.followers ?? 0,
-      body.engagementRate ?? 0,
-      body.averageViews ?? 0,
-      body.averageLikes ?? 0,
-      body.averageComments ?? 0,
+      cleanNum(body.followers, 0),
+      cleanNum(body.engagementRate, 0),
+      cleanNum(body.averageViews, 0),
+      cleanNum(body.averageLikes, 0),
+      cleanNum(body.averageComments, 0),
       body.email ?? null,
       body.phone ?? null,
-      body.pricePost ?? null,
-      body.priceStory ?? null,
+      cleanNumOrNull(body.pricePost),
+      cleanNumOrNull(body.priceStory),
       body.verified ? 1 : 0,
       body.brandSafe === false ? 0 : 1,
       body.status ?? 'Active',
@@ -150,10 +162,10 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
       body.bio ?? null,
       body.profileImage ?? null,
       body.profileLink ?? null,
-      body.roi ?? null,
-      body.cpa ?? null,
-      body.cpi ?? null,
-      body.ltv ?? null,
+      cleanNumOrNull(body.roi),
+      cleanNumOrNull(body.cpa),
+      cleanNumOrNull(body.cpi),
+      cleanNumOrNull(body.ltv),
       now
     )
     .run();
@@ -168,11 +180,11 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
       generateId('snap'),
       id,
       now,
-      body.followers ?? 0,
-      body.averageViews ?? 0,
-      body.averageLikes ?? 0,
-      body.averageComments ?? 0,
-      body.engagementRate ?? 0,
+      cleanNum(body.followers, 0),
+      cleanNum(body.averageViews, 0),
+      cleanNum(body.averageLikes, 0),
+      cleanNum(body.averageComments, 0),
+      cleanNum(body.engagementRate, 0),
       now
     )
     .run();
@@ -229,8 +241,15 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     const column = COLUMN_MAP[key];
     if (!column) continue;
     let value: unknown = body[key];
-    if (key === 'verified' || key === 'brandSafe') value = value ? 1 : 0;
-    if (key === 'tags') value = value ? JSON.stringify(value) : null;
+    if (key === 'verified' || key === 'brandSafe') {
+      value = value ? 1 : 0;
+    } else if (key === 'tags') {
+      value = value ? JSON.stringify(value) : null;
+    } else if (['followers', 'engagementRate', 'averageViews', 'averageLikes', 'averageComments'].includes(key)) {
+      value = cleanNum(value, 0);
+    } else if (['pricePost', 'priceStory', 'roi', 'cpa', 'cpi', 'ltv'].includes(key)) {
+      value = cleanNumOrNull(value);
+    }
     sets.push(`${column} = ?`);
     values.push(value);
   }

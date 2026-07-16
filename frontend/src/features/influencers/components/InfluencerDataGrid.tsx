@@ -164,17 +164,17 @@ export function InfluencerDataGrid({
               )}
               {isColVisible('averageViews') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageViews')}>
-                  Avg Views {renderSortIndicator('averageViews')}
+                  Total Views {renderSortIndicator('averageViews')}
                 </th>
               )}
               {isColVisible('averageLikes') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageLikes')}>
-                  Avg Likes {renderSortIndicator('averageLikes')}
+                  Total Likes {renderSortIndicator('averageLikes')}
                 </th>
               )}
               {isColVisible('averageComments') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageComments')}>
-                  Avg Comments {renderSortIndicator('averageComments')}
+                  Total Comments {renderSortIndicator('averageComments')}
                 </th>
               )}
               {isColVisible('pricePost') && (
@@ -469,65 +469,73 @@ export function InfluencerDataGrid({
       </div>
 
       {/* Right-Click Context Menu Popup */}
-      {contextMenu.influencer && (
-        <div
-          className="fixed z-50 min-w-[200px] bg-white border border-slate-200 rounded p-1 shadow-md animate-in fade-in zoom-in-95 duration-100"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 mb-1">
-            {contextMenu.influencer.fullName}
-          </div>
-
-          <button
-            onClick={() => {
-              if (contextMenu.influencer) navigate(`/influencers/${contextMenu.influencer.id}`)
-            }}
-            className="w-full text-left px-2 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
+      {contextMenu.influencer && (() => {
+        const screenWidth = window.innerWidth
+        const screenHeight = window.innerHeight
+        const menuWidth = 220
+        const menuHeight = 320
+        const left = contextMenu.x + menuWidth > screenWidth ? Math.max(16, screenWidth - menuWidth - 16) : contextMenu.x
+        const top = contextMenu.y + menuHeight > screenHeight ? Math.max(16, screenHeight - menuHeight - 16) : contextMenu.y
+        return (
+          <div
+            className="fixed z-50 min-w-[200px] bg-white border border-slate-200 rounded p-1 shadow-md animate-in fade-in zoom-in-95 duration-100"
+            style={{ top, left }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <ExternalLink size={12} />
-            <span>Open Profile Page</span>
-          </button>
+            <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 mb-1">
+              {contextMenu.influencer.fullName}
+            </div>
 
-          {/* Nested Pipeline Selector options */}
-          <div className="border-t border-slate-100 my-1 pt-1">
-            <span className="block px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase">Change Stage</span>
-            {PIPELINE_STATUSES.map((status) => (
+            <button
+              onClick={() => {
+                if (contextMenu.influencer) navigate(`/influencers/${contextMenu.influencer.id}`)
+              }}
+              className="w-full text-left px-2 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
+            >
+              <ExternalLink size={12} />
+              <span>Open Profile Page</span>
+            </button>
+
+            {/* Nested Pipeline Selector options */}
+            <div className="border-t border-slate-100 my-1 pt-1">
+              <span className="block px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase">Change Stage</span>
+              {PIPELINE_STATUSES.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    if (contextMenu.influencer) {
+                      onUpdatePipeline(contextMenu.influencer.id, status)
+                      setContextMenu({ x: 0, y: 0, influencer: null })
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-0.5 text-xs rounded font-semibold cursor-pointer ${
+                    contextMenu.influencer?.pipelineStatus === status
+                      ? 'text-black font-bold bg-slate-100'
+                      : 'text-slate-600 hover:text-black hover:bg-slate-50'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-slate-100 my-1 pt-1">
               <button
-                key={status}
                 onClick={() => {
                   if (contextMenu.influencer) {
-                    onUpdatePipeline(contextMenu.influencer.id, status)
+                    onDelete(contextMenu.influencer.id)
                     setContextMenu({ x: 0, y: 0, influencer: null })
                   }
                 }}
-                className={`w-full text-left px-3 py-0.5 text-xs rounded font-semibold cursor-pointer ${
-                  contextMenu.influencer?.pipelineStatus === status
-                    ? 'text-black font-bold bg-slate-100'
-                    : 'text-slate-600 hover:text-black hover:bg-slate-50'
-                }`}
+                className="w-full text-left px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
               >
-                {status}
+                <Trash2 size={12} />
+                <span>Delete Creator</span>
               </button>
-            ))}
+            </div>
           </div>
-
-          <div className="border-t border-slate-100 my-1 pt-1">
-            <button
-              onClick={() => {
-                if (contextMenu.influencer) {
-                  onDelete(contextMenu.influencer.id)
-                  setContextMenu({ x: 0, y: 0, influencer: null })
-                }
-              }}
-              className="w-full text-left px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
-            >
-              <Trash2 size={12} />
-              <span>Delete Creator</span>
-            </button>
-          </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
