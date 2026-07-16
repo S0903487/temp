@@ -189,6 +189,30 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     )
     .run();
 
+  // Populate normalized tag tables for any initial tags passed on creation
+  if (body.tags && body.tags.length > 0) {
+    for (const name of body.tags) {
+      const trimmedName = name.trim();
+      if (!trimmedName) continue;
+
+      let tag = await env.DB.prepare('SELECT id FROM tags WHERE organization_id = ? AND name = ?')
+        .bind(auth.organizationId, trimmedName)
+        .first<{ id: string }>();
+
+      let tagId = tag?.id;
+      if (!tagId) {
+        tagId = generateId('tag');
+        await env.DB.prepare('INSERT INTO tags (id, organization_id, name, created_at) VALUES (?, ?, ?, ?)')
+          .bind(tagId, auth.organizationId, trimmedName, now)
+          .run();
+      }
+
+      await env.DB.prepare('INSERT OR IGNORE INTO influencer_tags (influencer_id, tag_id, added_at) VALUES (?, ?, ?)')
+        .bind(id, tagId, now)
+        .run();
+    }
+  }
+
   const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
   return json(toApi(row as Record<string, unknown>), 201);
 }
@@ -263,6 +287,34 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   await env.DB.prepare(`UPDATE influencers SET ${sets.join(', ')} WHERE id = ?`)
     .bind(...values)
     .run();
+
+  // If tags are in the update body, sync the normalized tables
+  if ('tags' in body) {
+    await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ?').bind(id).run();
+    if (body.tags && body.tags.length > 0) {
+      const now = nowIso();
+      for (const name of body.tags) {
+        const trimmedName = name.trim();
+        if (!trimmedName) continue;
+
+        let tag = await env.DB.prepare('SELECT id FROM tags WHERE organization_id = ? AND name = ?')
+          .bind(auth.organizationId, trimmedName)
+          .first<{ id: string }>();
+
+        let tagId = tag?.id;
+        if (!tagId) {
+          tagId = generateId('tag');
+          await env.DB.prepare('INSERT INTO tags (id, organization_id, name, created_at) VALUES (?, ?, ?, ?)')
+            .bind(tagId, auth.organizationId, trimmedName, now)
+            .run();
+        }
+
+        await env.DB.prepare('INSERT OR IGNORE INTO influencer_tags (influencer_id, tag_id, added_at) VALUES (?, ?, ?)')
+          .bind(id, tagId, now)
+          .run();
+      }
+    }
+  }
 
   const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
 
@@ -428,6 +480,23 @@ export async function listInfluencerTags(_request: Request, env: Env, auth: Auth
   return json(results);
 }
 
+// Helper to sync legacy JSON tags column in influencers table when tags change
+async function syncLegacyTags(db: D1Database, influencerId: string) {
+  const { results } = await db.prepare(
+    `SELECT t.name FROM influencer_tags it
+     JOIN tags t ON t.id = it.tag_id
+     WHERE it.influencer_id = ?
+     ORDER BY t.name`
+  )
+    .bind(influencerId)
+    .all();
+
+  const tagNames = results.map((r) => r.name);
+  await db.prepare('UPDATE influencers SET tags = ? WHERE id = ?')
+    .bind(JSON.stringify(tagNames), influencerId)
+    .run();
+}
+
 // POST /api/influencers/:id/tags  { name }  — creates the org tag if needed, then attaches it
 export async function addInfluencerTag(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
   const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
@@ -455,6 +524,8 @@ export async function addInfluencerTag(request: Request, env: Env, auth: AuthedR
     .bind(id, tag.id, nowIso())
     .run();
 
+  await syncLegacyTags(env.DB, id);
+
   return json(tag, 201);
 }
 
@@ -472,5 +543,8 @@ export async function removeInfluencerTag(
   if (!influencer) return notFound();
 
   await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ? AND tag_id = ?').bind(id, tagId).run();
+
+  await syncLegacyTags(env.DB, id);
+
   return json({ success: true });
 }

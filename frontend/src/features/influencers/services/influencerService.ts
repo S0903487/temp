@@ -30,7 +30,7 @@ export interface CreateInfluencerInput {
   notes?: string;
   tags?: string[];
   bio?: string;
-  profileImage?: string;
+  profileImage?: string | null;
   profileLink?: string;
   roi?: number;
   cpa?: number;

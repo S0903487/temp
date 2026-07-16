@@ -48,7 +48,7 @@ export type Influencer = {
   notes: string
   tags: string[]
   bio: string
-  profileImage: string
+  profileImage: string | null
   profileLink?: string
   roi?: number
   cpa?: number
