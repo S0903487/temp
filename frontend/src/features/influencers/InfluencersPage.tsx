@@ -8,7 +8,6 @@ import { InfluencerStatsGrid } from './components/InfluencerStatsGrid'
 import { InfluencerFiltersPanel } from './components/InfluencerFiltersPanel'
 import { InfluencerDataGrid } from './components/InfluencerDataGrid'
 import { InfluencerPipelineBoard } from './components/InfluencerPipelineBoard'
-import { InfluencerDetailsDrawer } from './components/InfluencerDetailsDrawer'
 import { ImportModal } from './components/ImportModal'
 import { AddInfluencerModal } from './components/AddInfluencerModal'
 import { InfluencerCard } from './components/InfluencerCard'
@@ -25,6 +24,7 @@ import type { SortField } from './components/InfluencerDataGrid'
 import type { CreateInfluencerInput } from './services/influencerService'
 
 const COLS = [
+  { key: 'id', label: 'ID' },
   { key: 'platform', label: 'Platform' },
   { key: 'followers', label: 'Followers' },
   { key: 'engagement', label: 'Engagement Rate' },
@@ -41,6 +41,11 @@ const COLS = [
   { key: 'verified', label: 'Verified Status' },
   { key: 'brandSafe', label: 'Brand Safety' },
   { key: 'status', label: 'Health Status' },
+  { key: 'profileLink', label: 'Profile Link' },
+  { key: 'roi', label: 'ROI' },
+  { key: 'cpa', label: 'CPA' },
+  { key: 'cpi', label: 'CPI' },
+  { key: 'ltv', label: 'LTV' },
   { key: 'notes', label: 'Notes' },
 ]
 
@@ -297,7 +302,6 @@ export default function InfluencersPage() {
                 sortOrder={state.sortOrder}
                 onSort={handleSortFieldChange}
                 visibleColumns={state.visibleColumns}
-                onOpenDrawer={state.setActiveInfluencerId}
                 onUpdatePipeline={handleUpdatePipeline}
                 onDelete={(id) => deleteInfluencer.mutate(id)}
               />
@@ -307,7 +311,6 @@ export default function InfluencersPage() {
                   <InfluencerCard
                     key={influencer.id}
                     influencer={influencer}
-                    onOpenDrawer={state.setActiveInfluencerId}
                     onDelete={(id) => deleteInfluencer.mutate(id)}
                   />
                 ))}
@@ -317,7 +320,6 @@ export default function InfluencersPage() {
                 <InfluencerPipelineBoard
                   influencers={filtered}
                   onUpdatePipeline={handleUpdatePipeline}
-                  onOpenDrawer={state.setActiveInfluencerId}
                 />
               </div>
             )}
@@ -337,12 +339,6 @@ export default function InfluencersPage() {
           </div>
         )}
       </div>
-
-      {/* Right Side Sheet Details Drawer */}
-      <InfluencerDetailsDrawer
-        influencerId={state.activeInfluencerId}
-        onClose={() => state.setActiveInfluencerId(null)}
-      />
 
       {/* Add Single Manual Creator Modal */}
       <AddInfluencerModal

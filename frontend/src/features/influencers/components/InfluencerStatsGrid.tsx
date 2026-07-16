@@ -113,7 +113,7 @@ export function InfluencerStatsGrid({ influencers }: InfluencerStatsGridProps) {
               </div>
             </div>
             <div className="mt-1">
-              <div className="text-sm font-black text-slate-900 tracking-tight leading-none">{stat.value}</div>
+              <div className="text-sm font-bold text-slate-900 tracking-tight leading-none">{stat.value}</div>
               <div className="mt-0.5 text-[8.5px] font-semibold text-slate-400 leading-tight">
                 {stat.sub}
               </div>

@@ -32,7 +32,7 @@ export function ColumnSelector({ columns, visibleColumns, onToggle }: ColumnSele
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 rounded border border-slate-200 bg-white p-2.5 shadow-sm z-20 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
+          <div className="absolute right-0 mt-1 w-52 max-h-72 overflow-y-auto themed-scrollbar rounded border border-slate-200 bg-white p-2.5 shadow-sm z-20 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Display Columns</p>
             {columns.map((col) => (
               <label key={col.key} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 hover:text-black cursor-pointer select-none">

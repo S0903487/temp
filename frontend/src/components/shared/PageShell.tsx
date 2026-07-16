@@ -18,11 +18,11 @@ function PageShell({ title, description, eyebrow, action, children }: PageShellP
               {eyebrow}
             </p>
           ) : null}
-          <h1 className="m-0 text-[1.1rem] font-extrabold text-slate-900 tracking-tight leading-none">{title}</h1>
+          <h1 className="m-0 text-[1.1rem] font-bold text-slate-900 tracking-tight leading-none">{title}</h1>
           <p className="mt-1 max-w-2xl text-xs text-slate-500 leading-relaxed">{description}</p>
         </div>
         {action ? (
-          <div className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-600 whitespace-nowrap self-start">
+          <div className="self-start flex-shrink-0">
             {action}
           </div>
         ) : null}

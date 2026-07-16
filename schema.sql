@@ -92,6 +92,11 @@ CREATE TABLE IF NOT EXISTS influencers (
   tags             TEXT, -- legacy JSON array; see tags/influencer_tags for the normalized version
   bio              TEXT,
   profile_image    TEXT,
+  profile_link     TEXT,
+  roi              REAL,
+  cpa              REAL,
+  cpi              REAL,
+  ltv              REAL,
   created_at       TEXT NOT NULL,
   updated_at       TEXT
 );

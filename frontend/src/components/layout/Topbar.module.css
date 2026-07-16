@@ -27,12 +27,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #f9fafb;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
-  transition: box-shadow 120ms ease;
+  padding: 0 10px;
+  height: 28px;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  transition: border-color 150ms ease;
 }
 
 .searchBox input {
@@ -40,8 +41,12 @@
   outline: 0;
   width: 100%;
   background: transparent;
-  color: #111827;
-  font-size: 0.75rem;
+  color: #0f172a;
+  font-size: 11px;
+}
+
+.searchBox input::placeholder {
+  color: #94a3b8;
 }
 
 .actions {
@@ -69,10 +74,13 @@
 
 .avatarButton:hover,
 .avatarButton[aria-expanded='true'],
-.iconButton:hover,
-.searchBox:focus-within
+.iconButton:hover
 {
   box-shadow: 0 0 0 1px var(--color-blk-lgh);
+}
+
+.searchBox:focus-within {
+  border-color: #000000;
 }
 
 .avatar {

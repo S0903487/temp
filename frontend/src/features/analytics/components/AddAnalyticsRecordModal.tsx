@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { X } from 'lucide-react'
 import type { Influencer } from '../../influencers/types'
@@ -37,6 +37,17 @@ export function AddAnalyticsRecordModal({
 }: AddAnalyticsRecordModalProps) {
   const [form, setForm] = useState(emptyForm)
 
+  // Freeze body scroll when modal appears
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -53,8 +64,9 @@ export function AddAnalyticsRecordModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs px-4 py-6">
-      <div className="w-full max-w-md max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-slate-950/50" onClick={onClose} />
+      <div className="relative w-full max-w-md max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between flex-shrink-0">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">New record</p>

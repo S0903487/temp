@@ -16,6 +16,7 @@ import {
   updateInfluencer,
 } from '../services/influencerService';
 import type { CreateInfluencerInput, UpdateInfluencerInput } from '../services/influencerService';
+import type { Influencer } from '../types';
 
 const INFLUENCERS_QUERY_KEY = ['influencers'];
 const influencerKey = (id: string) => ['influencers', id];
@@ -126,7 +127,46 @@ export function useUpdateInfluencer() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateInfluencerInput }) => updateInfluencer(id, data),
-    onSuccess: (_result, variables) => {
+    onMutate: async ({ id, data }) => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: influencerKey(id) });
+      await queryClient.cancelQueries({ queryKey: INFLUENCERS_QUERY_KEY });
+
+      // Snapshot the previous values
+      const previousInfluencer = queryClient.getQueryData<Influencer>(influencerKey(id));
+      const previousInfluencers = queryClient.getQueryData<Influencer[]>(INFLUENCERS_QUERY_KEY);
+
+      // Optimistically update details page query cache
+      if (previousInfluencer) {
+        queryClient.setQueryData<Influencer>(influencerKey(id), {
+          ...previousInfluencer,
+          ...data,
+        });
+      }
+
+      // Optimistically update all influencers list query cache
+      if (previousInfluencers) {
+        queryClient.setQueryData<Influencer[]>(
+          INFLUENCERS_QUERY_KEY,
+          previousInfluencers.map((inf) =>
+            inf.id === id ? { ...inf, ...data } : inf
+          )
+        );
+      }
+
+      return { previousInfluencer, previousInfluencers };
+    },
+    onError: (_err, variables, context) => {
+      // Rollback values if the request fails
+      if (context?.previousInfluencer) {
+        queryClient.setQueryData(influencerKey(variables.id), context.previousInfluencer);
+      }
+      if (context?.previousInfluencers) {
+        queryClient.setQueryData(INFLUENCERS_QUERY_KEY, context.previousInfluencer);
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      // Invalidate queries to sync with actual backend state
       queryClient.invalidateQueries({ queryKey: INFLUENCERS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: influencerKey(variables.id) });
       queryClient.invalidateQueries({ queryKey: snapshotsKey(variables.id) });

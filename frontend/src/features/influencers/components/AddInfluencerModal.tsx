@@ -117,6 +117,17 @@ export function InfluencerFormModal({
     }
   }, [isOpen, influencer])
 
+  // Freeze body scroll when modal appears
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
+
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setImageError('Please upload an image file.')
@@ -215,14 +226,15 @@ export function InfluencerFormModal({
   const isUsernameValid = form.username ? validateUsername(form.username) : true
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs px-4 py-6">
-      <div className="w-full max-w-2xl max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6">
+      <div className="fixed inset-0 bg-slate-950/50" onClick={onClose} />
+      <div className="relative w-full max-w-2xl max-h-[90vh] rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between flex-shrink-0">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               {isEditing ? 'Edit creator' : 'Quick capture'}
             </p>
-            <h2 className="text-base font-extrabold text-slate-900">
+            <h2 className="text-base font-bold text-slate-900">
               {isEditing ? `Edit ${influencer?.fullName ?? 'influencer'}` : 'Add influencer'}
             </h2>
           </div>
@@ -554,7 +566,7 @@ export function InfluencerFormModal({
                     type="button"
                     onClick={() => void handleImportUrl()}
                     disabled={imageUploading || !urlDraft.trim()}
-                    className="flex-shrink-0 rounded bg-black px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+                    className="flex-shrink-0 rounded bg-black px-3 h-7 text-[11px] font-bold text-white transition hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
                   >
                     {imageUploading ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
                     Import

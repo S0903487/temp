@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import type { Influencer, PipelineStatus } from '../types'
@@ -7,14 +8,13 @@ import { PIPELINE_STATUSES } from '../types'
 type InfluencerPipelineBoardProps = {
   influencers: Influencer[]
   onUpdatePipeline: (id: string, stage: PipelineStatus) => void
-  onOpenDrawer: (id: string) => void
 }
 
 export function InfluencerPipelineBoard({
   influencers,
   onUpdatePipeline,
-  onOpenDrawer,
 }: InfluencerPipelineBoardProps) {
+  const navigate = useNavigate()
   // Group influencers by pipeline status
   const columns = useMemo(() => {
     const groups: Record<PipelineStatus, Influencer[]> = {
@@ -80,7 +80,7 @@ export function InfluencerPipelineBoard({
               {list.map((inf) => (
                 <div
                   key={inf.id}
-                  onClick={() => onOpenDrawer(inf.id)}
+                  onClick={() => navigate(`/influencers/${inf.id}`)}
                   className="group bg-white border border-slate-200 hover:border-slate-400 rounded p-3 cursor-pointer shadow-xs transition duration-150 relative"
                 >
                   <div className="flex items-start justify-between gap-2">

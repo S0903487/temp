@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Upload, Check, FileSpreadsheet, Camera, Sparkles } from 'lucide-react'
 
 type ImportModalProps = {
@@ -14,6 +14,17 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
   const [inputValue, setInputValue] = useState('')
   const [dragActive, setDragActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
+
+  // Freeze body scroll when modal appears
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -55,7 +66,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-950/50" onClick={onClose} />
       
       <div className="relative w-full max-w-lg overflow-hidden rounded border border-slate-200 bg-white p-5 shadow-xl flex flex-col max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">

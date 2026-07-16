@@ -29,6 +29,25 @@ try {
     sqliteDb.exec(schemaSql);
     console.log('Database schema initialized successfully!');
   }
+  
+  // Ensure new columns are added if the database already existed
+  const cols = sqliteDb.prepare("PRAGMA table_info(influencers)").all() as any[];
+  const colNames = cols.map(c => c.name);
+  if (!colNames.includes('profile_link')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN profile_link TEXT;");
+  }
+  if (!colNames.includes('roi')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN roi REAL;");
+  }
+  if (!colNames.includes('cpa')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN cpa REAL;");
+  }
+  if (!colNames.includes('cpi')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN cpi REAL;");
+  }
+  if (!colNames.includes('ltv')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN ltv REAL;");
+  }
 } catch (err) {
   console.error('Error checking or initializing database schema:', err);
 }

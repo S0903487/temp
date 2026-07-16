@@ -1,16 +1,15 @@
 import { Link } from 'react-router-dom'
-import { BadgeCheck, ShieldCheck, Mail, Phone, Trash2, ExternalLink, Eye, Camera, Video, MessageSquare } from 'lucide-react'
+import { BadgeCheck, ShieldCheck, Mail, Phone, Trash2, ExternalLink, Camera, Video, MessageSquare } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer } from '../types'
 
 type InfluencerCardProps = {
   influencer: Influencer
-  onOpenDrawer: (id: string) => void
   onDelete: (id: string) => void
 }
 
-export function InfluencerCard({ influencer, onOpenDrawer, onDelete }: InfluencerCardProps) {
+export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
   // Format numbers to short strings (e.g., 1.2M, 54.3K)
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -149,16 +148,6 @@ export function InfluencerCard({ influencer, onOpenDrawer, onDelete }: Influence
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Quick inspect button */}
-          <button
-            type="button"
-            onClick={() => onOpenDrawer(influencer.id)}
-            className="p-1.5 rounded border border-slate-200 text-slate-500 hover:text-black hover:bg-slate-50 transition cursor-pointer"
-            title="Inspect Details"
-          >
-            <Eye size={12} />
-          </button>
-
           {/* Full Page profile link */}
           <Link
             to={`/influencers/${influencer.id}`}

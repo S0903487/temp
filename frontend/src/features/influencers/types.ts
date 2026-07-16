@@ -49,6 +49,11 @@ export type Influencer = {
   tags: string[]
   bio: string
   profileImage: string
+  profileLink?: string
+  roi?: number
+  cpa?: number
+  cpi?: number
+  ltv?: number
 }
 
 export type Tag = {

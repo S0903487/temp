@@ -25,6 +25,11 @@ interface InfluencerBody {
   tags?: string[];
   bio?: string;
   profileImage?: string;
+  profileLink?: string;
+  roi?: number;
+  cpa?: number;
+  cpi?: number;
+  ltv?: number;
 }
 
 export const PIPELINE_STATUSES = [
@@ -65,6 +70,11 @@ function toApi(row: Record<string, unknown>) {
     tags: row.tags ? JSON.parse(row.tags as string) : [],
     bio: row.bio,
     profileImage: row.profile_image,
+    profileLink: row.profile_link,
+    roi: row.roi,
+    cpa: row.cpa,
+    cpi: row.cpi,
+    ltv: row.ltv,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -109,8 +119,9 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
       id, organization_id, full_name, username, platform, category, country, language,
       followers, engagement_rate, average_views, average_likes, average_comments,
       email, phone, price_post, price_story, verified, brand_safe, status, pipeline_status, notes, tags, bio, profile_image,
+      profile_link, roi, cpa, cpi, ltv,
       created_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
   )
     .bind(
       id,
@@ -138,6 +149,11 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
       body.tags ? JSON.stringify(body.tags) : null,
       body.bio ?? null,
       body.profileImage ?? null,
+      body.profileLink ?? null,
+      body.roi ?? null,
+      body.cpa ?? null,
+      body.cpi ?? null,
+      body.ltv ?? null,
       now
     )
     .run();
@@ -189,6 +205,11 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
   tags: 'tags',
   bio: 'bio',
   profileImage: 'profile_image',
+  profileLink: 'profile_link',
+  roi: 'roi',
+  cpa: 'cpa',
+  cpi: 'cpi',
+  ltv: 'ltv',
 };
 
 export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {

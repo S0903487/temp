@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowDown, ArrowUp, MoreVertical, Eye, ExternalLink, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, MoreVertical, ExternalLink, Trash2 } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer, PipelineStatus } from '../types'
@@ -30,7 +30,6 @@ type InfluencerDataGridProps = {
   sortOrder: 'asc' | 'desc'
   onSort: (field: SortField) => void
   visibleColumns: string[]
-  onOpenDrawer: (id: string) => void
   onUpdatePipeline: (id: string, stage: PipelineStatus) => void
   onDelete: (id: string) => void
 }
@@ -50,7 +49,6 @@ export function InfluencerDataGrid({
   sortOrder,
   onSort,
   visibleColumns,
-  onOpenDrawer,
   onUpdatePipeline,
   onDelete,
 }: InfluencerDataGridProps) {
@@ -70,7 +68,7 @@ export function InfluencerDataGrid({
         setActiveRowIndex((prev) => (prev === null || prev <= 0 ? influencers.length - 1 : prev - 1))
       } else if (e.key === 'Enter' && activeRowIndex !== null) {
         e.preventDefault()
-        onOpenDrawer(influencers[activeRowIndex].id)
+        navigate(`/influencers/${influencers[activeRowIndex].id}`)
       } else if (e.key === 'Escape') {
         setContextMenu({ x: 0, y: 0, influencer: null })
         setActiveRowIndex(null)
@@ -78,7 +76,7 @@ export function InfluencerDataGrid({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [influencers, activeRowIndex, onOpenDrawer])
+  }, [influencers, activeRowIndex, navigate])
 
   // Context Menu handlers
   const handleRowContextMenu = (e: React.MouseEvent, influencer: Influencer) => {
@@ -127,6 +125,7 @@ export function InfluencerDataGrid({
                   className="rounded border-slate-300 bg-white text-slate-900 focus:ring-0"
                 />
               </th>
+              {isColVisible('id') && <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">ID</th>}
               {/* Main Columns */}
               <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition" onClick={() => onSort('fullName')}>
                 Creator {renderSortIndicator('fullName')}
@@ -203,6 +202,31 @@ export function InfluencerDataGrid({
                   Health Status {renderSortIndicator('status')}
                 </th>
               )}
+              {isColVisible('profileLink') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+                  Profile Link
+                </th>
+              )}
+              {isColVisible('roi') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 text-right">
+                  ROI
+                </th>
+              )}
+              {isColVisible('cpa') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 text-right">
+                  CPA
+                </th>
+              )}
+              {isColVisible('cpi') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 text-right">
+                  CPI
+                </th>
+              )}
+              {isColVisible('ltv') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 text-right">
+                  LTV
+                </th>
+              )}
               {isColVisible('notes') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500">
                   Notes
@@ -220,7 +244,7 @@ export function InfluencerDataGrid({
                 <tr
                   key={influencer.id}
                   onContextMenu={(e) => handleRowContextMenu(e, influencer)}
-                  onClick={() => onOpenDrawer(influencer.id)}
+                  onClick={() => navigate(`/influencers/${influencer.id}`)}
                   className={`group cursor-pointer transition duration-150 ${
                     isSelected
                       ? 'bg-slate-50 hover:bg-slate-100'
@@ -238,6 +262,13 @@ export function InfluencerDataGrid({
                       className="rounded border-slate-300 bg-white text-slate-900 focus:ring-0"
                     />
                   </td>
+
+                  {/* ID */}
+                  {isColVisible('id') && (
+                    <td className="px-3 py-1.5 text-[9px] font-semibold text-slate-400 font-mono" title={influencer.id}>
+                      {influencer.id.slice(0, 8)}
+                    </td>
+                  )}
 
                   {/* Profile details */}
                   <td className="px-3 py-1.5">
@@ -365,6 +396,45 @@ export function InfluencerDataGrid({
                     </td>
                   )}
 
+                  {/* Profile Link */}
+                  {isColVisible('profileLink') && (
+                    <td className="px-3 py-1.5 text-[11px] font-semibold text-blue-600 hover:underline">
+                      {influencer.profileLink ? (
+                        <a href={influencer.profileLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1">
+                          Link <ExternalLink size={10} />
+                        </a>
+                      ) : '—'}
+                    </td>
+                  )}
+
+                  {/* ROI */}
+                  {isColVisible('roi') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      {influencer.roi !== undefined && influencer.roi !== null ? `${influencer.roi}%` : '—'}
+                    </td>
+                  )}
+
+                  {/* CPA */}
+                  {isColVisible('cpa') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      {influencer.cpa !== undefined && influencer.cpa !== null ? `$${influencer.cpa}` : '—'}
+                    </td>
+                  )}
+
+                  {/* CPI */}
+                  {isColVisible('cpi') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      {influencer.cpi !== undefined && influencer.cpi !== null ? `$${influencer.cpi}` : '—'}
+                    </td>
+                  )}
+
+                  {/* LTV */}
+                  {isColVisible('ltv') && (
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
+                      {influencer.ltv !== undefined && influencer.ltv !== null ? `$${influencer.ltv}` : '—'}
+                    </td>
+                  )}
+
                   {/* Notes */}
                   {isColVisible('notes') && (
                     <td className="px-3 py-1.5 max-w-[150px] truncate text-[10px] text-slate-500 font-medium" title={influencer.notes}>
@@ -373,10 +443,19 @@ export function InfluencerDataGrid({
                   )}
 
                   {/* Row Actions Trigger */}
-                  <td className="px-3 py-1.5 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="px-3 py-1.5 text-center"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setContextMenu({
+                        x: e.clientX,
+                        y: e.clientY,
+                        influencer,
+                      })
+                    }}
+                  >
                     <button
                       type="button"
-                      onClick={() => onOpenDrawer(influencer.id)}
                       className="p-1 rounded text-slate-400 hover:text-slate-900 transition cursor-pointer"
                     >
                       <MoreVertical size={12} />
@@ -399,16 +478,6 @@ export function InfluencerDataGrid({
           <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 mb-1">
             {contextMenu.influencer.fullName}
           </div>
-
-          <button
-            onClick={() => {
-              if (contextMenu.influencer) onOpenDrawer(contextMenu.influencer.id)
-            }}
-            className="w-full text-left px-2 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 rounded flex items-center gap-2 font-semibold cursor-pointer"
-          >
-            <Eye size={12} />
-            <span>Show Details Sheet</span>
-          </button>
 
           <button
             onClick={() => {
