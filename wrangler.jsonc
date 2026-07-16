@@ -31,7 +31,8 @@
       "binding": "DB",
       "database_name": "influenceos-db",
       "database_id": "1f7eb06b-6759-4daf-b079-c0531d5ea75e",
-      "remote": true
+      "remote": true,
+      "migrations_dir": "migrations"
     }
   ]
 }
