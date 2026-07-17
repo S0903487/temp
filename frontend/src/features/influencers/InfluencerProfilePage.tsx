@@ -25,6 +25,19 @@ import {
 } from './hooks/useInfluencers'
 import type { PipelineStatus } from './types'
 
+function formatValue(val: number | null | undefined, isPercentage = false, isCurrency = false): string {
+  if (val === undefined || val === null) return '—'
+  // Support extreme fractional values such as 0.00001
+  const formatted = val.toLocaleString(undefined, { maximumFractionDigits: 6 })
+  if (isPercentage) {
+    return `${formatted}%`
+  }
+  if (isCurrency) {
+    return `$${formatted}`
+  }
+  return formatted
+}
+
 function StatCard({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) {
   return (
     <div className="group relative rounded border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-slate-300">
@@ -98,55 +111,156 @@ function InfluencerProfilePage() {
 
   return (
     <PageShell
-      title={influencer.fullName}
-      description={influencer.bio || 'No bio on file yet.'}
-      eyebrow="Creator profile"
-      action={<PipelineStatusSelect value={influencer.pipelineStatus} onChange={handlePipelineChange} disabled={updateInfluencer.isPending} />}
+      title="Creator Profile"
+      description="View and manage creator details, performance metrics, and outreach progress."
+      eyebrow="Influencer management"
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link to="/influencers" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-black font-bold">
-            <ArrowLeft size={13} /> Back to all creators
-          </Link>
+        {/* SECTION 1: Unified Profile Header Section */}
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-xs">
+          {/* Top Actions Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <Link to="/influencers" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-black font-bold transition">
+              <ArrowLeft size={13} /> Back to all creators
+            </Link>
 
-          <div className="flex items-center gap-2">
-            {isConfirmingDelete ? (
-              <div className="flex items-center gap-2 rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
-                <span>Delete this creator?</span>
-                <button
-                  type="button"
-                  onClick={handleDeleteConfirmed}
-                  disabled={deleteInfluencer.isPending}
-                  className="rounded bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-rose-700 transition cursor-pointer"
-                >
-                  {deleteInfluencer.isPending ? 'Deleting…' : 'Yes, delete'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmingDelete(false)}
-                  className="rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-500 font-bold hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <PipelineStatusSelect
+                value={influencer.pipelineStatus}
+                onChange={handlePipelineChange}
+                disabled={updateInfluencer.isPending}
+              />
+              
+              {isConfirmingDelete ? (
+                <div className="flex items-center gap-2 rounded border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                  <span>Delete?</span>
+                  <button
+                    type="button"
+                    onClick={handleDeleteConfirmed}
+                    disabled={deleteInfluencer.isPending}
+                    className="rounded bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-rose-700 transition cursor-pointer"
+                  >
+                    {deleteInfluencer.isPending ? 'Deleting…' : 'Yes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmingDelete(false)}
+                    className="rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-500 font-bold hover:bg-slate-50 cursor-pointer"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditOpen(true)}
+                    className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
+                  >
+                    <Pencil size={12} /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmingDelete(true)}
+                    className="inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
+                  >
+                    <Trash2 size={12} /> Delete
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Main Details Body */}
+          <div className="flex flex-col md:flex-row md:items-start gap-6 pt-5">
+            <div className="flex-shrink-0">
+              <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={64} />
+            </div>
+
+            <div className="flex-grow space-y-2.5">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">{influencer.fullName}</h2>
+                  {influencer.verified && (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-100">
+                      <BadgeCheck size={11} className="text-sky-500" /> Verified
+                    </span>
+                  )}
+                  {influencer.brandSafe && (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">
+                      <ShieldCheck size={11} className="text-emerald-500" /> Brand Safe
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500 font-medium">
+                  {influencer.profileLink ? (
+                    <a
+                      href={influencer.profileLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline font-bold"
+                    >
+                      @{influencer.username}
+                      <ExternalLink size={12} />
+                    </a>
+                  ) : (
+                    <span className="font-bold text-slate-700">@{influencer.username}</span>
+                  )}
+                  <span>·</span>
+                  <span className="font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">{influencer.platform}</span>
+                  <span>·</span>
+                  <span className="text-slate-600 font-semibold">{influencer.category}</span>
+                </div>
               </div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(true)}
-                  className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
-                >
-                  <Pencil size={12} /> Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmingDelete(true)}
-                  className="inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
-                >
-                  <Trash2 size={12} /> Delete
-                </button>
-              </>
-            )}
+
+              <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded border border-slate-100 italic leading-relaxed">
+                {influencer.bio || 'No bio on file yet.'}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-semibold text-slate-500">
+                <div>Country: <span className="text-slate-800">{influencer.country}</span></div>
+                {influencer.language && (
+                  <>
+                    <div className="text-slate-300">•</div>
+                    <div>Language: <span className="text-slate-800">{influencer.language}</span></div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Right side contact block */}
+            <div className="flex-shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-2.5 min-w-[200px]">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contact Channels</h4>
+              <div className="space-y-1.5 text-xs">
+                {influencer.email ? (
+                  <div className="flex items-center gap-2 text-slate-700 font-medium">
+                    <Mail size={13} className="text-slate-400 flex-shrink-0" />
+                    <a href={`mailto:${influencer.email}`} className="hover:text-indigo-600 hover:underline truncate">
+                      {influencer.email}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-400 italic">
+                    <Mail size={13} className="flex-shrink-0" />
+                    <span>No email added</span>
+                  </div>
+                )}
+                {influencer.phone ? (
+                  <div className="flex items-center gap-2 text-slate-700 font-medium">
+                    <Phone size={13} className="text-slate-400 flex-shrink-0" />
+                    <a href={`tel:${influencer.phone}`} className="hover:text-indigo-600 hover:underline">
+                      {influencer.phone}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-400 italic">
+                    <Phone size={13} className="flex-shrink-0" />
+                    <span>No phone added</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -156,64 +270,54 @@ function InfluencerProfilePage() {
           </p>
         )}
 
-        <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="flex flex-wrap items-center gap-4">
-            <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={48} />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-sm font-extrabold text-slate-900">{influencer.fullName}</h2>
-                {influencer.verified && <BadgeCheck size={14} className="text-sky-500" />}
-                {influencer.brandSafe && <ShieldCheck size={14} className="text-emerald-500" />}
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                {influencer.profileLink ? (
-                  <a
-                    href={influencer.profileLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline font-semibold"
-                  >
-                    {influencer.username}
-                    <ExternalLink size={12} />
-                  </a>
-                ) : (
-                  <span>{influencer.username}</span>
-                )}
-                <span> · {influencer.platform} · {influencer.category}</span>
-              </p>
-              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                {influencer.country}
-                {influencer.language ? ` · ${influencer.language}` : ''}
-              </p>
-            </div>
-            <div className="ml-auto flex flex-col gap-0.5 text-xs text-slate-600">
-              {influencer.email && (
-                <span className="inline-flex items-center gap-1 font-semibold">
-                  <Mail size={12} className="text-slate-400" /> {influencer.email}
-                </span>
-              )}
-              {influencer.phone && (
-                <span className="inline-flex items-center gap-1 font-semibold">
-                  <Phone size={12} className="text-slate-400" /> {influencer.phone}
-                </span>
-              )}
-            </div>
+        {/* SECTION 2: Unified Metrics & Performance Section */}
+        <section className="rounded border border-slate-200 bg-white p-5 shadow-xs">
+          <h3 className="mb-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+            Performance & Financial Metrics
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="Followers"
+              value={formatValue(influencer.followers)}
+              tooltip="Total registered follower or subscriber count across this specific social network."
+            />
+            <StatCard
+              label="Engagement"
+              value={formatValue(influencer.engagementRate, true)}
+              tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts."
+            />
+            <StatCard
+              label="Total Views"
+              value={formatValue(influencer.averageViews)}
+              tooltip="Total video views or impressions recorded across the creator's content."
+            />
+            <StatCard
+              label="Total Likes / Comments"
+              value={`${formatValue(influencer.averageLikes)} / ${formatValue(influencer.averageComments)}`}
+              tooltip="The overall count of post likes and comments across the creator's published content."
+            />
+            <StatCard
+              label="Price per Post"
+              value={formatValue(influencer.pricePost, false, true)}
+              tooltip="Baseline flat fee charged by this creator for a single main-feed post publication."
+            />
+            <StatCard
+              label="Price per Story"
+              value={formatValue(influencer.priceStory, false, true)}
+              tooltip="Baseline flat fee charged by this creator for a temporary (24-hour) story publication."
+            />
+            <StatCard
+              label="ROI"
+              value={formatValue(influencer.roi, true)}
+              tooltip="Return on Investment = (Campaign Revenue - Cost) / Cost. Indicates the financial efficiency and profitability of this creator."
+            />
+            <StatCard
+              label="CPA / CPI / LTV"
+              value={`${formatValue(influencer.cpa, false, true)} / ${formatValue(influencer.cpi, false, true)} / ${formatValue(influencer.ltv, false, true)}`}
+              tooltip="Key funnels: Cost Per Acquisition (CPA), Cost Per Install/Click (CPI), and referred customer Lifetime Value (LTV)."
+            />
           </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Followers" value={influencer.followers ? influencer.followers.toLocaleString() : '0'} tooltip="Total registered follower or subscriber count across this specific social network." />
-          <StatCard label="Engagement" value={influencer.engagementRate ? `${influencer.engagementRate.toFixed(1)}%` : '0.0%'} tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts." />
-          <StatCard label="Total Views" value={influencer.averageViews ? influencer.averageViews.toLocaleString() : '0'} tooltip="Total video views or impressions recorded across the creator's content." />
-          <StatCard label="Total Likes / Comments" value={`${(influencer.averageLikes || 0).toLocaleString()} / ${(influencer.averageComments || 0).toLocaleString()}`} tooltip="The overall count of post likes and comments across the creator's published content." />
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Price per Post" value={influencer.pricePost ? `$${influencer.pricePost.toLocaleString()}` : '—'} tooltip="Baseline flat fee charged by this creator for a single main-feed post publication." />
-          <StatCard label="Price per Story" value={influencer.priceStory ? `$${influencer.priceStory.toLocaleString()}` : '—'} tooltip="Baseline flat fee charged by this creator for a temporary (24-hour) story publication." />
-          <StatCard label="ROI" value={influencer.roi !== undefined && influencer.roi !== null ? `${influencer.roi}%` : '—'} tooltip="Return on Investment = (Campaign Revenue - Cost) / Cost. Indicates the financial efficiency and profitability of this creator." />
-          <StatCard label="CPA / CPI / LTV" value={`$${(influencer.cpa || 0).toFixed(0)} / $${(influencer.cpi || 0).toFixed(2)} / $${(influencer.ltv || 0).toFixed(0)}`} tooltip="Key funnels: Cost Per Acquisition (CPA), Cost Per Install/Click (CPI), and referred customer Lifetime Value (LTV)." />
-        </div>
+        </section>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <section className="rounded border border-slate-200 bg-white p-4 shadow-xs">

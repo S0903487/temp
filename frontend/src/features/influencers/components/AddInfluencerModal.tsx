@@ -20,6 +20,28 @@ type InfluencerFormModalProps = {
   influencer?: Influencer | null
 }
 
+const LANGUAGES = [
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Chinese',
+  'Arabic',
+  'Portuguese',
+  'Hindi',
+  'Japanese',
+  'Italian',
+  'Russian',
+  'Korean',
+  'Turkish',
+  'Vietnamese',
+  'Thai',
+  'Polish',
+  'Dutch',
+  'Swedish',
+  'Urdu'
+]
+
 const defaultForm = {
   fullName: '',
   username: '',
@@ -334,6 +356,19 @@ export function InfluencerFormModal({
             </Select>
           </label>
           <label className={labelClass}>
+            <span className="mb-2 block">Language</span>
+            <Select
+              value={form.language}
+              onChange={(event) => setForm((current) => ({ ...current, language: event.target.value }))}
+            >
+              {Array.from(new Set([...LANGUAGES, form.language || 'English'])).map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className={labelClass}>
             <span className="mb-2 block">Email</span>
             <input
               value={form.email}
@@ -373,6 +408,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.followers}
               onChange={(event) => setForm((current) => ({ ...current, followers: event.target.value }))}
               className={fieldClass}
@@ -383,7 +419,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
-              step="0.1"
+              step="any"
               value={form.engagementRate}
               onChange={(event) => setForm((current) => ({ ...current, engagementRate: event.target.value }))}
               className={fieldClass}
@@ -394,6 +430,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.averageViews}
               onChange={(event) => setForm((current) => ({ ...current, averageViews: event.target.value }))}
               className={fieldClass}
@@ -404,6 +441,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.averageLikes}
               onChange={(event) => setForm((current) => ({ ...current, averageLikes: event.target.value }))}
               className={fieldClass}
@@ -414,6 +452,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.averageComments}
               onChange={(event) => setForm((current) => ({ ...current, averageComments: event.target.value }))}
               className={fieldClass}
@@ -428,6 +467,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.pricePost}
               onChange={(event) => setForm((current) => ({ ...current, pricePost: event.target.value }))}
               className={fieldClass}
@@ -438,6 +478,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
+              step="any"
               value={form.priceStory}
               onChange={(event) => setForm((current) => ({ ...current, priceStory: event.target.value }))}
               className={fieldClass}
@@ -448,7 +489,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               value={form.roi}
               onChange={(event) => setForm((current) => ({ ...current, roi: event.target.value }))}
               className={fieldClass}
@@ -460,7 +501,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               value={form.cpa}
               onChange={(event) => setForm((current) => ({ ...current, cpa: event.target.value }))}
               className={fieldClass}
@@ -472,7 +513,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               value={form.cpi}
               onChange={(event) => setForm((current) => ({ ...current, cpi: event.target.value }))}
               className={fieldClass}
@@ -484,7 +525,7 @@ export function InfluencerFormModal({
             <input
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               value={form.ltv}
               onChange={(event) => setForm((current) => ({ ...current, ltv: event.target.value }))}
               className={fieldClass}
@@ -629,6 +670,18 @@ export function InfluencerFormModal({
                     Import
                   </button>
                 </div>
+                {form.profileImage && !imageUploading && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm((c) => ({ ...c, profileImage: '' }))
+                      setUrlDraft('')
+                    }}
+                    className="mt-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 transition cursor-pointer inline-block"
+                  >
+                    Clear image
+                  </button>
+                )}
                 <p className="text-[10px] text-slate-400 leading-normal">
                   Profile picture links from Instagram/TikTok/etc usually won't load if pasted directly — hit
                   "Import" and we'll fetch, resize, and re-host a copy so it always renders.

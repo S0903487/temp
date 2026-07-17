@@ -36,6 +36,9 @@ try {
   if (!colNames.includes('profile_link')) {
     sqliteDb.exec("ALTER TABLE influencers ADD COLUMN profile_link TEXT;");
   }
+  if (!colNames.includes('language')) {
+    sqliteDb.exec("ALTER TABLE influencers ADD COLUMN language TEXT;");
+  }
   if (!colNames.includes('roi')) {
     sqliteDb.exec("ALTER TABLE influencers ADD COLUMN roi REAL;");
   }
