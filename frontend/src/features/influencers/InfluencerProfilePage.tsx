@@ -217,7 +217,7 @@ function InfluencerProfilePage() {
                 </div>
               </div>
 
-              <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded border border-slate-100 italic leading-relaxed">
+              <div className="text-xs text-slate-600 bg-white p-0 italic leading-relaxed">
                 {influencer.bio || 'No bio on file yet.'}
               </div>
 
