@@ -6,6 +6,8 @@ import { useOrganization, useUpdateOrganization } from '../organizations/hooks/u
 import { useAuthUser } from '../auth/hooks/useAuth'
 import { CURRENCIES } from '../../lib/currency'
 import { Select, fieldClass, textAreaClass, labelClass } from '../../components/shared/fields'
+import { Avatar } from '../../components/shared/Avatar'
+import { resizeImageToWebp, blobToDataUrl } from '../../lib/image'
 
 function SettingsPage() {
   const { data: organization, isLoading, isError, error } = useOrganization()
@@ -15,19 +17,53 @@ function SettingsPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [currency, setCurrency] = useState('USD')
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
 
   useEffect(() => {
     if (organization) {
       setName(organization.name)
       setDescription(organization.description ?? '')
       setCurrency(organization.currency)
+      setProfileImage(organization.profileImage ?? null)
     }
   }, [organization])
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setImageError('Please select an image file.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setImageError('File is too large (max 8MB).')
+      return
+    }
+
+    setImageError(null)
+    setImageUploading(true)
+    try {
+      const resized = await resizeImageToWebp(file, 256)
+      const dataUrl = await blobToDataUrl(resized)
+      setProfileImage(dataUrl)
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Error processing image')
+    } finally {
+      setImageUploading(false)
+    }
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!name.trim()) return
-    updateOrganization.mutate({ name: name.trim(), description: description.trim(), currency })
+    updateOrganization.mutate({
+      name: name.trim(),
+      description: description.trim(),
+      currency,
+      profileImage
+    })
   }
 
   return (
@@ -50,6 +86,50 @@ function SettingsPage() {
 
           {organization && (
             <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Brand Logo / Picture</span>
+                <div className="flex items-center gap-4 bg-slate-50 p-3 rounded border border-slate-150">
+                  <Avatar name={name || 'Brand'} imageUrl={profileImage} size={56} />
+                  <div className="flex-1 space-y-1">
+                    {imageUploading ? (
+                      <p className="text-xs text-slate-500 font-bold animate-pulse">Processing picture...</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('brand-logo-upload')?.click()}
+                          className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
+                        >
+                          Choose Picture
+                        </button>
+                        {profileImage && (
+                          <button
+                            type="button"
+                            onClick={() => setProfileImage(null)}
+                            className="rounded border border-red-100 bg-white px-2.5 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
+                          >
+                            Delete Picture
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-[10px] text-slate-400 leading-normal font-medium">
+                      Up to 8MB. Auto-resized to 256x256 WebP automatically.
+                    </p>
+                    {imageError && (
+                      <p className="text-[10px] font-bold text-red-600 leading-none">{imageError}</p>
+                    )}
+                  </div>
+                  <input
+                    id="brand-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+              </div>
+
               <label className={labelClass}>
                 <span className="mb-1 block">Organization name</span>
                 <input

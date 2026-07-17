@@ -51,6 +51,13 @@ try {
   if (!colNames.includes('ltv')) {
     sqliteDb.exec("ALTER TABLE influencers ADD COLUMN ltv REAL;");
   }
+
+  // Ensure profile_image column is added to organizations table
+  const orgCols = sqliteDb.prepare("PRAGMA table_info(organizations)").all() as any[];
+  const orgColNames = orgCols.map(c => c.name);
+  if (!orgColNames.includes('profile_image')) {
+    sqliteDb.exec("ALTER TABLE organizations ADD COLUMN profile_image TEXT;");
+  }
 } catch (err) {
   console.error('Error checking or initializing database schema:', err);
 }

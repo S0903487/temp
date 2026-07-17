@@ -53,6 +53,7 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Au
       name: credentials.name,
       email: credentials.email,
       password: credentials.password,
+      role: credentials.role,
     }),
   });
 }

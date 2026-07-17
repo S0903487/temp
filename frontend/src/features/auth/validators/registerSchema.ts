@@ -16,6 +16,7 @@ export const registerSchema = z
       .regex(/[a-z]/, 'Password must contain a lowercase letter')
       .regex(/[0-9]/, 'Password must contain a number'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
+    role: z.enum(['influencer', 'brand']).default('influencer'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',

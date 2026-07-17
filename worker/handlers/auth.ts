@@ -18,6 +18,36 @@ interface RegisterBody {
   email: string;
   password: string;
   organizationName?: string;
+  role?: string;
+}
+
+async function seedAdminIfMissing(db: any) {
+  const adminEmail = 'sarmad@influenceos.com';
+  try {
+    const existingAdmin = await db.prepare('SELECT id FROM users WHERE email = ?').bind(adminEmail).first();
+    if (!existingAdmin) {
+      const now = nowIso();
+      const orgId = 'org_admin';
+      const userId = 'usr_admin';
+      const { hash, salt } = await hashPassword('KUJD9i898d()DJ(*SAD(AW*JD9a8ws*&%(&%du03ewij09)(D))');
+      
+      const org = await db.prepare('SELECT id FROM organizations WHERE id = ?').bind(orgId).first();
+      if (!org) {
+        await db.prepare('INSERT INTO organizations (id, name, description, created_at) VALUES (?, ?, ?, ?)')
+          .bind(orgId, 'InfluenceOS Org', 'Admin Workspace', now)
+          .run();
+      }
+      
+      await db.prepare(
+        `INSERT INTO users (id, organization_id, name, email, password_hash, password_salt, role, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'admin', ?)`
+      )
+        .bind(userId, orgId, 'Sarmad Hussain', adminEmail, hash, salt, now)
+        .run();
+    }
+  } catch (err) {
+    console.error('Error seeding admin:', err);
+  }
 }
 
 interface LoginBody {
@@ -47,6 +77,7 @@ async function createSession(db: D1Database, userId: string): Promise<string> {
 }
 
 export async function register(request: Request, env: Env): Promise<Response> {
+  await seedAdminIfMissing(env.DB);
   const body = await readJson<RegisterBody>(request);
   if (!body.email || !body.password || !body.name) {
     return badRequest('name, email, and password are required');
@@ -64,6 +95,7 @@ export async function register(request: Request, env: Env): Promise<Response> {
   const orgId = generateId('org');
   const userId = generateId('usr');
   const { hash, salt } = await hashPassword(body.password);
+  const selectedRole = (body.role === 'brand') ? 'brand' : 'influencer';
 
   await env.DB.prepare('INSERT INTO organizations (id, name, description, created_at) VALUES (?, ?, ?, ?)')
     .bind(orgId, body.organizationName ?? `${body.name}'s Organization`, null, now)
@@ -71,16 +103,26 @@ export async function register(request: Request, env: Env): Promise<Response> {
 
   await env.DB.prepare(
     `INSERT INTO users (id, organization_id, name, email, password_hash, password_salt, role, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'admin', ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   )
-    .bind(userId, orgId, body.name, body.email, hash, salt, now)
+    .bind(userId, orgId, body.name, body.email, hash, salt, selectedRole, now)
     .run();
+
+  if (selectedRole === 'influencer') {
+    await env.DB.prepare(
+      `INSERT INTO influencers (
+        id, organization_id, full_name, email, platform, status, pipeline_status, followers, engagement_rate, average_views, average_likes, average_comments, created_at
+      ) VALUES (?, ?, ?, ?, 'Instagram', 'Active', 'New', 0, 0, 0, 0, 0, ?)`
+    )
+      .bind(userId, orgId, body.name, body.email, now)
+      .run();
+  }
 
   const token = await createSession(env.DB, userId);
 
   return json(
     {
-      user: { id: userId, organizationId: orgId, name: body.name, email: body.email, role: 'admin', createdAt: now },
+      user: { id: userId, organizationId: orgId, name: body.name, email: body.email, role: selectedRole, createdAt: now },
       token,
     },
     201
@@ -88,6 +130,7 @@ export async function register(request: Request, env: Env): Promise<Response> {
 }
 
 export async function login(request: Request, env: Env): Promise<Response> {
+  await seedAdminIfMissing(env.DB);
   const body = await readJson<LoginBody>(request);
   if (!body.email || !body.password) {
     return badRequest('email and password are required');
@@ -116,6 +159,7 @@ export async function logout(request: Request, env: Env): Promise<Response> {
 }
 
 export async function me(request: Request, env: Env): Promise<Response> {
+  await seedAdminIfMissing(env.DB);
   const auth = await authenticate(request, env);
   if (!auth) return unauthorized();
 

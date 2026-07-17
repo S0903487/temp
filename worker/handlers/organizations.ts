@@ -5,6 +5,7 @@ interface OrganizationBody {
   name?: string;
   description?: string;
   currency?: string;
+  profileImage?: string | null;
 }
 
 function toApi(row: Record<string, unknown>) {
@@ -13,6 +14,7 @@ function toApi(row: Record<string, unknown>) {
     name: row.name,
     description: row.description,
     currency: row.currency ?? 'USD',
+    profileImage: row.profile_image ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     conversion: undefined as any,
@@ -109,6 +111,10 @@ export async function updateCurrent(request: Request, env: Env, auth: AuthedRequ
   if ('currency' in body) {
     sets.push('currency = ?');
     values.push(body.currency);
+  }
+  if ('profileImage' in body) {
+    sets.push('profile_image = ?');
+    values.push(body.profileImage);
   }
   if (sets.length === 0) return badRequest('No fields to update');
 

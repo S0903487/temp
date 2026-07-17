@@ -27,6 +27,7 @@ export function RegisterForm() {
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
+        role: data.role,
       },
       {
         onSuccess: () => {
@@ -103,6 +104,34 @@ export function RegisterForm() {
         {errors.confirmPassword && (
           <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+          Account Type
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex items-center gap-2 rounded border border-slate-200 bg-white p-2.5 cursor-pointer hover:bg-slate-50 transition">
+            <input
+              type="radio"
+              value="influencer"
+              {...registerField('role')}
+              defaultChecked
+              className="accent-black h-4 w-4"
+            />
+            <span className="text-xs font-bold text-slate-700">Influencer</span>
+          </label>
+          <label className="flex items-center gap-2 rounded border border-slate-200 bg-white p-2.5 cursor-pointer hover:bg-slate-50 transition">
+            <input
+              type="radio"
+              value="brand"
+              {...registerField('role')}
+              className="accent-black h-4 w-4"
+            />
+            <span className="text-xs font-bold text-slate-700">Brand / Advertizer</span>
+          </label>
+        </div>
+        {errors.role && <p className="mt-1 text-xs text-red-600">{errors.role.message}</p>}
       </div>
 
       <button

@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { useAuthUser } from '../../features/auth/hooks/useAuth'
 import styles from './Sidebar.module.css'
 
 type NavItem = {
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
 ]
 
 function Sidebar() {
+  const { data: user } = useAuthUser()
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('sidebar-collapsed') === 'true'
   })
@@ -39,6 +41,14 @@ function Sidebar() {
     setIsCollapsed(nextState)
     localStorage.setItem('sidebar-collapsed', String(nextState))
   }
+
+  const role = user?.role || 'influencer'
+
+  const items = role === 'admin'
+    ? navItems
+    : role === 'influencer'
+      ? [{ label: 'My Profile', icon: Users, path: `/influencers/${user?.id}` }]
+      : [{ label: 'Brand Profile', icon: Settings, path: '/settings' }]
 
   return (
     <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -63,7 +73,7 @@ function Sidebar() {
       </div>
 
       <nav className={styles.nav} aria-label="Sidebar navigation">
-        {navItems.map(({ label, icon: Icon, path }) => (
+        {items.map(({ label, icon: Icon, path }) => (
           <NavLink
             key={label}
             to={path}

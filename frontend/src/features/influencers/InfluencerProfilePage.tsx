@@ -132,6 +132,7 @@ function InfluencerProfilePage() {
                 value={influencer.pipelineStatus}
                 onChange={handlePipelineChange}
                 disabled={updateInfluencer.isPending}
+                variant="outline"
               />
               
               {isConfirmingDelete ? (

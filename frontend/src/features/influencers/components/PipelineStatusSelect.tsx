@@ -6,6 +6,7 @@ type PipelineStatusSelectProps = {
   value: PipelineStatus
   onChange: (value: PipelineStatus) => void
   disabled?: boolean
+  variant?: 'default' | 'outline'
 }
 
 const COLORS: Record<PipelineStatus, string> = {
@@ -29,8 +30,10 @@ export function PipelineStatusBadge({ status }: { status: PipelineStatus }) {
 }
 
 /** Editable select for the profile page, using the same color language as the badge. */
-export function PipelineStatusSelect({ value, onChange, disabled }: PipelineStatusSelectProps) {
-  const colorClass = COLORS[value]
+export function PipelineStatusSelect({ value, onChange, disabled, variant = 'default' }: PipelineStatusSelectProps) {
+  const colorClass = variant === 'outline'
+    ? 'border-slate-200 bg-white text-slate-600 hover:text-black hover:bg-slate-50 font-bold'
+    : COLORS[value]
 
   return (
     <div className="relative inline-flex items-center">
