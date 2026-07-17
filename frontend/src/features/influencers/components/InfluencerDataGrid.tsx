@@ -5,6 +5,8 @@ import { Avatar } from '../../../components/shared/Avatar'
 import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer, PipelineStatus } from '../types'
 import { PIPELINE_STATUSES } from '../types'
+import { useOrganization } from '../../organizations/hooks/useOrganization'
+import { formatCurrency } from '../../../lib/currency'
 
 export type SortField =
   | 'fullName'
@@ -52,6 +54,7 @@ export function InfluencerDataGrid({
   onUpdatePipeline,
   onDelete,
 }: InfluencerDataGridProps) {
+  const { data: organization } = useOrganization()
   const navigate = useNavigate()
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ x: 0, y: 0, influencer: null })
   const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null)
@@ -353,14 +356,14 @@ export function InfluencerDataGrid({
                   {/* Price Post */}
                   {isColVisible('pricePost') && (
                     <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
-                      ${influencer.pricePost || '0'}
+                      {formatCurrency(influencer.pricePost, organization?.currency)}
                     </td>
                   )}
 
                   {/* Price Story */}
                   {isColVisible('priceStory') && (
                     <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
-                      ${influencer.priceStory || '0'}
+                      {formatCurrency(influencer.priceStory, organization?.currency)}
                     </td>
                   )}
 
@@ -417,21 +420,21 @@ export function InfluencerDataGrid({
                   {/* CPA */}
                   {isColVisible('cpa') && (
                     <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
-                      {influencer.cpa !== undefined && influencer.cpa !== null ? `$${influencer.cpa}` : '—'}
+                      {influencer.cpa !== undefined && influencer.cpa !== null ? formatCurrency(influencer.cpa, organization?.currency) : '—'}
                     </td>
                   )}
 
                   {/* CPI */}
                   {isColVisible('cpi') && (
                     <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
-                      {influencer.cpi !== undefined && influencer.cpi !== null ? `$${influencer.cpi}` : '—'}
+                      {influencer.cpi !== undefined && influencer.cpi !== null ? formatCurrency(influencer.cpi, organization?.currency) : '—'}
                     </td>
                   )}
 
                   {/* LTV */}
                   {isColVisible('ltv') && (
                     <td className="px-3 py-1.5 text-right font-bold text-slate-800 text-[11px]">
-                      {influencer.ltv !== undefined && influencer.ltv !== null ? `$${influencer.ltv}` : '—'}
+                      {influencer.ltv !== undefined && influencer.ltv !== null ? formatCurrency(influencer.ltv, organization?.currency) : '—'}
                     </td>
                   )}
 

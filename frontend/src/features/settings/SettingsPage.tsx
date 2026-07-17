@@ -85,7 +85,14 @@ function SettingsPage() {
                 </p>
               )}
               {updateOrganization.isSuccess && (
-                <p className="rounded border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 font-semibold">Saved.</p>
+                <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 font-semibold space-y-1">
+                  <p>Changes saved successfully.</p>
+                  {updateOrganization.data?.conversion && (
+                    <p className="text-[11px] text-emerald-800 font-medium leading-relaxed mt-1">
+                      Converted existing monetary figures (campaign budgets, creator rates, CPA/LTV funnels, and performance logs) from <span className="font-bold">{updateOrganization.data.conversion.oldCurrency}</span> to <span className="font-bold">{updateOrganization.data.conversion.newCurrency}</span> at the current rate of <span className="font-bold">1 {updateOrganization.data.conversion.oldCurrency} = {updateOrganization.data.conversion.rate.toLocaleString(undefined, { maximumFractionDigits: 6 })} {updateOrganization.data.conversion.newCurrency}</span> (retrieved via {updateOrganization.data.conversion.rateSource}).
+                    </p>
+                  )}
+                </div>
               )}
 
               <div className="flex justify-end mt-1">

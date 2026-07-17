@@ -3,6 +3,8 @@ import { BadgeCheck, ShieldCheck, Mail, Phone, Trash2, ExternalLink, Camera, Vid
 import { Avatar } from '../../../components/shared/Avatar'
 import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer } from '../types'
+import { useOrganization } from '../../organizations/hooks/useOrganization'
+import { formatCurrency } from '../../../lib/currency'
 
 type InfluencerCardProps = {
   influencer: Influencer
@@ -10,6 +12,7 @@ type InfluencerCardProps = {
 }
 
 export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
+  const { data: organization } = useOrganization()
   // Format numbers to short strings (e.g., 1.2M, 54.3K)
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -130,18 +133,18 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
         </div>
         <div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Post Price</p>
-          <p className="text-xs font-bold text-emerald-600">${influencer.pricePost || 'N/A'}</p>
+          <p className="text-xs font-bold text-emerald-600">{formatCurrency(influencer.pricePost, organization?.currency)}</p>
         </div>
         {influencer.cpa !== undefined && influencer.cpa !== null && (
           <div>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">CPA</p>
-            <p className="text-xs font-bold text-slate-800">${influencer.cpa}</p>
+            <p className="text-xs font-bold text-slate-800">{formatCurrency(influencer.cpa, organization?.currency)}</p>
           </div>
         )}
         {influencer.ltv !== undefined && influencer.ltv !== null && (
           <div>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">LTV</p>
-            <p className="text-xs font-bold text-slate-800">${influencer.ltv}</p>
+            <p className="text-xs font-bold text-slate-800">{formatCurrency(influencer.ltv, organization?.currency)}</p>
           </div>
         )}
       </div>

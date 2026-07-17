@@ -9,6 +9,8 @@ import { InfluencerFormModal } from './components/AddInfluencerModal'
 import { NotesPanel } from './components/NotesPanel'
 import { PipelineStatusSelect } from './components/PipelineStatusSelect'
 import { TagSelector } from './components/TagSelector'
+import { useOrganization } from '../organizations/hooks/useOrganization'
+import { formatCurrency } from '../../lib/currency'
 import {
   useAddInfluencerNote,
   useAddInfluencerTag,
@@ -25,7 +27,7 @@ import {
 } from './hooks/useInfluencers'
 import type { PipelineStatus } from './types'
 
-function formatValue(val: number | null | undefined, isPercentage = false, isCurrency = false): string {
+function formatValue(val: number | null | undefined, isPercentage = false, isCurrency = false, currencyCode = 'USD'): string {
   if (val === undefined || val === null) return '—'
   // Support extreme fractional values such as 0.00001
   const formatted = val.toLocaleString(undefined, { maximumFractionDigits: 6 })
@@ -33,7 +35,7 @@ function formatValue(val: number | null | undefined, isPercentage = false, isCur
     return `${formatted}%`
   }
   if (isCurrency) {
-    return `$${formatted}`
+    return formatCurrency(val, currencyCode)
   }
   return formatted
 }
@@ -62,6 +64,7 @@ function InfluencerProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
+  const { data: organization } = useOrganization()
   const { data: influencer, isLoading, isError } = useInfluencer(id)
   const { data: tags = [] } = useInfluencerTags(id)
   const { data: orgTags = [] } = useOrgTags()
@@ -298,12 +301,12 @@ function InfluencerProfilePage() {
             />
             <StatCard
               label="Price per Post"
-              value={formatValue(influencer.pricePost, false, true)}
+              value={formatValue(influencer.pricePost, false, true, organization?.currency)}
               tooltip="Baseline flat fee charged by this creator for a single main-feed post publication."
             />
             <StatCard
               label="Price per Story"
-              value={formatValue(influencer.priceStory, false, true)}
+              value={formatValue(influencer.priceStory, false, true, organization?.currency)}
               tooltip="Baseline flat fee charged by this creator for a temporary (24-hour) story publication."
             />
             <StatCard
@@ -313,7 +316,7 @@ function InfluencerProfilePage() {
             />
             <StatCard
               label="CPA / CPI / LTV"
-              value={`${formatValue(influencer.cpa, false, true)} / ${formatValue(influencer.cpi, false, true)} / ${formatValue(influencer.ltv, false, true)}`}
+              value={`${formatValue(influencer.cpa, false, true, organization?.currency)} / ${formatValue(influencer.cpi, false, true, organization?.currency)} / ${formatValue(influencer.ltv, false, true, organization?.currency)}`}
               tooltip="Key funnels: Cost Per Acquisition (CPA), Cost Per Install/Click (CPI), and referred customer Lifetime Value (LTV)."
             />
           </div>

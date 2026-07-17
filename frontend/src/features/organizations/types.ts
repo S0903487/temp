@@ -5,6 +5,12 @@ export interface Organization {
   currency: string;
   createdAt: string;
   updatedAt: string | null;
+  conversion?: {
+    rate: number;
+    oldCurrency: string;
+    newCurrency: string;
+    rateSource: string;
+  };
 }
 
 export interface UpdateOrganizationInput {

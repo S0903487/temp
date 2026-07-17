@@ -4,6 +4,7 @@ import { useOrganization } from '../organizations/hooks/useOrganization'
 import { useClients } from '../clients/hooks/useClients'
 import { useCampaigns } from '../campaigns/hooks/useCampaigns'
 import { useInfluencers } from '../influencers/hooks/useInfluencers'
+import { formatCurrency } from '../../lib/currency'
 import styles from './DashboardPage.module.css'
 
 function DashboardPage() {
@@ -88,7 +89,7 @@ function DashboardPage() {
                         {campaign.name}
                       </td>
                       <td className="py-1.5 text-right font-semibold text-slate-800">
-                        ${Number(campaign.budget || 0).toLocaleString()}
+                        {formatCurrency(campaign.budget, organization?.currency)}
                       </td>
                       <td className="py-1.5 text-right">
                         <span className={`inline-flex rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
