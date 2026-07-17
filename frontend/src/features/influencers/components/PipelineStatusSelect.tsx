@@ -1,6 +1,6 @@
 import { PIPELINE_STATUSES } from '../types'
 import type { PipelineStatus } from '../types'
-import { Send, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
 type PipelineStatusSelectProps = {
   value: PipelineStatus
@@ -30,16 +30,15 @@ export function PipelineStatusBadge({ status }: { status: PipelineStatus }) {
 
 /** Editable select for the profile page, using the same color language as the badge. */
 export function PipelineStatusSelect({ value, onChange, disabled }: PipelineStatusSelectProps) {
+  const colorClass = COLORS[value]
+
   return (
     <div className="relative inline-flex items-center">
-      <span className="absolute left-2.5 text-slate-400 pointer-events-none flex items-center">
-        <Send size={12} />
-      </span>
       <select
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value as PipelineStatus)}
-        className="appearance-none rounded border border-slate-200 bg-white pl-7 pr-6 h-[26px] text-xs font-bold text-slate-600 hover:text-black hover:bg-slate-50 transition cursor-pointer outline-none flex items-center leading-none"
+        className={`appearance-none rounded border px-2.5 h-7 text-[11px] font-bold transition cursor-pointer outline-none pr-7 leading-none flex items-center ${colorClass}`}
       >
         {PIPELINE_STATUSES.map((status) => (
           <option key={status} value={status} className="bg-white text-slate-900 font-medium">
@@ -47,8 +46,8 @@ export function PipelineStatusSelect({ value, onChange, disabled }: PipelineStat
           </option>
         ))}
       </select>
-      <span className="absolute right-2 text-slate-400 pointer-events-none flex items-center">
-        <ChevronDown size={12} />
+      <span className="absolute right-2 text-current pointer-events-none flex items-center">
+        <ChevronDown size={11} />
       </span>
     </div>
   )

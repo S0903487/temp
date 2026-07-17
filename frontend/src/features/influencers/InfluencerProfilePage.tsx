@@ -158,16 +158,16 @@ function InfluencerProfilePage() {
                   <button
                     type="button"
                     onClick={() => setIsEditOpen(true)}
-                    className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
+                    className="inline-flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2.5 text-[11px] text-slate-600 hover:text-black hover:bg-slate-50 font-bold transition cursor-pointer"
                   >
-                    <Pencil size={12} /> Edit
+                    <Pencil size={11} /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsConfirmingDelete(true)}
-                    className="inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
+                    className="inline-flex h-7 items-center gap-1 rounded border border-red-200 bg-white px-2.5 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition cursor-pointer"
                   >
-                    <Trash2 size={12} /> Delete
+                    <Trash2 size={11} /> Delete
                   </button>
                 </>
               )}
