@@ -222,7 +222,7 @@ export function InfluencerFormModal({
       status: form.status,
       notes: form.notes.trim() || undefined,
       tags: isEditing ? undefined : ['New Lead'],
-      profileImage: form.profileImage.trim() || null,
+      profileImage: form.profileImage.trim() ? form.profileImage.trim() : null,
       followers: toNumber(form.followers),
       engagementRate: toNumber(form.engagementRate),
       averageViews: toNumber(form.averageViews),

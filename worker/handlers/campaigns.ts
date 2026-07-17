@@ -48,44 +48,7 @@ export async function list(_request: Request, env: Env, auth: AuthedRequest): Pr
   )
     .bind(auth.organizationId)
     .all();
-
-  if (results.length === 0) {
-    return json([]);
-  }
-
-  const campaignIds = results.map((r) => r.id);
-  const placeholders = campaignIds.map(() => '?').join(',');
-  const { results: links } = await env.DB.prepare(
-    `SELECT campaign_id, influencer_id FROM campaign_influencers WHERE campaign_id IN (${placeholders})`
-  )
-    .bind(...campaignIds)
-    .all();
-
-  const influencerIdsByCampaign: Record<string, string[]> = {};
-  for (const link of links) {
-    const cid = link.campaign_id as string;
-    const infId = link.influencer_id as string;
-    if (!influencerIdsByCampaign[cid]) {
-      influencerIdsByCampaign[cid] = [];
-    }
-    influencerIdsByCampaign[cid].push(infId);
-  }
-
-  const responseCampaigns = results.map((row) => ({
-    id: row.id,
-    clientId: row.client_id,
-    name: row.name,
-    description: row.description,
-    influencerIds: influencerIdsByCampaign[row.id as string] ?? [],
-    startDate: row.start_date,
-    endDate: row.end_date,
-    budget: row.budget,
-    status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  }));
-
-  return json(responseCampaigns);
+  return json(await Promise.all(results.map((r) => withInfluencerIds(env, r))));
 }
 
 export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {

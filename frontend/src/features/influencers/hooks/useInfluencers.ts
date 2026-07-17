@@ -162,7 +162,7 @@ export function useUpdateInfluencer() {
         queryClient.setQueryData(influencerKey(variables.id), context.previousInfluencer);
       }
       if (context?.previousInfluencers) {
-        queryClient.setQueryData(INFLUENCERS_QUERY_KEY, context.previousInfluencers);
+        queryClient.setQueryData(INFLUENCERS_QUERY_KEY, context.previousInfluencer);
       }
     },
     onSettled: (_data, _error, variables) => {

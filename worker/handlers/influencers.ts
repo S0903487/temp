@@ -43,6 +43,36 @@ export const PIPELINE_STATUSES = [
   'Inactive',
 ] as const;
 
+let influencerColumns: string[] | null = null;
+let snapshotColumns: string[] | null = null;
+
+async function getInfluencerColumns(db: D1Database): Promise<string[]> {
+  if (influencerColumns) return influencerColumns;
+  try {
+    const { results } = await db.prepare('PRAGMA table_info(influencers)').all();
+    influencerColumns = results.map((r: any) => r.name);
+    return influencerColumns;
+  } catch (e) {
+    return [
+      'id', 'organization_id', 'full_name', 'username', 'platform', 'category', 'country', 'language',
+      'followers', 'engagement_rate', 'average_views', 'average_likes', 'average_comments',
+      'email', 'phone', 'price_post', 'price_story', 'verified', 'brand_safe', 'status', 'pipeline_status',
+      'notes', 'tags', 'bio', 'profile_image', 'profile_link', 'roi', 'cpa', 'cpi', 'ltv', 'created_at', 'updated_at'
+    ];
+  }
+}
+
+async function getSnapshotColumns(db: D1Database): Promise<string[]> {
+  if (snapshotColumns) return snapshotColumns;
+  try {
+    const { results } = await db.prepare('PRAGMA table_info(influencer_snapshots)').all();
+    snapshotColumns = results.map((r: any) => r.name);
+    return snapshotColumns;
+  } catch (e) {
+    return ['id', 'influencer_id', 'date', 'followers', 'average_views', 'average_likes', 'average_comments', 'engagement_rate', 'created_at'];
+  }
+}
+
 function toApi(row: Record<string, unknown>) {
   return {
     id: row.id,
@@ -55,9 +85,9 @@ function toApi(row: Record<string, unknown>) {
     language: row.language,
     followers: row.followers,
     engagementRate: row.engagement_rate,
-    averageViews: row.average_views,
-    averageLikes: row.average_likes,
-    averageComments: row.average_comments,
+    averageViews: row.average_views !== undefined && row.average_views !== null ? row.average_views : (row.total_views !== undefined && row.total_views !== null ? row.total_views : 0),
+    averageLikes: row.average_likes !== undefined && row.average_likes !== null ? row.average_likes : (row.total_likes !== undefined && row.total_likes !== null ? row.total_likes : 0),
+    averageComments: row.average_comments !== undefined && row.average_comments !== null ? row.average_comments : (row.total_comments !== undefined && row.total_comments !== null ? row.total_comments : 0),
     email: row.email,
     phone: row.phone,
     pricePost: row.price_post,
@@ -126,92 +156,98 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
   const id = generateId('inf');
   const now = nowIso();
 
+  const columns = await getInfluencerColumns(env.DB);
+  
+  const allPossibleColumns: { col: string; val: unknown }[] = [
+    { col: 'id', val: id },
+    { col: 'organization_id', val: auth.organizationId },
+    { col: 'full_name', val: body.fullName },
+    { col: 'username', val: body.username ?? null },
+    { col: 'platform', val: body.platform ?? 'Instagram' },
+    { col: 'category', val: body.category ?? null },
+    { col: 'country', val: body.country ?? null },
+    { col: 'language', val: body.language ?? null },
+    { col: 'followers', val: cleanNum(body.followers, 0) },
+    { col: 'engagement_rate', val: cleanNum(body.engagementRate, 0) },
+    { col: columns.includes('average_views') ? 'average_views' : 'total_views', val: cleanNum(body.averageViews, 0) },
+    { col: columns.includes('average_likes') ? 'average_likes' : 'total_likes', val: cleanNum(body.averageLikes, 0) },
+    { col: columns.includes('average_comments') ? 'average_comments' : 'total_comments', val: cleanNum(body.averageComments, 0) },
+    { col: 'email', val: body.email ?? null },
+    { col: 'phone', val: body.phone ?? null },
+    { col: 'price_post', val: cleanNumOrNull(body.pricePost) },
+    { col: 'price_story', val: cleanNumOrNull(body.priceStory) },
+    { col: 'verified', val: body.verified ? 1 : 0 },
+    { col: 'brand_safe', val: body.brandSafe === false ? 0 : 1 },
+    { col: 'status', val: body.status ?? 'Active' },
+    { col: 'pipeline_status', val: body.pipelineStatus ?? 'New' },
+    { col: 'notes', val: body.notes ?? null },
+    { col: 'tags', val: body.tags ? JSON.stringify(body.tags) : null },
+    { col: 'bio', val: body.bio ?? null },
+    { col: 'profile_image', val: body.profileImage ?? null },
+    { col: 'profile_link', val: body.profileLink ?? null },
+    { col: 'roi', val: cleanNumOrNull(body.roi) },
+    { col: 'cpa', val: cleanNumOrNull(body.cpa) },
+    { col: 'cpi', val: cleanNumOrNull(body.cpi) },
+    { col: 'ltv', val: cleanNumOrNull(body.ltv) },
+    { col: 'created_at', val: now }
+  ];
+
+  const insertCols: string[] = [];
+  const insertPlaceholders: string[] = [];
+  const insertVals: unknown[] = [];
+
+  for (const item of allPossibleColumns) {
+    if (columns.includes(item.col)) {
+      insertCols.push(item.col);
+      insertPlaceholders.push('?');
+      insertVals.push(item.val);
+    }
+  }
+
   await env.DB.prepare(
-    `INSERT INTO influencers (
-      id, organization_id, full_name, username, platform, category, country, language,
-      followers, engagement_rate, average_views, average_likes, average_comments,
-      email, phone, price_post, price_story, verified, brand_safe, status, pipeline_status, notes, tags, bio, profile_image,
-      profile_link, roi, cpa, cpi, ltv,
-      created_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+    `INSERT INTO influencers (${insertCols.join(', ')}) VALUES (${insertPlaceholders.join(', ')})`
   )
-    .bind(
-      id,
-      auth.organizationId,
-      body.fullName,
-      body.username ?? null,
-      body.platform ?? 'Instagram',
-      body.category ?? null,
-      body.country ?? null,
-      body.language ?? null,
-      cleanNum(body.followers, 0),
-      cleanNum(body.engagementRate, 0),
-      cleanNum(body.averageViews, 0),
-      cleanNum(body.averageLikes, 0),
-      cleanNum(body.averageComments, 0),
-      body.email ?? null,
-      body.phone ?? null,
-      cleanNumOrNull(body.pricePost),
-      cleanNumOrNull(body.priceStory),
-      body.verified ? 1 : 0,
-      body.brandSafe === false ? 0 : 1,
-      body.status ?? 'Active',
-      body.pipelineStatus ?? 'New',
-      body.notes ?? null,
-      body.tags ? JSON.stringify(body.tags) : null,
-      body.bio ?? null,
-      body.profileImage ?? null,
-      body.profileLink ?? null,
-      cleanNumOrNull(body.roi),
-      cleanNumOrNull(body.cpa),
-      cleanNumOrNull(body.cpi),
-      cleanNumOrNull(body.ltv),
-      now
-    )
+    .bind(...insertVals)
     .run();
 
   // Seed the first growth snapshot so the profile's history chart has a
   // starting point immediately, same as the schema-level backfill.
-  await env.DB.prepare(
-    `INSERT INTO influencer_snapshots (id, influencer_id, date, followers, average_views, average_likes, average_comments, engagement_rate, created_at)
-     VALUES (?, ?, date(?), ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      generateId('snap'),
-      id,
-      now,
-      cleanNum(body.followers, 0),
-      cleanNum(body.averageViews, 0),
-      cleanNum(body.averageLikes, 0),
-      cleanNum(body.averageComments, 0),
-      cleanNum(body.engagementRate, 0),
-      now
-    )
-    .run();
+  const snapColumns = await getSnapshotColumns(env.DB);
+  const snapCols: string[] = ['id', 'influencer_id', 'date', 'followers', 'engagement_rate', 'created_at'];
+  const snapPlaceholders: string[] = ['?', '?', 'date(?)', '?', '?', '?'];
+  const snapVals: unknown[] = [
+    generateId('snap'),
+    id,
+    now,
+    cleanNum(body.followers, 0),
+    cleanNum(body.engagementRate, 0),
+    now
+  ];
 
-  // Populate normalized tag tables for any initial tags passed on creation
-  if (body.tags && body.tags.length > 0) {
-    for (const name of body.tags) {
-      const trimmedName = name.trim();
-      if (!trimmedName) continue;
-
-      let tag = await env.DB.prepare('SELECT id FROM tags WHERE organization_id = ? AND name = ?')
-        .bind(auth.organizationId, trimmedName)
-        .first<{ id: string }>();
-
-      let tagId = tag?.id;
-      if (!tagId) {
-        tagId = generateId('tag');
-        await env.DB.prepare('INSERT INTO tags (id, organization_id, name, created_at) VALUES (?, ?, ?, ?)')
-          .bind(tagId, auth.organizationId, trimmedName, now)
-          .run();
-      }
-
-      await env.DB.prepare('INSERT OR IGNORE INTO influencer_tags (influencer_id, tag_id, added_at) VALUES (?, ?, ?)')
-        .bind(id, tagId, now)
-        .run();
-    }
+  const snapViewsCol = snapColumns.includes('average_views') ? 'average_views' : (snapColumns.includes('total_views') ? 'total_views' : null);
+  if (snapViewsCol) {
+    snapCols.push(snapViewsCol);
+    snapPlaceholders.push('?');
+    snapVals.push(cleanNum(body.averageViews, 0));
   }
+  const snapLikesCol = snapColumns.includes('average_likes') ? 'average_likes' : (snapColumns.includes('total_likes') ? 'total_likes' : null);
+  if (snapLikesCol) {
+    snapCols.push(snapLikesCol);
+    snapPlaceholders.push('?');
+    snapVals.push(cleanNum(body.averageLikes, 0));
+  }
+  const snapCommentsCol = snapColumns.includes('average_comments') ? 'average_comments' : (snapColumns.includes('total_comments') ? 'total_comments' : null);
+  if (snapCommentsCol) {
+    snapCols.push(snapCommentsCol);
+    snapPlaceholders.push('?');
+    snapVals.push(cleanNum(body.averageComments, 0));
+  }
+
+  await env.DB.prepare(
+    `INSERT INTO influencer_snapshots (${snapCols.join(', ')}) VALUES (${snapPlaceholders.join(', ')})`
+  )
+    .bind(...snapVals)
+    .run();
 
   const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
   return json(toApi(row as Record<string, unknown>), 201);
@@ -226,9 +262,9 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
   language: 'language',
   followers: 'followers',
   engagementRate: 'engagement_rate',
-  averageViews: 'average_views',
-  averageLikes: 'average_likes',
-  averageComments: 'average_comments',
+  averageViews: 'average_views', // dynamically mapped below
+  averageLikes: 'average_likes', // dynamically mapped below
+  averageComments: 'average_comments', // dynamically mapped below
   email: 'email',
   phone: 'phone',
   pricePost: 'price_post',
@@ -249,6 +285,8 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
 };
 
 export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
+  const columns = await getInfluencerColumns(env.DB);
+  
   const existing = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
     .bind(id, auth.organizationId)
     .first();
@@ -261,9 +299,40 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   const sets: string[] = [];
   const values: unknown[] = [];
 
+  const dynamicColumnMap: Record<keyof InfluencerBody, string> = {
+    fullName: 'full_name',
+    username: 'username',
+    platform: 'platform',
+    category: 'category',
+    country: 'country',
+    language: 'language',
+    followers: 'followers',
+    engagementRate: 'engagement_rate',
+    averageViews: columns.includes('average_views') ? 'average_views' : 'total_views',
+    averageLikes: columns.includes('average_likes') ? 'average_likes' : 'total_likes',
+    averageComments: columns.includes('average_comments') ? 'average_comments' : 'total_comments',
+    email: 'email',
+    phone: 'phone',
+    pricePost: 'price_post',
+    priceStory: 'price_story',
+    verified: 'verified',
+    brandSafe: 'brand_safe',
+    status: 'status',
+    pipelineStatus: 'pipeline_status',
+    notes: 'notes',
+    tags: 'tags',
+    bio: 'bio',
+    profileImage: 'profile_image',
+    profileLink: 'profile_link',
+    roi: 'roi',
+    cpa: 'cpa',
+    cpi: 'cpi',
+    ltv: 'ltv',
+  };
+
   for (const key of Object.keys(body) as (keyof InfluencerBody)[]) {
-    const column = COLUMN_MAP[key];
-    if (!column) continue;
+    const column = dynamicColumnMap[key];
+    if (!column || !columns.includes(column)) continue;
     let value: unknown = body[key];
     if (key === 'verified' || key === 'brandSafe') {
       value = value ? 1 : 0;
@@ -288,54 +357,46 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     .bind(...values)
     .run();
 
-  // If tags are in the update body, sync the normalized tables
-  if ('tags' in body) {
-    await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ?').bind(id).run();
-    if (body.tags && body.tags.length > 0) {
-      const now = nowIso();
-      for (const name of body.tags) {
-        const trimmedName = name.trim();
-        if (!trimmedName) continue;
-
-        let tag = await env.DB.prepare('SELECT id FROM tags WHERE organization_id = ? AND name = ?')
-          .bind(auth.organizationId, trimmedName)
-          .first<{ id: string }>();
-
-        let tagId = tag?.id;
-        if (!tagId) {
-          tagId = generateId('tag');
-          await env.DB.prepare('INSERT INTO tags (id, organization_id, name, created_at) VALUES (?, ?, ?, ?)')
-            .bind(tagId, auth.organizationId, trimmedName, now)
-            .run();
-        }
-
-        await env.DB.prepare('INSERT OR IGNORE INTO influencer_tags (influencer_id, tag_id, added_at) VALUES (?, ?, ?)')
-          .bind(id, tagId, now)
-          .run();
-      }
-    }
-  }
-
   const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
 
+  const snapColumns = await getSnapshotColumns(env.DB);
   const growthFields: (keyof InfluencerBody)[] = ['followers', 'averageViews', 'averageLikes', 'averageComments', 'engagementRate'];
   if (growthFields.some((field) => field in body)) {
     const r = row as Record<string, unknown>;
+    const snapCols: string[] = ['id', 'influencer_id', 'date', 'followers', 'engagement_rate', 'created_at'];
+    const snapPlaceholders: string[] = ['?', '?', 'date(?)', '?', '?', '?'];
+    const snapVals: unknown[] = [
+      generateId('snap'),
+      id,
+      nowIso(),
+      r.followers,
+      r.engagement_rate,
+      nowIso()
+    ];
+
+    const snapViewsCol = snapColumns.includes('average_views') ? 'average_views' : (snapColumns.includes('total_views') ? 'total_views' : null);
+    if (snapViewsCol) {
+      snapCols.push(snapViewsCol);
+      snapPlaceholders.push('?');
+      snapVals.push(r.average_views !== undefined && r.average_views !== null ? r.average_views : (r.total_views !== undefined && r.total_views !== null ? r.total_views : 0));
+    }
+    const snapLikesCol = snapColumns.includes('average_likes') ? 'average_likes' : (snapColumns.includes('total_likes') ? 'total_likes' : null);
+    if (snapLikesCol) {
+      snapCols.push(snapLikesCol);
+      snapPlaceholders.push('?');
+      snapVals.push(r.average_likes !== undefined && r.average_likes !== null ? r.average_likes : (r.total_likes !== undefined && r.total_likes !== null ? r.total_likes : 0));
+    }
+    const snapCommentsCol = snapColumns.includes('average_comments') ? 'average_comments' : (snapColumns.includes('total_comments') ? 'total_comments' : null);
+    if (snapCommentsCol) {
+      snapCols.push(snapCommentsCol);
+      snapPlaceholders.push('?');
+      snapVals.push(r.average_comments !== undefined && r.average_comments !== null ? r.average_comments : (r.total_comments !== undefined && r.total_comments !== null ? r.total_comments : 0));
+    }
+
     await env.DB.prepare(
-      `INSERT INTO influencer_snapshots (id, influencer_id, date, followers, average_views, average_likes, average_comments, engagement_rate, created_at)
-       VALUES (?, ?, date(?), ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO influencer_snapshots (${snapCols.join(', ')}) VALUES (${snapPlaceholders.join(', ')})`
     )
-      .bind(
-        generateId('snap'),
-        id,
-        nowIso(),
-        r.followers,
-        r.average_views,
-        r.average_likes,
-        r.average_comments,
-        r.engagement_rate,
-        nowIso()
-      )
+      .bind(...snapVals)
       .run();
   }
 
@@ -480,23 +541,6 @@ export async function listInfluencerTags(_request: Request, env: Env, auth: Auth
   return json(results);
 }
 
-// Helper to sync legacy JSON tags column in influencers table when tags change
-async function syncLegacyTags(db: D1Database, influencerId: string) {
-  const { results } = await db.prepare(
-    `SELECT t.name FROM influencer_tags it
-     JOIN tags t ON t.id = it.tag_id
-     WHERE it.influencer_id = ?
-     ORDER BY t.name`
-  )
-    .bind(influencerId)
-    .all();
-
-  const tagNames = results.map((r) => r.name);
-  await db.prepare('UPDATE influencers SET tags = ? WHERE id = ?')
-    .bind(JSON.stringify(tagNames), influencerId)
-    .run();
-}
-
 // POST /api/influencers/:id/tags  { name }  — creates the org tag if needed, then attaches it
 export async function addInfluencerTag(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
   const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
@@ -524,8 +568,6 @@ export async function addInfluencerTag(request: Request, env: Env, auth: AuthedR
     .bind(id, tag.id, nowIso())
     .run();
 
-  await syncLegacyTags(env.DB, id);
-
   return json(tag, 201);
 }
 
@@ -543,8 +585,5 @@ export async function removeInfluencerTag(
   if (!influencer) return notFound();
 
   await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ? AND tag_id = ?').bind(id, tagId).run();
-
-  await syncLegacyTags(env.DB, id);
-
   return json({ success: true });
 }

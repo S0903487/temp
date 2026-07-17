@@ -76,9 +76,9 @@ export default function InfluencersPage() {
       if (state.filters.category !== 'All' && inf.category !== state.filters.category) return false
       if (state.filters.pipelineStatus !== 'All' && inf.pipelineStatus !== state.filters.pipelineStatus) return false
 
-      if (state.filters.country !== 'All' && (!inf.country || !inf.country.toLowerCase().includes(state.filters.country.toLowerCase()))) return false
-      if (state.filters.language !== 'All' && (!inf.language || !inf.language.toLowerCase().includes(state.filters.language.toLowerCase()))) return false
-      if (state.filters.subcategory !== 'All' && (!inf.category || !inf.category.toLowerCase().includes(state.filters.subcategory.toLowerCase()))) return false
+      if (state.filters.country !== 'All' && inf.country && !inf.country.toLowerCase().includes(state.filters.country.toLowerCase())) return false
+      if (state.filters.language !== 'All' && inf.language && !inf.language.toLowerCase().includes(state.filters.language.toLowerCase())) return false
+      if (state.filters.subcategory !== 'All' && inf.category && !inf.category.toLowerCase().includes(state.filters.subcategory.toLowerCase())) return false
 
       // Follower classification filter
       if (state.filters.followers === 'Micro (<50k)' && inf.followers >= 50000) return false
