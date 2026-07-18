@@ -414,14 +414,30 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
+  const checkQuery = auth.role === 'admin'
+    ? 'SELECT id FROM influencers WHERE id = ?'
+    : 'SELECT id FROM influencers WHERE id = ? AND organization_id = ?';
+  const checkStmt = auth.role === 'admin'
+    ? env.DB.prepare(checkQuery).bind(id)
+    : env.DB.prepare(checkQuery).bind(id, auth.organizationId);
+  const existing = await checkStmt.first();
+  if (!existing) return notFound();
+
+  // Explicitly clear out all child tables for this influencer
+  await env.DB.prepare('DELETE FROM influencer_snapshots WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM influencer_notes WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM campaign_influencers WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM analytics_records WHERE influencer_id = ?').bind(id).run();
+
   const query = auth.role === 'admin'
     ? 'DELETE FROM influencers WHERE id = ?'
     : 'DELETE FROM influencers WHERE id = ? AND organization_id = ?';
   const stmt = auth.role === 'admin'
     ? env.DB.prepare(query).bind(id)
     : env.DB.prepare(query).bind(id, auth.organizationId);
-  const result = await stmt.run();
-  if (!result.meta.changes) return notFound();
+  await stmt.run();
+
   return json({ success: true });
 }
 

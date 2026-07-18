@@ -85,6 +85,24 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
     return badRequest('You cannot delete your own admin account');
   }
 
+  // 1. Clean up influencer profiles and all sub-records associated with this ID if they are registered as an influencer
+  await env.DB.prepare('DELETE FROM influencer_snapshots WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM influencer_notes WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM campaign_influencers WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM analytics_records WHERE influencer_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM influencers WHERE id = ?').bind(id).run();
+
+  // 2. Clean up client/brand records, including their campaigns, campaign links, and analytics, if they are registered as a brand
+  await env.DB.prepare('DELETE FROM campaign_influencers WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
+  await env.DB.prepare('DELETE FROM analytics_records WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
+  await env.DB.prepare('DELETE FROM campaigns WHERE client_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM clients WHERE id = ?').bind(id).run();
+
+  // 3. Clean up active sessions
+  await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id).run();
+
+  // 4. Finally, delete the core user record
   const result = await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
   if (!result.meta.changes) return notFound();
 

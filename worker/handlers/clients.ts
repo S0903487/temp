@@ -99,13 +99,27 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
+  const checkQuery = auth.role === 'admin'
+    ? 'SELECT id FROM clients WHERE id = ?'
+    : 'SELECT id FROM clients WHERE id = ? AND organization_id = ?';
+  const checkStmt = auth.role === 'admin'
+    ? env.DB.prepare(checkQuery).bind(id)
+    : env.DB.prepare(checkQuery).bind(id, auth.organizationId);
+  const existing = await checkStmt.first();
+  if (!existing) return notFound();
+
+  // Clean up campaigns, campaign influencers, and analytics records belonging to this client's campaigns
+  await env.DB.prepare('DELETE FROM campaign_influencers WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
+  await env.DB.prepare('DELETE FROM analytics_records WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
+  await env.DB.prepare('DELETE FROM campaigns WHERE client_id = ?').bind(id).run();
+
   const query = auth.role === 'admin'
     ? 'DELETE FROM clients WHERE id = ?'
     : 'DELETE FROM clients WHERE id = ? AND organization_id = ?';
   const stmt = auth.role === 'admin'
     ? env.DB.prepare(query).bind(id)
     : env.DB.prepare(query).bind(id, auth.organizationId);
-  const result = await stmt.run();
-  if (!result.meta.changes) return notFound();
+  await stmt.run();
+
   return json({ success: true });
 }
