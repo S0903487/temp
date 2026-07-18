@@ -45,8 +45,53 @@ async function seedAdminIfMissing(db: any) {
         .bind(userId, orgId, 'Sarmad Hussain', adminEmail, hash, salt, now)
         .run();
     }
+
+    // Backfill any brand user accounts without a client profile so they are listed
+    const { results: brandUsers } = await db.prepare(
+      `SELECT u.id, u.organization_id, u.name, u.email, u.created_at, o.name as org_name 
+       FROM users u 
+       JOIN organizations o ON o.id = u.organization_id 
+       WHERE u.role = 'brand'`
+    ).all();
+    if (brandUsers) {
+      for (const user of brandUsers) {
+        const clientExists = await db.prepare('SELECT id FROM clients WHERE id = ?').bind(user.id).first();
+        if (!clientExists) {
+          const now = user.created_at || nowIso();
+          await db.prepare(
+            `INSERT INTO clients (id, organization_id, name, contact_email, status, created_at)
+             VALUES (?, ?, ?, ?, 'active', ?)`
+          )
+            .bind(user.id, user.organization_id, user.org_name || `${user.name}'s Company`, user.email, now)
+            .run();
+        }
+      }
+    }
+
+    // Backfill any influencer user accounts without an influencer profile
+    const { results: influencerUsers } = await db.prepare(
+      `SELECT u.id, u.organization_id, u.name, u.email, u.created_at 
+       FROM users u 
+       WHERE u.role = 'influencer'`
+    ).all();
+    if (influencerUsers) {
+      for (const user of influencerUsers) {
+        const infExists = await db.prepare('SELECT id FROM influencers WHERE id = ?').bind(user.id).first();
+        if (!infExists) {
+          const now = user.created_at || nowIso();
+          await db.prepare(
+            `INSERT INTO influencers (
+              id, organization_id, full_name, email, platform, status, pipeline_status, followers, engagement_rate, average_views, average_likes, average_comments, created_at
+            ) VALUES (?, ?, ?, ?, 'Instagram', 'Active', 'New', 0, 0, 0, 0, 0, ?)`
+          )
+            .bind(user.id, user.organization_id, user.name, user.email, now)
+            .run();
+        }
+      }
+    }
+
   } catch (err) {
-    console.error('Error seeding admin:', err);
+    console.error('Error seeding admin or backfilling profiles:', err);
   }
 }
 
@@ -62,6 +107,7 @@ function publicUser(row: Record<string, unknown>) {
     name: row.name,
     email: row.email,
     role: row.role,
+    isFrozen: Boolean(row.is_frozen),
     createdAt: row.created_at,
   };
 }
@@ -118,11 +164,20 @@ export async function register(request: Request, env: Env): Promise<Response> {
       .run();
   }
 
+  if (selectedRole === 'brand') {
+    await env.DB.prepare(
+      `INSERT INTO clients (id, organization_id, name, contact_email, status, created_at)
+       VALUES (?, ?, ?, ?, 'active', ?)`
+    )
+      .bind(userId, orgId, body.organizationName ?? `${body.name}'s Company`, body.email, now)
+      .run();
+  }
+
   const token = await createSession(env.DB, userId);
 
   return json(
     {
-      user: { id: userId, organizationId: orgId, name: body.name, email: body.email, role: selectedRole, createdAt: now },
+      user: { id: userId, organizationId: orgId, name: body.name, email: body.email, role: selectedRole, isFrozen: false, createdAt: now },
       token,
     },
     201
@@ -189,7 +244,7 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
   if (!token) return null;
 
   const session = await env.DB.prepare(
-    `SELECT s.user_id as user_id, s.expires_at as expires_at, u.organization_id as organization_id, u.role as role
+    `SELECT s.user_id as user_id, s.expires_at as expires_at, u.organization_id as organization_id, u.role as role, u.is_frozen as is_frozen
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token = ?`
   )
@@ -206,5 +261,6 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
     userId: session.user_id as string,
     organizationId: session.organization_id as string,
     role: session.role as string,
+    isFrozen: Boolean(session.is_frozen),
   };
 }

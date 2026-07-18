@@ -40,6 +40,12 @@ function AppLayout() {
       <Sidebar />
       <div className={styles.mainContent}>
         <Topbar />
+        {user?.isFrozen && (
+          <div className="bg-amber-50 border-b border-amber-200 text-amber-800 px-4 py-2 text-xs font-bold flex items-center gap-2 select-none">
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+            Your account is frozen. You have read-only access and cannot update any information.
+          </div>
+        )}
         <main className={styles.page}>
           <Outlet />
         </main>

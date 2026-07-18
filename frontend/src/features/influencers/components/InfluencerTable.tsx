@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer } from '../types'
+import { useAuthUser } from '../../auth/hooks/useAuth'
 
 export type SortField = 'fullName' | 'followers' | 'engagementRate' | 'category' | 'pipelineStatus'
 
@@ -22,6 +23,7 @@ export function InfluencerTable({
   visibleColumns,
 }: InfluencerTableProps) {
   const navigate = useNavigate()
+  const { data: currentUser } = useAuthUser()
 
   const handleRowClick = (id: string, e: React.MouseEvent) => {
     const target = e.target as HTMLElement
@@ -72,21 +74,30 @@ export function InfluencerTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800 text-slate-300">
-          {influencers.map((influencer) => (
-            <tr
-              key={influencer.id}
-              onClick={(e) => handleRowClick(influencer.id, e)}
-              className="hover:bg-slate-800/40 cursor-pointer transition"
-            >
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={40} />
-                  <div>
-                    <p className="font-semibold text-white">{influencer.fullName}</p>
-                    <p className="text-xs text-slate-500">{influencer.username}</p>
+          {influencers.map((influencer) => {
+            const isOtherOrg = currentUser && influencer.organizationId !== currentUser.organizationId;
+            return (
+              <tr
+                key={influencer.id}
+                onClick={(e) => handleRowClick(influencer.id, e)}
+                className="hover:bg-slate-800/40 cursor-pointer transition"
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={40} />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">{influencer.fullName}</p>
+                        {isOtherOrg && (
+                          <span className="inline-flex items-center rounded-sm bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider select-none">
+                            Created by Other
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500">{influencer.username}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
+                </td>
               {isColVisible('platform') && <td className="px-4 py-3 text-slate-400">{influencer.platform}</td>}
               {isColVisible('followers') && <td className="px-4 py-3 font-medium text-slate-200">{influencer.followers.toLocaleString()}</td>}
               {isColVisible('engagement') && <td className="px-4 py-3 text-cyan-400 font-semibold">{influencer.engagementRate.toFixed(1)}%</td>}
@@ -110,7 +121,7 @@ export function InfluencerTable({
                 </td>
               )}
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </div>

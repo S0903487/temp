@@ -110,22 +110,34 @@ function toApi(row: Record<string, unknown>) {
   };
 }
 
+async function getInfluencerById(env: Env, auth: AuthedRequest, id: string) {
+  const query = auth.role === 'admin'
+    ? 'SELECT * FROM influencers WHERE id = ?'
+    : 'SELECT * FROM influencers WHERE id = ? AND organization_id = ?';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query).bind(id)
+    : env.DB.prepare(query).bind(id, auth.organizationId);
+  return stmt.first();
+}
+
 export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
   // profile_image is a small (~10-40KB) base64 data URL — a resized
   // 256x256 WebP, never the original picked/fetched image (see
   // frontend/src/lib/image.ts) — so returning it for every row here is
   // cheap. This used to be the slowest request in the app back when
   // profile_image held an unresized, multi-MB base64 original.
-  const { results } = await env.DB.prepare('SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC')
-    .bind(auth.organizationId)
-    .all();
+  const query = auth.role === 'admin'
+    ? 'SELECT * FROM influencers ORDER BY created_at DESC'
+    : 'SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query)
+    : env.DB.prepare(query).bind(auth.organizationId);
+  const { results } = await stmt.all();
   return json(results.map(toApi));
 }
 
 export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const row = await getInfluencerById(env, auth, id);
   if (!row) return notFound();
   return json(toApi(row));
 }
@@ -287,9 +299,7 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
 export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
   const columns = await getInfluencerColumns(env.DB);
   
-  const existing = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const existing = await getInfluencerById(env, auth, id);
   if (!existing) return notFound();
 
   const body = await readJson<InfluencerBody>(request);
@@ -404,30 +414,39 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const result = await env.DB.prepare('DELETE FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .run();
+  const query = auth.role === 'admin'
+    ? 'DELETE FROM influencers WHERE id = ?'
+    : 'DELETE FROM influencers WHERE id = ? AND organization_id = ?';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query).bind(id)
+    : env.DB.prepare(query).bind(id, auth.organizationId);
+  const result = await stmt.run();
   if (!result.meta.changes) return notFound();
   return json({ success: true });
 }
 
 // GET /api/influencers/:id/campaigns — campaign history for a creator's profile page
 export async function getCampaigns(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
-  const { results } = await env.DB.prepare(
-    `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
-     FROM campaign_influencers ci
-     JOIN campaigns c ON c.id = ci.campaign_id
-     JOIN clients cl ON cl.id = c.client_id
-     WHERE ci.influencer_id = ? AND cl.organization_id = ?
-     ORDER BY c.start_date DESC`
-  )
-    .bind(id, auth.organizationId)
-    .all();
+  const sql = auth.role === 'admin'
+    ? `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+       FROM campaign_influencers ci
+       JOIN campaigns c ON c.id = ci.campaign_id
+       JOIN clients cl ON cl.id = c.client_id
+       WHERE ci.influencer_id = ?
+       ORDER BY c.start_date DESC`
+    : `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+       FROM campaign_influencers ci
+       JOIN campaigns c ON c.id = ci.campaign_id
+       JOIN clients cl ON cl.id = c.client_id
+       WHERE ci.influencer_id = ? AND cl.organization_id = ?
+       ORDER BY c.start_date DESC`;
+  const campaignStmt = auth.role === 'admin'
+    ? env.DB.prepare(sql).bind(id)
+    : env.DB.prepare(sql).bind(id, auth.organizationId);
+  const { results } = await campaignStmt.all();
 
   return json(
     results.map((r) => ({
@@ -445,9 +464,7 @@ export async function getCampaigns(_request: Request, env: Env, auth: AuthedRequ
 
 // GET /api/influencers/:id/snapshots — follower/engagement growth history
 export async function listSnapshots(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const { results } = await env.DB.prepare(
@@ -471,9 +488,7 @@ export async function listSnapshots(_request: Request, env: Env, auth: AuthedReq
 
 // GET /api/influencers/:id/notes
 export async function listNotes(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const { results } = await env.DB.prepare(
@@ -487,9 +502,7 @@ export async function listNotes(_request: Request, env: Env, auth: AuthedRequest
 
 // POST /api/influencers/:id/notes  { body }
 export async function addNote(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const body = await readJson<{ body?: string }>(request);
@@ -514,9 +527,7 @@ export async function removeNote(
   id: string,
   noteId: string
 ): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const result = await env.DB.prepare('DELETE FROM influencer_notes WHERE id = ? AND influencer_id = ?')
@@ -528,9 +539,7 @@ export async function removeNote(
 
 // GET /api/influencers/:id/tags
 export async function listInfluencerTags(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const { results } = await env.DB.prepare(
@@ -543,23 +552,23 @@ export async function listInfluencerTags(_request: Request, env: Env, auth: Auth
 
 // POST /api/influencers/:id/tags  { name }  — creates the org tag if needed, then attaches it
 export async function addInfluencerTag(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   const body = await readJson<{ name?: string }>(request);
   const name = body.name?.trim();
   if (!name) return badRequest('name is required');
 
+  const orgId = influencer.organization_id;
+
   let tag = await env.DB.prepare('SELECT id, name FROM tags WHERE organization_id = ? AND name = ?')
-    .bind(auth.organizationId, name)
+    .bind(orgId, name)
     .first<{ id: string; name: string }>();
 
   if (!tag) {
     const tagId = generateId('tag');
     await env.DB.prepare('INSERT INTO tags (id, organization_id, name, created_at) VALUES (?, ?, ?, ?)')
-      .bind(tagId, auth.organizationId, name, nowIso())
+      .bind(tagId, orgId, name, nowIso())
       .run();
     tag = { id: tagId, name };
   }
@@ -579,9 +588,7 @@ export async function removeInfluencerTag(
   id: string,
   tagId: string
 ): Promise<Response> {
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
   await env.DB.prepare('DELETE FROM influencer_tags WHERE influencer_id = ? AND tag_id = ?').bind(id, tagId).run();

@@ -48,7 +48,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
         <div className="flex items-center justify-between flex-shrink-0">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">New account</p>
-            <h2 className="text-base font-extrabold text-slate-900">Add client</h2>
+            <h2 className="text-base font-extrabold text-slate-900">Add Brand / Advertizer</h2>
           </div>
           <button type="button" onClick={onClose} className="rounded border border-slate-200 p-1 text-slate-400 hover:bg-slate-50 transition cursor-pointer">
             <X size={14} />
@@ -61,7 +61,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
 
         <form className="mt-4 flex-1 overflow-y-auto pr-1 grid gap-3" onSubmit={handleSubmit}>
           <label className={labelClass}>
-            <span className="mb-1 block">Client name</span>
+            <span className="mb-1 block">Brand / Advertizer name</span>
             <input
               value={form.name}
               onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
@@ -106,7 +106,7 @@ export function AddClientModal({ isOpen, isSubmitting, errorMessage, onClose, on
               disabled={isSubmitting}
               className="rounded bg-black px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving…' : 'Save client'}
+              {isSubmitting ? 'Saving…' : 'Save Brand / Advertizer'}
             </button>
           </div>
         </form>

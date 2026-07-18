@@ -8,6 +8,7 @@ import * as influencerHandlers from './handlers/influencers';
 import * as analyticsHandlers from './handlers/analytics';
 import * as tagHandlers from './handlers/tags';
 import * as uploadHandlers from './handlers/uploads';
+import * as userHandlers from './handlers/users';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -55,6 +56,22 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
   // ---- Everything below requires a valid session ----
   const auth = await authHandlers.authenticate(request, env);
   if (!auth) return unauthorized();
+
+  // Block updates if account is frozen
+  if (auth.isFrozen && method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Account is frozen. You cannot update any information.' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (resource === 'users') {
+    if (auth.role !== 'admin') return unauthorized();
+    if (!id && method === 'GET') return userHandlers.list(request, env, auth);
+    if (id && (method === 'PUT' || method === 'PATCH')) return userHandlers.update(request, env, auth, id);
+    if (id && method === 'DELETE') return userHandlers.remove(request, env, auth, id);
+    return notFound();
+  }
 
   if (resource === 'organizations' && (id === 'current' || !id)) {
     if (method === 'GET') return organizationHandlers.getCurrent(request, env, auth);

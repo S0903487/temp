@@ -5,6 +5,7 @@ import { PipelineStatusBadge } from './PipelineStatusSelect'
 import type { Influencer } from '../types'
 import { useOrganization } from '../../organizations/hooks/useOrganization'
 import { formatCurrency } from '../../../lib/currency'
+import { useAuthUser } from '../../auth/hooks/useAuth'
 
 type InfluencerCardProps = {
   influencer: Influencer
@@ -13,6 +14,7 @@ type InfluencerCardProps = {
 
 export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
   const { data: organization } = useOrganization()
+  const { data: currentUser } = useAuthUser()
   // Format numbers to short strings (e.g., 1.2M, 54.3K)
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -80,7 +82,7 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
           <div className={`absolute -inset-1 rounded-full ring-2 ${pColors.ring} transition-all duration-150 -z-10`} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <h3 className="font-bold text-slate-900 text-sm truncate group-hover:text-black transition-colors">
               {influencer.fullName}
             </h3>
@@ -89,6 +91,11 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
             )}
             {influencer.brandSafe && (
               <ShieldCheck size={14} className="text-emerald-600 flex-shrink-0" title="Brand Safe" />
+            )}
+            {currentUser && influencer.organizationId !== currentUser.organizationId && (
+              <span className="inline-flex items-center rounded-sm bg-indigo-50 border border-indigo-100 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-indigo-700 select-none">
+                Created by Other
+              </span>
             )}
           </div>
           <p className="text-xs text-slate-400 truncate">@{influencer.username}</p>

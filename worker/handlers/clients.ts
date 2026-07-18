@@ -21,17 +21,29 @@ function toApi(row: Record<string, unknown>) {
   };
 }
 
+async function getClientById(env: Env, auth: AuthedRequest, id: string) {
+  const query = auth.role === 'admin'
+    ? 'SELECT * FROM clients WHERE id = ?'
+    : 'SELECT * FROM clients WHERE id = ? AND organization_id = ?';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query).bind(id)
+    : env.DB.prepare(query).bind(id, auth.organizationId);
+  return stmt.first();
+}
+
 export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  const { results } = await env.DB.prepare('SELECT * FROM clients WHERE organization_id = ? ORDER BY created_at DESC')
-    .bind(auth.organizationId)
-    .all();
+  const query = auth.role === 'admin'
+    ? 'SELECT * FROM clients ORDER BY created_at DESC'
+    : 'SELECT * FROM clients WHERE organization_id = ? ORDER BY created_at DESC';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query)
+    : env.DB.prepare(query).bind(auth.organizationId);
+  const { results } = await stmt.all();
   return json(results.map(toApi));
 }
 
 export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const row = await env.DB.prepare('SELECT * FROM clients WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const row = await getClientById(env, auth, id);
   if (!row) return notFound();
   return json(toApi(row));
 }
@@ -54,9 +66,7 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
 }
 
 export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const existing = await env.DB.prepare('SELECT id FROM clients WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .first();
+  const existing = await getClientById(env, auth, id);
   if (!existing) return notFound();
 
   const body = await readJson<ClientBody>(request);
@@ -89,9 +99,13 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const result = await env.DB.prepare('DELETE FROM clients WHERE id = ? AND organization_id = ?')
-    .bind(id, auth.organizationId)
-    .run();
+  const query = auth.role === 'admin'
+    ? 'DELETE FROM clients WHERE id = ?'
+    : 'DELETE FROM clients WHERE id = ? AND organization_id = ?';
+  const stmt = auth.role === 'admin'
+    ? env.DB.prepare(query).bind(id)
+    : env.DB.prepare(query).bind(id, auth.organizationId);
+  const result = await stmt.run();
   if (!result.meta.changes) return notFound();
   return json({ success: true });
 }

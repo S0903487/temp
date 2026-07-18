@@ -7,4 +7,5 @@ export interface AuthedRequest {
   userId: string;
   organizationId: string;
   role: string;
+  isFrozen?: boolean;
 }

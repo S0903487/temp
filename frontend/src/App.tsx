@@ -12,6 +12,7 @@ import ClientsPage from './features/clients/ClientsPage';
 import AnalyticsPage from './features/analytics/AnalyticsPage';
 import AiPage from './features/ai/AiPage';
 import SettingsPage from './features/settings/SettingsPage';
+import AccountsPage from './features/accounts/AccountsPage';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ export function App() {
               <Route path="/campaigns" element={<CampaignsPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/accounts" element={<AccountsPage />} />
               <Route path="/ai" element={<AiPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>

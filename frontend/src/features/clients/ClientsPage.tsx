@@ -5,6 +5,7 @@ import { Avatar } from '../../components/shared/Avatar'
 import { useClients, useCreateClient } from './hooks/useClients'
 import { AddClientModal } from './components/AddClientModal'
 import type { CreateClientInput } from './types'
+import { useAuthUser } from '../auth/hooks/useAuth'
 
 function statusBadgeClasses(status: string) {
   return status === 'active'
@@ -14,6 +15,7 @@ function statusBadgeClasses(status: string) {
 
 function ClientsPage() {
   const { data: clients, isLoading, isError, error } = useClients()
+  const { data: currentUser } = useAuthUser()
   const createClient = useCreateClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -25,15 +27,15 @@ function ClientsPage() {
 
   return (
     <PageShell
-      title="Clients"
+      title="Brand / Advertizer"
       description="Every account InfluenceOS manages campaigns for, in one place."
-      eyebrow="Accounts"
-      action={clients ? `${clients.length} clients` : undefined}
+      eyebrow="Partners"
+      action={clients ? `${clients.length} brands & advertizers` : undefined}
     >
       <div className="rounded border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Client roster</h2>
+            <h2 className="text-sm font-bold text-slate-900">Brand / Advertizer roster</h2>
             <p className="text-xs text-slate-500">Prospects and active accounts.</p>
           </div>
           <button
@@ -42,19 +44,19 @@ function ClientsPage() {
             className="inline-flex items-center gap-1.5 rounded bg-black px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 cursor-pointer"
           >
             <Plus size={14} />
-            Add client
+            Add Brand / Advertizer
           </button>
         </div>
 
-        {isLoading && <p className="mt-4 text-xs text-slate-500">Loading clients…</p>}
+        {isLoading && <p className="mt-4 text-xs text-slate-500">Loading brands & advertizers…</p>}
         {isError && (
           <p className="mt-4 text-xs text-red-600">
-            Couldn't load clients{error instanceof Error ? `: ${error.message}` : '.'}
+            Couldn't load brands & advertizers{error instanceof Error ? `: ${error.message}` : '.'}
           </p>
         )}
 
         {clients && clients.length === 0 && (
-          <p className="mt-4 text-xs text-slate-500">No clients yet. Add your first one to get started.</p>
+          <p className="mt-4 text-xs text-slate-500">No brands or advertizers yet. Add your first one to get started.</p>
         )}
 
         {clients && clients.length > 0 && (
@@ -69,23 +71,31 @@ function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="text-slate-600 divide-y divide-slate-100">
-                {clients.map((client) => (
-                  <tr key={client.id} className="hover:bg-slate-50/50">
-                    <td className="py-2 pr-4 font-bold text-slate-900">
-                      <div className="flex items-center gap-2">
-                        <Avatar name={client.name} size={24} />
-                        {client.name}
-                      </div>
-                    </td>
-                    <td className="py-2 pr-4">{client.contactEmail || '—'}</td>
-                    <td className="py-2 pr-4">{client.industry || '—'}</td>
-                    <td className="py-2 pr-4">
-                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadgeClasses(client.status)}`}>
-                        {client.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {clients.map((client) => {
+                  const isOtherOrg = currentUser && client.organizationId !== currentUser.organizationId;
+                  return (
+                    <tr key={client.id} className="hover:bg-slate-50/50">
+                      <td className="py-2 pr-4 font-bold text-slate-900">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={client.name} size={24} />
+                          {client.name}
+                          {isOtherOrg && (
+                            <span className="inline-flex items-center rounded-sm bg-indigo-50 border border-indigo-100 text-[9px] px-1 py-0.5 text-indigo-700 font-bold uppercase tracking-wider select-none">
+                              Created by Other
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4">{client.contactEmail || '—'}</td>
+                      <td className="py-2 pr-4">{client.industry || '—'}</td>
+                      <td className="py-2 pr-4">
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadgeClasses(client.status)}`}>
+                          {client.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

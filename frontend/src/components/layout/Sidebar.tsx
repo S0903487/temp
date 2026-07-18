@@ -9,6 +9,7 @@ import {
   Settings,
   Sparkles,
   Users,
+  ShieldCheck,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAuthUser } from '../../features/auth/hooks/useAuth'
@@ -23,9 +24,10 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
   { label: 'Influencers', icon: Users, path: '/influencers' },
+  { label: 'Brand / Advertizer', icon: Briefcase, path: '/clients' },
   { label: 'Campaigns', icon: Megaphone, path: '/campaigns' },
-  { label: 'Clients', icon: Briefcase, path: '/clients' },
   { label: 'Analytics', icon: BarChart3, path: '/analytics' },
+  { label: 'Accounts', icon: ShieldCheck, path: '/accounts' },
   { label: 'AI Assistant', icon: Sparkles, path: '/ai' },
   { label: 'Settings', icon: Settings, path: '/settings' },
 ]

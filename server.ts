@@ -58,6 +58,13 @@ try {
   if (!orgColNames.includes('profile_image')) {
     sqliteDb.exec("ALTER TABLE organizations ADD COLUMN profile_image TEXT;");
   }
+
+  // Ensure is_frozen column is added to users table
+  const userCols = sqliteDb.prepare("PRAGMA table_info(users)").all() as any[];
+  const userColNames = userCols.map(c => c.name);
+  if (!userColNames.includes('is_frozen')) {
+    sqliteDb.exec("ALTER TABLE users ADD COLUMN is_frozen INTEGER NOT NULL DEFAULT 0;");
+  }
 } catch (err) {
   console.error('Error checking or initializing database schema:', err);
 }
