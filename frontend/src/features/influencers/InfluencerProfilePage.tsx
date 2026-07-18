@@ -11,6 +11,7 @@ import { PipelineStatusSelect } from './components/PipelineStatusSelect'
 import { TagSelector } from './components/TagSelector'
 import { useOrganization } from '../organizations/hooks/useOrganization'
 import { formatCurrency } from '../../lib/currency'
+import { useAuthUser } from '../auth/hooks/useAuth'
 import {
   useAddInfluencerNote,
   useAddInfluencerTag,
@@ -65,6 +66,7 @@ function InfluencerProfilePage() {
   const navigate = useNavigate()
 
   const { data: organization } = useOrganization()
+  const { data: currentUser } = useAuthUser()
   const { data: influencer, isLoading, isError } = useInfluencer(id)
   const { data: tags = [] } = useInfluencerTags(id)
   const { data: orgTags = [] } = useOrgTags()
@@ -185,6 +187,11 @@ function InfluencerProfilePage() {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-bold text-slate-900 tracking-tight">{influencer.fullName}</h2>
+                  {currentUser && influencer.organizationId !== currentUser.organizationId && (
+                    <span className="inline-flex items-center rounded-sm bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 select-none">
+                      Created by Other
+                    </span>
+                  )}
                   {influencer.verified && (
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-100">
                       <BadgeCheck size={11} className="text-sky-500" /> Verified

@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react'
 import { Avatar } from '../../../components/shared/Avatar'
 import type { Influencer, PipelineStatus } from '../types'
 import { PIPELINE_STATUSES } from '../types'
+import { useAuthUser } from '../../auth/hooks/useAuth'
 
 type InfluencerPipelineBoardProps = {
   influencers: Influencer[]
@@ -15,6 +16,7 @@ export function InfluencerPipelineBoard({
   onUpdatePipeline,
 }: InfluencerPipelineBoardProps) {
   const navigate = useNavigate()
+  const { data: currentUser } = useAuthUser()
   
   const [pages, setPages] = useState<Record<PipelineStatus, number>>({
     New: 1,
@@ -109,8 +111,13 @@ export function InfluencerPipelineBoard({
                     <div className="flex items-center gap-2">
                       <Avatar name={inf.fullName} imageUrl={inf.profileImage} size={26} />
                       <div>
-                        <h5 className="text-xs font-bold text-slate-900 group-hover:text-black transition">
+                        <h5 className="text-xs font-bold text-slate-900 group-hover:text-black transition flex flex-wrap items-center gap-1">
                           {inf.fullName}
+                          {currentUser && inf.organizationId !== currentUser.organizationId && (
+                            <span className="inline-flex items-center rounded-sm bg-indigo-50 border border-indigo-100 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-indigo-700 select-none">
+                              Created by Other
+                            </span>
+                          )}
                         </h5>
                         <p className="text-[10px] text-slate-400">{inf.username}</p>
                       </div>

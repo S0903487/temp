@@ -7,6 +7,7 @@ import type { Influencer, PipelineStatus } from '../types'
 import { PIPELINE_STATUSES } from '../types'
 import { useOrganization } from '../../organizations/hooks/useOrganization'
 import { formatCurrency } from '../../../lib/currency'
+import { useAuthUser } from '../../auth/hooks/useAuth'
 
 export type SortField =
   | 'fullName'
@@ -55,6 +56,7 @@ export function InfluencerDataGrid({
   onDelete,
 }: InfluencerDataGridProps) {
   const { data: organization } = useOrganization()
+  const { data: currentUser } = useAuthUser()
   const navigate = useNavigate()
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ x: 0, y: 0, influencer: null })
   const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null)
@@ -278,10 +280,15 @@ export function InfluencerDataGrid({
                     <div className="flex items-center gap-2">
                       <Avatar name={influencer.fullName} imageUrl={influencer.profileImage} size={24} />
                       <div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-slate-900 group-hover:text-black transition">{influencer.fullName}</span>
                           {influencer.verified && (
                             <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-slate-100 border border-slate-300 text-slate-700 text-[8px]" title="Verified">✓</span>
+                          )}
+                          {currentUser && influencer.organizationId !== currentUser.organizationId && (
+                            <span className="inline-flex items-center rounded-sm bg-indigo-50 border border-indigo-100 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-indigo-700 select-none">
+                              Created by Other
+                            </span>
                           )}
                         </div>
                         <span className="text-[10px] text-slate-500">@{influencer.username}</span>
