@@ -14,6 +14,7 @@ export type SortField =
   | 'followers'
   | 'following'
   | 'totalPosts'
+  | 'firstJoinedDate'
   | 'engagementRate'
   | 'category'
   | 'pipelineStatus'
@@ -151,6 +152,11 @@ export function InfluencerDataGrid({
               {isColVisible('totalPosts') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('totalPosts')}>
                   Total Posts {renderSortIndicator('totalPosts')}
+                </th>
+              )}
+              {isColVisible('firstJoinedDate') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('firstJoinedDate')}>
+                  First Joined {renderSortIndicator('firstJoinedDate')}
                 </th>
               )}
               {isColVisible('engagement') && (
@@ -319,6 +325,9 @@ export function InfluencerDataGrid({
 
                   {/* Total Posts */}
                   {isColVisible('totalPosts') && <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{influencer.totalPosts.toLocaleString()}</td>}
+
+                  {/* First Joined Date */}
+                  {isColVisible('firstJoinedDate') && <td className="px-3 py-1.5 text-right text-slate-800">{influencer.firstJoinedDate || '—'}</td>}
 
                   {/* Engagement */}
                   {isColVisible('engagement') && <td className="px-3 py-1.5 text-right text-slate-800 font-bold">{influencer.engagementRate.toFixed(1)}%</td>}

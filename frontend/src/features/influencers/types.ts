@@ -36,6 +36,7 @@ export type Influencer = {
   followers: number
   following: number
   totalPosts: number
+  firstJoinedDate?: string
   engagementRate: number
   averageViews: number
   averageLikes: number

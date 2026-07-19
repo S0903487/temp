@@ -116,6 +116,7 @@ async function ensureSchemaUpToDate(db: any) {
         followers        INTEGER NOT NULL DEFAULT 0,
         following        INTEGER NOT NULL DEFAULT 0,
         total_posts      INTEGER NOT NULL DEFAULT 0,
+        first_joined_date TEXT,
         engagement_rate  REAL NOT NULL DEFAULT 0,
         average_views    INTEGER NOT NULL DEFAULT 0,
         average_likes    INTEGER NOT NULL DEFAULT 0,
@@ -270,6 +271,9 @@ async function ensureSchemaUpToDate(db: any) {
       }
       if (!infCols.includes('total_posts')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN total_posts INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
+      }
+      if (!infCols.includes('first_joined_date')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN first_joined_date TEXT").run().catch(() => undefined);
       }
     }
 

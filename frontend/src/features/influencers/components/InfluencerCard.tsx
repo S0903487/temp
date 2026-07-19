@@ -146,6 +146,12 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Views</p>
           <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.averageViews)}</p>
         </div>
+        {influencer.firstJoinedDate ? (
+          <div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">First Joined</p>
+            <p className="text-xs font-bold text-slate-800">{influencer.firstJoinedDate}</p>
+          </div>
+        ) : null}
         <div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Post Price</p>
           <p className="text-xs font-bold text-emerald-600">{formatCurrency(influencer.pricePost, organization?.currency)}</p>

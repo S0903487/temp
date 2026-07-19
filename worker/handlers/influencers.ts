@@ -11,6 +11,7 @@ interface InfluencerBody {
   followers?: number;
   following?: number;
   totalPosts?: number;
+  firstJoinedDate?: string;
   engagementRate?: number;
   averageViews?: number;
   averageLikes?: number;
@@ -57,7 +58,7 @@ async function getInfluencerColumns(db: D1Database): Promise<string[]> {
   } catch (e) {
     return [
       'id', 'organization_id', 'full_name', 'username', 'platform', 'category', 'country', 'language',
-      'followers', 'following', 'total_posts', 'engagement_rate', 'average_views', 'average_likes', 'average_comments',
+      'followers', 'following', 'total_posts', 'first_joined_date', 'engagement_rate', 'average_views', 'average_likes', 'average_comments',
       'email', 'phone', 'price_post', 'price_story', 'verified', 'brand_safe', 'status', 'pipeline_status',
       'notes', 'tags', 'bio', 'profile_image', 'profile_link', 'roi', 'cpa', 'cpi', 'ltv', 'created_at', 'updated_at'
     ];
@@ -88,6 +89,7 @@ function toApi(row: Record<string, unknown>) {
     followers: row.followers,
     following: row.following !== undefined && row.following !== null ? row.following : 0,
     totalPosts: row.total_posts !== undefined && row.total_posts !== null ? row.total_posts : 0,
+    firstJoinedDate: row.first_joined_date !== undefined && row.first_joined_date !== null ? (row.first_joined_date as string) : '',
     engagementRate: row.engagement_rate,
     averageViews: row.average_views !== undefined && row.average_views !== null ? row.average_views : (row.total_views !== undefined && row.total_views !== null ? row.total_views : 0),
     averageLikes: row.average_likes !== undefined && row.average_likes !== null ? row.average_likes : (row.total_likes !== undefined && row.total_likes !== null ? row.total_likes : 0),
@@ -186,6 +188,7 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     { col: 'followers', val: cleanNum(body.followers, 0) },
     { col: 'following', val: cleanNum(body.following, 0) },
     { col: 'total_posts', val: cleanNum(body.totalPosts, 0) },
+    { col: 'first_joined_date', val: body.firstJoinedDate ?? null },
     { col: 'engagement_rate', val: cleanNum(body.engagementRate, 0) },
     { col: columns.includes('average_views') ? 'average_views' : 'total_views', val: cleanNum(body.averageViews, 0) },
     { col: columns.includes('average_likes') ? 'average_likes' : 'total_likes', val: cleanNum(body.averageLikes, 0) },
@@ -281,6 +284,7 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
   followers: 'followers',
   following: 'following',
   totalPosts: 'total_posts',
+  firstJoinedDate: 'first_joined_date',
   engagementRate: 'engagement_rate',
   averageViews: 'average_views', // dynamically mapped below
   averageLikes: 'average_likes', // dynamically mapped below
@@ -327,6 +331,7 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     followers: 'followers',
     following: 'following',
     totalPosts: 'total_posts',
+    firstJoinedDate: 'first_joined_date',
     engagementRate: 'engagement_rate',
     averageViews: columns.includes('average_views') ? 'average_views' : 'total_views',
     averageLikes: columns.includes('average_likes') ? 'average_likes' : 'total_likes',

@@ -59,6 +59,7 @@ const defaultForm = {
   followers: '',
   following: '',
   totalPosts: '',
+  firstJoinedDate: '',
   engagementRate: '',
   averageViews: '',
   averageLikes: '',
@@ -93,6 +94,7 @@ function formFromInfluencer(influencer: Influencer): FormState {
     followers: influencer.followers ? String(influencer.followers) : '',
     following: influencer.following ? String(influencer.following) : '',
     totalPosts: influencer.totalPosts ? String(influencer.totalPosts) : '',
+    firstJoinedDate: influencer.firstJoinedDate ?? '',
     engagementRate: influencer.engagementRate ? String(influencer.engagementRate) : '',
     averageViews: influencer.averageViews ? String(influencer.averageViews) : '',
     averageLikes: influencer.averageLikes ? String(influencer.averageLikes) : '',
@@ -252,6 +254,7 @@ export function InfluencerFormModal({
       followers: toNumber(form.followers),
       following: toNumber(form.following),
       totalPosts: toNumber(form.totalPosts),
+      firstJoinedDate: form.firstJoinedDate.trim() || undefined,
       engagementRate: toNumber(form.engagementRate),
       averageViews: toNumber(form.averageViews),
       averageLikes: toNumber(form.averageLikes),
@@ -450,6 +453,15 @@ export function InfluencerFormModal({
               step="any"
               value={form.totalPosts}
               onChange={(event) => setForm((current) => ({ ...current, totalPosts: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">First Joined Date</span>
+            <input
+              type="date"
+              value={form.firstJoinedDate}
+              onChange={(event) => setForm((current) => ({ ...current, firstJoinedDate: event.target.value }))}
               className={fieldClass}
             />
           </label>

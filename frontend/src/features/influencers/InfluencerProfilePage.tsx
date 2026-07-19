@@ -303,6 +303,11 @@ function InfluencerProfilePage() {
               tooltip="Total number of published posts on the creator's channel."
             />
             <StatCard
+              label="First Joined"
+              value={influencer.firstJoinedDate || '—'}
+              tooltip="The date this influencer first joined or signed up."
+            />
+            <StatCard
               label="Engagement"
               value={formatValue(influencer.engagementRate, true)}
               tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts."

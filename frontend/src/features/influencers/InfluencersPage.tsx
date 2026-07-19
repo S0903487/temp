@@ -29,6 +29,7 @@ const COLS = [
   { key: 'followers', label: 'Followers' },
   { key: 'following', label: 'Following' },
   { key: 'totalPosts', label: 'Total Posts' },
+  { key: 'firstJoinedDate', label: 'First Joined Date' },
   { key: 'engagement', label: 'Engagement Rate' },
   { key: 'category', label: 'Niche Category' },
   { key: 'contact', label: 'Contact Details' },

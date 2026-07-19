@@ -82,6 +82,7 @@ export function useInfluencerState() {
       'followers',
       'following',
       'totalPosts',
+      'firstJoinedDate',
       'engagement',
       'category',
       'contact',
