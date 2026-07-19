@@ -45,6 +45,14 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     }
   }
 
+  // Enforce role immutability
+  if (role !== undefined) {
+    const userRow = await env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(id).first();
+    if (userRow && role !== userRow.role) {
+      return badRequest('User role cannot be changed once created.');
+    }
+  }
+
   // Dynamically build the update query
   const sets: string[] = [];
   const args: any[] = [];

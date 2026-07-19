@@ -355,16 +355,12 @@ export default function AccountsPage() {
 
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-500 uppercase tracking-wider">User Role</label>
-                <select
-                  value={editForm.role}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, role: e.target.value }))}
-                  disabled={editingUser?.id === currentUser?.id}
-                  className="w-full rounded border border-slate-200 px-3 py-1.5 text-xs focus:border-black focus:outline-hidden bg-white disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="influencer">Influencer</option>
-                  <option value="brand">Brand</option>
-                </select>
+                <div className="w-full rounded border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-500 font-medium select-none capitalize">
+                  {editForm.role}
+                </div>
+                <p className="mt-1 text-[10px] text-slate-400 select-none">
+                  User roles are permanent once created and cannot be changed.
+                </p>
               </div>
 
               <div className="flex items-center gap-2 pt-1">
