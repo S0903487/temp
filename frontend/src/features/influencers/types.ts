@@ -34,6 +34,8 @@ export type Influencer = {
   country: string
   language: string
   followers: number
+  following: number
+  totalPosts: number
   engagementRate: number
   averageViews: number
   averageLikes: number

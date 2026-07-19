@@ -57,6 +57,8 @@ const defaultForm = {
   status: 'Active' as Influencer['status'],
   profileImage: '',
   followers: '',
+  following: '',
+  totalPosts: '',
   engagementRate: '',
   averageViews: '',
   averageLikes: '',
@@ -89,6 +91,8 @@ function formFromInfluencer(influencer: Influencer): FormState {
     status: influencer.status,
     profileImage: influencer.profileImage ?? '',
     followers: influencer.followers ? String(influencer.followers) : '',
+    following: influencer.following ? String(influencer.following) : '',
+    totalPosts: influencer.totalPosts ? String(influencer.totalPosts) : '',
     engagementRate: influencer.engagementRate ? String(influencer.engagementRate) : '',
     averageViews: influencer.averageViews ? String(influencer.averageViews) : '',
     averageLikes: influencer.averageLikes ? String(influencer.averageLikes) : '',
@@ -246,6 +250,8 @@ export function InfluencerFormModal({
       tags: isEditing ? undefined : ['New Lead'],
       profileImage: form.profileImage.trim() ? form.profileImage.trim() : null,
       followers: toNumber(form.followers),
+      following: toNumber(form.following),
+      totalPosts: toNumber(form.totalPosts),
       engagementRate: toNumber(form.engagementRate),
       averageViews: toNumber(form.averageViews),
       averageLikes: toNumber(form.averageLikes),
@@ -415,6 +421,17 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
+            <span className="mb-2 block">Following</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={form.following}
+              onChange={(event) => setForm((current) => ({ ...current, following: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+          <label className={labelClass}>
             <span className="mb-2 block">Engagement rate (%)</span>
             <input
               type="number"
@@ -422,6 +439,17 @@ export function InfluencerFormModal({
               step="any"
               value={form.engagementRate}
               onChange={(event) => setForm((current) => ({ ...current, engagementRate: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">Total posts</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={form.totalPosts}
+              onChange={(event) => setForm((current) => ({ ...current, totalPosts: event.target.value }))}
               className={fieldClass}
             />
           </label>

@@ -15,6 +15,8 @@ export interface CreateInfluencerInput {
   country?: string;
   language?: string;
   followers?: number;
+  following?: number;
+  totalPosts?: number;
   engagementRate?: number;
   averageViews?: number;
   averageLikes?: number;

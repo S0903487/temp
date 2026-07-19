@@ -80,6 +80,8 @@ export function useInfluencerState() {
     return [
       'platform',
       'followers',
+      'following',
+      'totalPosts',
       'engagement',
       'category',
       'contact',

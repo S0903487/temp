@@ -12,6 +12,8 @@ import { useAuthUser } from '../../auth/hooks/useAuth'
 export type SortField =
   | 'fullName'
   | 'followers'
+  | 'following'
+  | 'totalPosts'
   | 'engagementRate'
   | 'category'
   | 'pipelineStatus'
@@ -139,6 +141,16 @@ export function InfluencerDataGrid({
               {isColVisible('followers') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('followers')}>
                   Followers {renderSortIndicator('followers')}
+                </th>
+              )}
+              {isColVisible('following') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('following')}>
+                  Following {renderSortIndicator('following')}
+                </th>
+              )}
+              {isColVisible('totalPosts') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('totalPosts')}>
+                  Total Posts {renderSortIndicator('totalPosts')}
                 </th>
               )}
               {isColVisible('engagement') && (
@@ -301,6 +313,12 @@ export function InfluencerDataGrid({
 
                   {/* Followers */}
                   {isColVisible('followers') && <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{influencer.followers.toLocaleString()}</td>}
+
+                  {/* Following */}
+                  {isColVisible('following') && <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{influencer.following.toLocaleString()}</td>}
+
+                  {/* Total Posts */}
+                  {isColVisible('totalPosts') && <td className="px-3 py-1.5 text-right font-semibold text-slate-800">{influencer.totalPosts.toLocaleString()}</td>}
 
                   {/* Engagement */}
                   {isColVisible('engagement') && <td className="px-3 py-1.5 text-right text-slate-800 font-bold">{influencer.engagementRate.toFixed(1)}%</td>}

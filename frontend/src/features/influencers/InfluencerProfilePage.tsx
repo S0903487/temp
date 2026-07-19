@@ -293,6 +293,16 @@ function InfluencerProfilePage() {
               tooltip="Total registered follower or subscriber count across this specific social network."
             />
             <StatCard
+              label="Following"
+              value={formatValue(influencer.following)}
+              tooltip="Total count of accounts or users this creator is currently following."
+            />
+            <StatCard
+              label="Total Posts"
+              value={formatValue(influencer.totalPosts)}
+              tooltip="Total number of published posts on the creator's channel."
+            />
+            <StatCard
               label="Engagement"
               value={formatValue(influencer.engagementRate, true)}
               tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts."

@@ -114,6 +114,8 @@ async function ensureSchemaUpToDate(db: any) {
         country          TEXT,
         language         TEXT,
         followers        INTEGER NOT NULL DEFAULT 0,
+        following        INTEGER NOT NULL DEFAULT 0,
+        total_posts      INTEGER NOT NULL DEFAULT 0,
         engagement_rate  REAL NOT NULL DEFAULT 0,
         average_views    INTEGER NOT NULL DEFAULT 0,
         average_likes    INTEGER NOT NULL DEFAULT 0,
@@ -262,6 +264,12 @@ async function ensureSchemaUpToDate(db: any) {
       }
       if (!infCols.includes('ltv')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN ltv REAL").run().catch(() => undefined);
+      }
+      if (!infCols.includes('following')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN following INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
+      }
+      if (!infCols.includes('total_posts')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN total_posts INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
       }
     }
 

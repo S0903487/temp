@@ -129,6 +129,14 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
           <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.followers)}</p>
         </div>
         <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Following</p>
+          <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.following)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Posts</p>
+          <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.totalPosts)}</p>
+        </div>
+        <div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Engagement</p>
           <p className={`text-xs font-bold ${influencer.engagementRate > 4.5 ? 'text-emerald-600' : 'text-slate-800'}`}>
             {influencer.engagementRate.toFixed(1)}%
