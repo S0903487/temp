@@ -26,6 +26,7 @@ export const PIPELINE_STATUSES: PipelineStatus[] = [
 
 export type Influencer = {
   id: string
+  organizationId?: string
   fullName: string
   username: string
   platform: Platform

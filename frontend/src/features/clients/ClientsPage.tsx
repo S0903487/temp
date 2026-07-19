@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { Avatar } from '../../components/shared/Avatar'
-import { useClients, useCreateClient } from './hooks/useClients'
+import { useClients, useCreateClient, useDeleteClient } from './hooks/useClients'
 import { AddClientModal } from './components/AddClientModal'
 import type { CreateClientInput } from './types'
 import { useAuthUser } from '../auth/hooks/useAuth'
@@ -17,12 +17,19 @@ function ClientsPage() {
   const { data: clients, isLoading, isError, error } = useClients()
   const { data: currentUser } = useAuthUser()
   const createClient = useCreateClient()
+  const deleteClient = useDeleteClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleSubmit = (data: CreateClientInput) => {
     createClient.mutate(data, {
       onSuccess: () => setIsModalOpen(false),
     })
+  }
+
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete the Brand / Advertiser "${name}"? This will also permanently delete all associated campaigns and data.`)) {
+      deleteClient.mutate(id)
+    }
   }
 
   return (
@@ -68,6 +75,7 @@ function ClientsPage() {
                   <th className="pb-2 pr-4 font-bold">Contact</th>
                   <th className="pb-2 pr-4 font-bold">Industry</th>
                   <th className="pb-2 pr-4 font-bold">Status</th>
+                  <th className="pb-2 pr-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-slate-600 divide-y divide-slate-100">
@@ -92,6 +100,17 @@ function ClientsPage() {
                         <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadgeClasses(client.status)}`}>
                           {client.status}
                         </span>
+                      </td>
+                      <td className="py-2 pr-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(client.id, client.name)}
+                          disabled={deleteClient.isPending}
+                          className="inline-flex items-center justify-center rounded p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer disabled:opacity-50"
+                          title="Delete Brand / Advertiser"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   );

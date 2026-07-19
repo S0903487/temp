@@ -60,6 +60,38 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   if (role !== undefined) {
     sets.push('role = ?');
     args.push(role);
+
+    // Profile backfill safeguards
+    if (role === 'brand') {
+      const exists = await env.DB.prepare('SELECT id FROM clients WHERE id = ?').bind(id).first();
+      if (!exists) {
+        const now = new Date().toISOString();
+        const userRow = await env.DB.prepare('SELECT name, email, organization_id FROM users WHERE id = ?').bind(id).first();
+        if (userRow) {
+          await env.DB.prepare(
+            `INSERT INTO clients (id, organization_id, name, contact_email, status, created_at)
+             VALUES (?, ?, ?, ?, 'active', ?)`
+          )
+            .bind(id, userRow.organization_id, userRow.name || 'Company', userRow.email, now)
+            .run().catch((e: any) => console.error('Failed to backfill client profile:', e));
+        }
+      }
+    } else if (role === 'influencer') {
+      const exists = await env.DB.prepare('SELECT id FROM influencers WHERE id = ?').bind(id).first();
+      if (!exists) {
+        const now = new Date().toISOString();
+        const userRow = await env.DB.prepare('SELECT name, email, organization_id FROM users WHERE id = ?').bind(id).first();
+        if (userRow) {
+          await env.DB.prepare(
+            `INSERT INTO influencers (
+              id, organization_id, full_name, email, platform, status, pipeline_status, followers, engagement_rate, average_views, average_likes, average_comments, created_at
+            ) VALUES (?, ?, ?, ?, 'Instagram', 'Active', 'New', 0, 0, 0, 0, 0, ?)`
+          )
+            .bind(id, userRow.organization_id, userRow.name, userRow.email, now)
+            .run().catch((e: any) => console.error('Failed to backfill influencer profile:', e));
+        }
+      }
+    }
   }
   if (isFrozen !== undefined) {
     sets.push('is_frozen = ?');
