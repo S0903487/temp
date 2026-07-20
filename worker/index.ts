@@ -366,9 +366,7 @@ async function ensureSchemaUpToDate(db: any) {
       "CREATE INDEX IF NOT EXISTS idx_analytics_records_camp ON analytics_records(campaign_id)"
     ];
 
-    for (const sql of indexes) {
-      await db.prepare(sql).run().catch(() => undefined);
-    }
+    await db.batch(indexes.map(sql => db.prepare(sql))).catch(() => undefined);
 
     schemaChecked = true;
     console.log('Runtime schema healing checked and applied successfully.');
