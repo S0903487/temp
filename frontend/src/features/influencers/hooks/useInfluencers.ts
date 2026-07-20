@@ -51,6 +51,7 @@ export function useInfluencerTags(id: string | undefined) {
     queryKey: tagsKey(id ?? ''),
     queryFn: () => listInfluencerTags(id as string),
     enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -78,6 +79,7 @@ export function useInfluencerNotes(id: string | undefined) {
     queryKey: notesKey(id ?? ''),
     queryFn: () => listInfluencerNotes(id as string),
     enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -102,6 +104,7 @@ export function useInfluencerSnapshots(id: string | undefined) {
     queryKey: snapshotsKey(id ?? ''),
     queryFn: () => listInfluencerSnapshots(id as string),
     enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -110,6 +113,7 @@ export function useInfluencerCampaignHistory(id: string | undefined) {
     queryKey: campaignHistoryKey(id ?? ''),
     queryFn: () => listInfluencerCampaignHistory(id as string),
     enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }
 

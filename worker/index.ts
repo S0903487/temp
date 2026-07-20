@@ -121,6 +121,9 @@ async function ensureSchemaUpToDate(db: any) {
         average_views    INTEGER NOT NULL DEFAULT 0,
         average_likes    INTEGER NOT NULL DEFAULT 0,
         average_comments INTEGER NOT NULL DEFAULT 0,
+        total_views      INTEGER NOT NULL DEFAULT 0,
+        total_likes      INTEGER NOT NULL DEFAULT 0,
+        total_comments   INTEGER NOT NULL DEFAULT 0,
         email            TEXT,
         phone            TEXT,
         price_post       REAL,
@@ -248,6 +251,15 @@ async function ensureSchemaUpToDate(db: any) {
       if (!infCols.includes('average_comments')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN average_comments INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
       }
+      if (!infCols.includes('total_views')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN total_views INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
+      }
+      if (!infCols.includes('total_likes')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN total_likes INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
+      }
+      if (!infCols.includes('total_comments')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN total_comments INTEGER NOT NULL DEFAULT 0").run().catch(() => undefined);
+      }
       if (!infCols.includes('pipeline_status')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN pipeline_status TEXT NOT NULL DEFAULT 'New'").run().catch(() => undefined);
       }
@@ -275,6 +287,29 @@ async function ensureSchemaUpToDate(db: any) {
       if (!infCols.includes('first_joined_date')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN first_joined_date TEXT").run().catch(() => undefined);
       }
+    }
+
+    // 3. Create database indexes for performance optimization
+    const indexes = [
+      "CREATE INDEX IF NOT EXISTS idx_users_org ON users(organization_id)",
+      "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)",
+      "CREATE INDEX IF NOT EXISTS idx_clients_org ON clients(organization_id)",
+      "CREATE INDEX IF NOT EXISTS idx_campaigns_client ON campaigns(client_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org ON influencers(organization_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_created ON influencers(created_at)",
+      "CREATE INDEX IF NOT EXISTS idx_tags_org ON tags(organization_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencer_tags_inf ON influencer_tags(influencer_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencer_tags_tag ON influencer_tags(tag_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencer_notes_inf ON influencer_notes(influencer_id)",
+      "CREATE INDEX IF NOT EXISTS idx_influencer_snapshots_inf ON influencer_snapshots(influencer_id)",
+      "CREATE INDEX IF NOT EXISTS idx_campaign_influencers_camp ON campaign_influencers(campaign_id)",
+      "CREATE INDEX IF NOT EXISTS idx_campaign_influencers_inf ON campaign_influencers(influencer_id)",
+      "CREATE INDEX IF NOT EXISTS idx_analytics_records_inf ON analytics_records(influencer_id)",
+      "CREATE INDEX IF NOT EXISTS idx_analytics_records_camp ON analytics_records(campaign_id)"
+    ];
+
+    for (const sql of indexes) {
+      await db.prepare(sql).run().catch(() => undefined);
     }
 
     schemaChecked = true;

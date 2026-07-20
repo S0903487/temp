@@ -143,8 +143,22 @@ export function InfluencerCard({ influencer, onDelete }: InfluencerCardProps) {
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Views</p>
-          <p className="text-xs font-bold text-slate-800">{formatNumber(influencer.averageViews)}</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Views (Avg / Tot)</p>
+          <p className="text-xs font-bold text-slate-800">
+            {formatNumber(influencer.averageViews)} / {formatNumber(influencer.totalViews)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Likes (Avg / Tot)</p>
+          <p className="text-xs font-bold text-slate-800">
+            {formatNumber(influencer.averageLikes)} / {formatNumber(influencer.totalLikes)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Comments (Avg / Tot)</p>
+          <p className="text-xs font-bold text-slate-800">
+            {formatNumber(influencer.averageComments)} / {formatNumber(influencer.totalComments)}
+          </p>
         </div>
         {influencer.firstJoinedDate ? (
           <div>

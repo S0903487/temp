@@ -22,6 +22,9 @@ export interface CreateInfluencerInput {
   averageViews?: number;
   averageLikes?: number;
   averageComments?: number;
+  totalViews?: number;
+  totalLikes?: number;
+  totalComments?: number;
   email?: string;
   phone?: string;
   pricePost?: number;

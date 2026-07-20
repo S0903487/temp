@@ -64,6 +64,9 @@ const defaultForm = {
   averageViews: '',
   averageLikes: '',
   averageComments: '',
+  totalViews: '',
+  totalLikes: '',
+  totalComments: '',
   pricePost: '',
   priceStory: '',
   verified: false,
@@ -99,6 +102,9 @@ function formFromInfluencer(influencer: Influencer): FormState {
     averageViews: influencer.averageViews ? String(influencer.averageViews) : '',
     averageLikes: influencer.averageLikes ? String(influencer.averageLikes) : '',
     averageComments: influencer.averageComments ? String(influencer.averageComments) : '',
+    totalViews: influencer.totalViews ? String(influencer.totalViews) : '',
+    totalLikes: influencer.totalLikes ? String(influencer.totalLikes) : '',
+    totalComments: influencer.totalComments ? String(influencer.totalComments) : '',
     pricePost: influencer.pricePost ? String(influencer.pricePost) : '',
     priceStory: influencer.priceStory ? String(influencer.priceStory) : '',
     verified: influencer.verified,
@@ -259,6 +265,9 @@ export function InfluencerFormModal({
       averageViews: toNumber(form.averageViews),
       averageLikes: toNumber(form.averageLikes),
       averageComments: toNumber(form.averageComments),
+      totalViews: toNumber(form.totalViews),
+      totalLikes: toNumber(form.totalLikes),
+      totalComments: toNumber(form.totalComments),
       pricePost: toNumber(form.pricePost),
       priceStory: toNumber(form.priceStory),
       roi: toNumber(form.roi),
@@ -466,7 +475,7 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Total views</span>
+            <span className="mb-2 block">Average views</span>
             <input
               type="number"
               min="0"
@@ -477,7 +486,19 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Total likes</span>
+            <span className="mb-2 block">Total views</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={form.totalViews}
+              onChange={(event) => setForm((current) => ({ ...current, totalViews: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            <span className="mb-2 block">Average likes</span>
             <input
               type="number"
               min="0"
@@ -488,13 +509,36 @@ export function InfluencerFormModal({
             />
           </label>
           <label className={labelClass}>
-            <span className="mb-2 block">Total comments</span>
+            <span className="mb-2 block">Total likes</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={form.totalLikes}
+              onChange={(event) => setForm((current) => ({ ...current, totalLikes: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            <span className="mb-2 block">Average comments</span>
             <input
               type="number"
               min="0"
               step="any"
               value={form.averageComments}
               onChange={(event) => setForm((current) => ({ ...current, averageComments: event.target.value }))}
+              className={fieldClass}
+            />
+          </label>
+          <label className={labelClass}>
+            <span className="mb-2 block">Total comments</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={form.totalComments}
+              onChange={(event) => setForm((current) => ({ ...current, totalComments: event.target.value }))}
               className={fieldClass}
             />
           </label>

@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, LogOut, Search } from 'lucide-react'
 import { useAuthUser, useLogout } from '../../features/auth'
+import { useOrganization } from '../../features/organizations/hooks/useOrganization'
 import { Avatar } from '../shared/Avatar'
 import styles from './Topbar.module.css'
 
 function Topbar() {
   const { data: user } = useAuthUser()
+  const { data: organization } = useOrganization()
   const logout = useLogout()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -56,7 +58,7 @@ function Topbar() {
             aria-expanded={isMenuOpen}
             className={styles.avatarButton}
           >
-            <Avatar name={user?.name ?? 'User'} size={30} />
+            <Avatar name={user?.name ?? 'User'} imageUrl={organization?.profileImage} size={30} />
           </button>
 
           {isMenuOpen && (

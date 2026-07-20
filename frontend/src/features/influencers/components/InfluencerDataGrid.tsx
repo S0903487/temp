@@ -21,8 +21,11 @@ export type SortField =
   | 'country'
   | 'language'
   | 'averageViews'
+  | 'totalViews'
   | 'averageLikes'
+  | 'totalLikes'
   | 'averageComments'
+  | 'totalComments'
   | 'pricePost'
   | 'priceStory'
   | 'status'
@@ -187,17 +190,32 @@ export function InfluencerDataGrid({
               )}
               {isColVisible('averageViews') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageViews')}>
-                  Total Views {renderSortIndicator('averageViews')}
+                  Avg Views {renderSortIndicator('averageViews')}
+                </th>
+              )}
+              {isColVisible('totalViews') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('totalViews')}>
+                  Total Views {renderSortIndicator('totalViews')}
                 </th>
               )}
               {isColVisible('averageLikes') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageLikes')}>
-                  Total Likes {renderSortIndicator('averageLikes')}
+                  Avg Likes {renderSortIndicator('averageLikes')}
+                </th>
+              )}
+              {isColVisible('totalLikes') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('totalLikes')}>
+                  Total Likes {renderSortIndicator('totalLikes')}
                 </th>
               )}
               {isColVisible('averageComments') && (
                 <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('averageComments')}>
-                  Total Comments {renderSortIndicator('averageComments')}
+                  Avg Comments {renderSortIndicator('averageComments')}
+                </th>
+              )}
+              {isColVisible('totalComments') && (
+                <th className="px-3 py-2 font-bold uppercase tracking-wider text-[10px] text-slate-500 cursor-pointer hover:text-slate-900 transition text-right" onClick={() => onSort('totalComments')}>
+                  Total Comments {renderSortIndicator('totalComments')}
                 </th>
               )}
               {isColVisible('pricePost') && (
@@ -373,6 +391,13 @@ export function InfluencerDataGrid({
                     </td>
                   )}
 
+                  {/* Total Views */}
+                  {isColVisible('totalViews') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.totalViews ? influencer.totalViews.toLocaleString() : '0'}
+                    </td>
+                  )}
+
                   {/* Average Likes */}
                   {isColVisible('averageLikes') && (
                     <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
@@ -380,10 +405,24 @@ export function InfluencerDataGrid({
                     </td>
                   )}
 
+                  {/* Total Likes */}
+                  {isColVisible('totalLikes') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.totalLikes ? influencer.totalLikes.toLocaleString() : '0'}
+                    </td>
+                  )}
+
                   {/* Average Comments */}
                   {isColVisible('averageComments') && (
                     <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
                       {influencer.averageComments ? influencer.averageComments.toLocaleString() : '0'}
+                    </td>
+                  )}
+
+                  {/* Total Comments */}
+                  {isColVisible('totalComments') && (
+                    <td className="px-3 py-1.5 text-right font-semibold text-slate-800 text-[11px]">
+                      {influencer.totalComments ? influencer.totalComments.toLocaleString() : '0'}
                     </td>
                   )}
 

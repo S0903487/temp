@@ -16,6 +16,9 @@ interface InfluencerBody {
   averageViews?: number;
   averageLikes?: number;
   averageComments?: number;
+  totalViews?: number;
+  totalLikes?: number;
+  totalComments?: number;
   email?: string;
   phone?: string;
   pricePost?: number;
@@ -91,9 +94,12 @@ function toApi(row: Record<string, unknown>) {
     totalPosts: row.total_posts !== undefined && row.total_posts !== null ? row.total_posts : 0,
     firstJoinedDate: row.first_joined_date !== undefined && row.first_joined_date !== null ? (row.first_joined_date as string) : '',
     engagementRate: row.engagement_rate,
-    averageViews: row.average_views !== undefined && row.average_views !== null ? row.average_views : (row.total_views !== undefined && row.total_views !== null ? row.total_views : 0),
-    averageLikes: row.average_likes !== undefined && row.average_likes !== null ? row.average_likes : (row.total_likes !== undefined && row.total_likes !== null ? row.total_likes : 0),
-    averageComments: row.average_comments !== undefined && row.average_comments !== null ? row.average_comments : (row.total_comments !== undefined && row.total_comments !== null ? row.total_comments : 0),
+    averageViews: row.average_views !== undefined && row.average_views !== null ? row.average_views : 0,
+    averageLikes: row.average_likes !== undefined && row.average_likes !== null ? row.average_likes : 0,
+    averageComments: row.average_comments !== undefined && row.average_comments !== null ? row.average_comments : 0,
+    totalViews: row.total_views !== undefined && row.total_views !== null ? row.total_views : 0,
+    totalLikes: row.total_likes !== undefined && row.total_likes !== null ? row.total_likes : 0,
+    totalComments: row.total_comments !== undefined && row.total_comments !== null ? row.total_comments : 0,
     email: row.email,
     phone: row.phone,
     pricePost: row.price_post,
@@ -190,9 +196,12 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     { col: 'total_posts', val: cleanNum(body.totalPosts, 0) },
     { col: 'first_joined_date', val: body.firstJoinedDate ?? null },
     { col: 'engagement_rate', val: cleanNum(body.engagementRate, 0) },
-    { col: columns.includes('average_views') ? 'average_views' : 'total_views', val: cleanNum(body.averageViews, 0) },
-    { col: columns.includes('average_likes') ? 'average_likes' : 'total_likes', val: cleanNum(body.averageLikes, 0) },
-    { col: columns.includes('average_comments') ? 'average_comments' : 'total_comments', val: cleanNum(body.averageComments, 0) },
+    { col: 'average_views', val: cleanNum(body.averageViews, 0) },
+    { col: 'average_likes', val: cleanNum(body.averageLikes, 0) },
+    { col: 'average_comments', val: cleanNum(body.averageComments, 0) },
+    { col: 'total_views', val: cleanNum(body.totalViews, 0) },
+    { col: 'total_likes', val: cleanNum(body.totalLikes, 0) },
+    { col: 'total_comments', val: cleanNum(body.totalComments, 0) },
     { col: 'email', val: body.email ?? null },
     { col: 'phone', val: body.phone ?? null },
     { col: 'price_post', val: cleanNumOrNull(body.pricePost) },
@@ -333,9 +342,12 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     totalPosts: 'total_posts',
     firstJoinedDate: 'first_joined_date',
     engagementRate: 'engagement_rate',
-    averageViews: columns.includes('average_views') ? 'average_views' : 'total_views',
-    averageLikes: columns.includes('average_likes') ? 'average_likes' : 'total_likes',
-    averageComments: columns.includes('average_comments') ? 'average_comments' : 'total_comments',
+    averageViews: 'average_views',
+    averageLikes: 'average_likes',
+    averageComments: 'average_comments',
+    totalViews: 'total_views',
+    totalLikes: 'total_likes',
+    totalComments: 'total_comments',
     email: 'email',
     phone: 'phone',
     pricePost: 'price_post',
@@ -363,7 +375,7 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
       value = value ? 1 : 0;
     } else if (key === 'tags') {
       value = value ? JSON.stringify(value) : null;
-    } else if (['followers', 'following', 'totalPosts', 'engagementRate', 'averageViews', 'averageLikes', 'averageComments'].includes(key)) {
+    } else if (['followers', 'following', 'totalPosts', 'engagementRate', 'averageViews', 'averageLikes', 'averageComments', 'totalViews', 'totalLikes', 'totalComments'].includes(key)) {
       value = cleanNum(value, 0);
     } else if (['pricePost', 'priceStory', 'roi', 'cpa', 'cpi', 'ltv'].includes(key)) {
       value = cleanNumOrNull(value);

@@ -313,14 +313,24 @@ function InfluencerProfilePage() {
               tooltip="Engagement Rate = (Likes + Comments) / Followers. Measures how actively the creator's audience interacts with posts."
             />
             <StatCard
-              label="Total Views"
+              label="Average Views"
               value={formatValue(influencer.averageViews)}
-              tooltip="Total video views or impressions recorded across the creator's content."
+              tooltip="Average video views or impressions per post recorded across the creator's content."
+            />
+            <StatCard
+              label="Total Views"
+              value={formatValue(influencer.totalViews)}
+              tooltip="Total video views or impressions accumulated across the creator's channel."
+            />
+            <StatCard
+              label="Avg Likes / Comments"
+              value={`${formatValue(influencer.averageLikes)} / ${formatValue(influencer.averageComments)}`}
+              tooltip="The average count of post likes and comments per post."
             />
             <StatCard
               label="Total Likes / Comments"
-              value={`${formatValue(influencer.averageLikes)} / ${formatValue(influencer.averageComments)}`}
-              tooltip="The overall count of post likes and comments across the creator's published content."
+              value={`${formatValue(influencer.totalLikes)} / ${formatValue(influencer.totalComments)}`}
+              tooltip="The cumulative sum of all post likes and comments on the creator's channel."
             />
             <StatCard
               label="Price per Post"
