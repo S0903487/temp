@@ -38,6 +38,64 @@ async function ensureSchemaUpToDate(db: any) {
   if (schemaChecked) return;
 
   try {
+    // Optimistically check if the tables and new columns are already present in exactly ONE database roundtrip
+    const masterInfo = await db.prepare("SELECT name, sql FROM sqlite_master WHERE type='table'").all();
+    const tableList = (masterInfo?.results || []) as { name: string; sql: string }[];
+    const existingTables = tableList.map(t => t.name);
+
+    const requiredTables = [
+      'organizations',
+      'users',
+      'sessions',
+      'clients',
+      'campaigns',
+      'influencers',
+      'tags',
+      'influencer_tags',
+      'influencer_notes',
+      'influencer_snapshots',
+      'campaign_influencers',
+      'analytics_records'
+    ];
+
+    const hasAllTables = requiredTables.every(t => existingTables.includes(t));
+
+    let hasAllColumns = false;
+    if (hasAllTables) {
+      const orgSql = tableList.find(t => t.name === 'organizations')?.sql || '';
+      const userSql = tableList.find(t => t.name === 'users')?.sql || '';
+      const infSql = tableList.find(t => t.name === 'influencers')?.sql || '';
+
+      const orgOk = orgSql.includes('currency') && orgSql.includes('profile_image');
+      const userOk = userSql.includes('is_frozen');
+      const infOk = infSql.includes('language') &&
+                    infSql.includes('average_views') &&
+                    infSql.includes('average_likes') &&
+                    infSql.includes('average_comments') &&
+                    infSql.includes('total_views') &&
+                    infSql.includes('total_likes') &&
+                    infSql.includes('total_comments') &&
+                    infSql.includes('pipeline_status') &&
+                    infSql.includes('profile_link') &&
+                    infSql.includes('roi') &&
+                    infSql.includes('cpa') &&
+                    infSql.includes('cpi') &&
+                    infSql.includes('ltv') &&
+                    infSql.includes('following') &&
+                    infSql.includes('total_posts') &&
+                    infSql.includes('first_joined_date');
+
+      hasAllColumns = orgOk && userOk && infOk;
+    }
+
+    if (hasAllTables && hasAllColumns) {
+      schemaChecked = true;
+      console.log('Runtime schema checked in 1 roundtrip: Already fully up-to-date.');
+      return;
+    }
+
+    console.log('Database missing tables or columns. Running healing schema updates...');
+
     // 1. Create tables if they do not exist
     await db.prepare(`
       CREATE TABLE IF NOT EXISTS organizations (
