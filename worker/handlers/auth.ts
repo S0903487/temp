@@ -61,21 +61,22 @@ async function seedAdminIfMissing(db: D1Database) {
     }
 
     // Batch 3: Find brand users missing client profiles (single query, no iteration)
-    const { results: brandUsers } = await db.prepare(
-      `SELECT u.id, u.organization_id, u.name, u.email, u.created_at, o.name as org_name 
-       FROM users u 
-       JOIN organizations o ON o.id = u.organization_id 
-       LEFT JOIN clients c ON c.id = u.id
-       WHERE u.role = 'brand' AND c.id IS NULL`
-    ).all();
-    if (brandUsers && brandUsers.length > 0) {
-      await db.batch(brandUsers.map(user =>
-        db.prepare(
-          `INSERT INTO clients (id, organization_id, name, contact_email, status, created_at)
-           VALUES (?, ?, ?, ?, 'active', ?)`
-        ).bind(user.id, user.organization_id, user.org_name || `${user.name}'s Company`, user.email, user.created_at || nowIso())
-      ));
-    }
+const { results: brandUsers } = await db.prepare(
+  `SELECT u.id, u.organization_id, u.name, u.email, u.created_at, o.name as org_name 
+   FROM users u 
+   JOIN organizations o ON o.id = u.organization_id 
+   LEFT JOIN clients c ON c.id = u.id
+   WHERE u.role = 'brand' AND c.id IS NULL`
+).all();
+if (brandUsers && brandUsers.length > 0) {
+  await db.batch(brandUsers.map(user =>
+    db.prepare(
+      `INSERT INTO clients (id, organization_id, name, contact_email, status, created_at)
+       VALUES (?, ?, ?, ?, 'active', ?)`
+    ).bind(user.id, user.organization_id, user.org_name || `${user.name}'s Company`, user.email, user.created_at || nowIso())
+  ));
+}
+
 
 
     // Batch 4: Find influencer users missing influencer profiles (single query, no iteration)
