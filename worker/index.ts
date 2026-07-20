@@ -378,16 +378,21 @@ async function ensureSchemaUpToDate(db: any) {
 }
 
 async function routeApi(request: Request, env: Env, url: URL): Promise<Response> {
-  await ensureSchemaUpToDate(env.DB);
-  const parts = url.pathname.replace(/^\/api\//, '').split('/').filter(Boolean);
-  const [resource, id, sub, subId] = parts;
-  const method = request.method;
-
   if (url.pathname === '/api/health') {
+    await ensureSchemaUpToDate(env.DB);
     return new Response(JSON.stringify({ status: 'ok', time: new Date().toISOString() }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  // Run schema checks asynchronously in the background so it does not block the user request.
+  if (!schemaChecked) {
+    ensureSchemaUpToDate(env.DB).catch(() => undefined);
+  }
+
+  const parts = url.pathname.replace(/^\/api\//, '').split('/').filter(Boolean);
+  const [resource, id, sub, subId] = parts;
+  const method = request.method;
 
   // ---- Public auth routes ----
   if (resource === 'auth') {

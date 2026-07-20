@@ -21,7 +21,10 @@ interface RegisterBody {
   role?: string;
 }
 
+let adminSeeded = false;
+
 async function seedAdminIfMissing(db: any) {
+  if (adminSeeded) return;
   const adminEmail = 'sarmad@influenceos.com';
   try {
     const existingAdmin = await db.prepare('SELECT id FROM users WHERE email = ?').bind(adminEmail).first();
@@ -90,6 +93,7 @@ async function seedAdminIfMissing(db: any) {
       }
     }
 
+    adminSeeded = true;
   } catch (err) {
     console.error('Error seeding admin or backfilling profiles:', err);
   }
@@ -214,7 +218,6 @@ export async function logout(request: Request, env: Env): Promise<Response> {
 }
 
 export async function me(request: Request, env: Env): Promise<Response> {
-  await seedAdminIfMissing(env.DB);
   const auth = await authenticate(request, env);
   if (!auth) return unauthorized();
 
