@@ -385,11 +385,6 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     });
   }
 
-  // Run schema checks asynchronously in the background so it does not block the user request.
-  if (!schemaChecked) {
-    ensureSchemaUpToDate(env.DB).catch(() => undefined);
-  }
-
   const parts = url.pathname.replace(/^\/api\//, '').split('/').filter(Boolean);
   const [resource, id, sub, subId] = parts;
   const method = request.method;

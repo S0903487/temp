@@ -213,6 +213,7 @@ export async function logout(request: Request, env: Env): Promise<Response> {
   const token = extractToken(request);
   if (token) {
     await env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
+    sessionCache.delete(token);
   }
   return json({ success: true });
 }
@@ -220,6 +221,10 @@ export async function logout(request: Request, env: Env): Promise<Response> {
 export async function me(request: Request, env: Env): Promise<Response> {
   const auth = await authenticate(request, env);
   if (!auth) return unauthorized();
+
+  if (auth.user) {
+    return json(publicUser(auth.user));
+  }
 
   const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(auth.userId).first();
   if (!user) return unauthorized();
@@ -242,12 +247,22 @@ function extractToken(request: Request): string | null {
   return header.slice('Bearer '.length).trim() || null;
 }
 
+const sessionCache = new Map<string, { session: AuthedRequest; cachedAt: number }>();
+const SESSION_CACHE_TTL_MS = 15000;
+
 export async function authenticate(request: Request, env: Env): Promise<AuthedRequest | null> {
   const token = extractToken(request);
   if (!token) return null;
 
+  const now = Date.now();
+  const cached = sessionCache.get(token);
+  if (cached && (now - cached.cachedAt) < SESSION_CACHE_TTL_MS) {
+    return cached.session;
+  }
+
   const session = await env.DB.prepare(
-    `SELECT s.user_id as user_id, s.expires_at as expires_at, u.organization_id as organization_id, u.role as role, u.is_frozen as is_frozen
+    `SELECT s.user_id as user_id, s.expires_at as expires_at, u.organization_id as organization_id, u.role as role, u.is_frozen as is_frozen,
+            u.name as user_name, u.email as user_email, u.created_at as user_created_at
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token = ?`
   )
@@ -255,15 +270,28 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
     .first();
 
   if (!session) return null;
-  if (new Date(session.expires_at as string).getTime() < Date.now()) {
+  if (new Date(session.expires_at as string).getTime() < now) {
     await env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
+    sessionCache.delete(token);
     return null;
   }
 
-  return {
+  const authed: AuthedRequest = {
     userId: session.user_id as string,
     organizationId: session.organization_id as string,
     role: session.role as string,
     isFrozen: Boolean(session.is_frozen),
+    user: {
+      id: session.user_id as string,
+      organization_id: session.organization_id as string,
+      name: session.user_name as string,
+      email: session.user_email as string,
+      role: session.role as string,
+      is_frozen: session.is_frozen,
+      created_at: session.user_created_at as string,
+    }
   };
+
+  sessionCache.set(token, { session: authed, cachedAt: now });
+  return authed;
 }

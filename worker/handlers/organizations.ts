@@ -23,13 +23,26 @@ function toApi(row: Record<string, unknown>) {
 
 // Every user belongs to exactly one organization (their tenant), so "current"
 // always resolves via auth.organizationId — there is no cross-org listing.
+const orgCache = new Map<string, { org: any; cachedAt: number }>();
+const ORG_CACHE_TTL_MS = 15000;
+
 export async function getCurrent(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  const now = Date.now();
+  const cached = orgCache.get(auth.organizationId);
+  if (cached && (now - cached.cachedAt) < ORG_CACHE_TTL_MS) {
+    return json(cached.org);
+  }
+
   const row = await env.DB.prepare('SELECT * FROM organizations WHERE id = ?').bind(auth.organizationId).first();
   if (!row) return notFound();
-  return json(toApi(row));
+  
+  const mapped = toApi(row);
+  orgCache.set(auth.organizationId, { org: mapped, cachedAt: now });
+  return json(mapped);
 }
 
 export async function updateCurrent(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  orgCache.delete(auth.organizationId);
   const body = await readJson<OrganizationBody>(request);
   const sets: string[] = [];
   const values: unknown[] = [];
