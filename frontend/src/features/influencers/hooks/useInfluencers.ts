@@ -5,6 +5,7 @@ import {
   createInfluencer,
   deleteInfluencer,
   getInfluencer,
+  getInfluencerFull,
   listInfluencerCampaignHistory,
   listInfluencerNotes,
   listInfluencers,
@@ -15,7 +16,7 @@ import {
   removeInfluencerTag,
   updateInfluencer,
 } from '../services/influencerService';
-import type { CreateInfluencerInput, UpdateInfluencerInput } from '../services/influencerService';
+import type { CreateInfluencerInput, UpdateInfluencerInput, InfluencerFull } from '../services/influencerService';
 import type { Influencer } from '../types';
 
 const INFLUENCERS_QUERY_KEY = ['influencers'];
@@ -24,6 +25,7 @@ const tagsKey = (id: string) => ['influencers', id, 'tags'];
 const notesKey = (id: string) => ['influencers', id, 'notes'];
 const snapshotsKey = (id: string) => ['influencers', id, 'snapshots'];
 const campaignHistoryKey = (id: string) => ['influencers', id, 'campaigns'];
+const fullKey = (id: string) => ['influencers', id, 'full'];
 
 export function useInfluencers() {
   return useQuery({
@@ -37,6 +39,19 @@ export function useInfluencer(id: string | undefined) {
   return useQuery({
     queryKey: influencerKey(id ?? ''),
     queryFn: () => getInfluencer(id as string),
+    enabled: Boolean(id),
+    staleTime: 60 * 1000,
+  });
+}
+
+// Fetches influencer + tags + notes + snapshots + campaign history in one
+// request (one D1 batch() round trip server-side) instead of the profile
+// page firing 5 separate queries. Use this on the profile page; use the
+// individual hooks above elsewhere they're still needed on their own.
+export function useInfluencerFull(id: string | undefined) {
+  return useQuery({
+    queryKey: fullKey(id ?? ''),
+    queryFn: () => getInfluencerFull(id as string),
     enabled: Boolean(id),
     staleTime: 60 * 1000,
   });
@@ -62,6 +77,7 @@ export function useAddInfluencerTag(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tagsKey(id) });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: fullKey(id) });
     },
   });
 }
@@ -70,7 +86,10 @@ export function useRemoveInfluencerTag(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (tagId: string) => removeInfluencerTag(id, tagId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: tagsKey(id) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tagsKey(id) });
+      queryClient.invalidateQueries({ queryKey: fullKey(id) });
+    },
   });
 }
 
@@ -87,7 +106,10 @@ export function useAddInfluencerNote(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: string) => addInfluencerNote(id, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: notesKey(id) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notesKey(id) });
+      queryClient.invalidateQueries({ queryKey: fullKey(id) });
+    },
   });
 }
 
@@ -95,7 +117,10 @@ export function useRemoveInfluencerNote(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (noteId: string) => removeInfluencerNote(id, noteId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: notesKey(id) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notesKey(id) });
+      queryClient.invalidateQueries({ queryKey: fullKey(id) });
+    },
   });
 }
 
@@ -135,16 +160,26 @@ export function useUpdateInfluencer() {
       // Cancel outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: influencerKey(id) });
       await queryClient.cancelQueries({ queryKey: INFLUENCERS_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: fullKey(id) });
 
       // Snapshot the previous values
       const previousInfluencer = queryClient.getQueryData<Influencer>(influencerKey(id));
       const previousInfluencers = queryClient.getQueryData<Influencer[]>(INFLUENCERS_QUERY_KEY);
+      const previousFull = queryClient.getQueryData<InfluencerFull>(fullKey(id));
 
       // Optimistically update details page query cache
       if (previousInfluencer) {
         queryClient.setQueryData<Influencer>(influencerKey(id), {
           ...previousInfluencer,
           ...data,
+        });
+      }
+
+      // Optimistically update the profile page's composite query cache
+      if (previousFull) {
+        queryClient.setQueryData<InfluencerFull>(fullKey(id), {
+          ...previousFull,
+          influencer: { ...previousFull.influencer, ...data },
         });
       }
 
@@ -158,15 +193,18 @@ export function useUpdateInfluencer() {
         );
       }
 
-      return { previousInfluencer, previousInfluencers };
+      return { previousInfluencer, previousInfluencers, previousFull };
     },
     onError: (_err, variables, context) => {
       // Rollback values if the request fails
       if (context?.previousInfluencer) {
         queryClient.setQueryData(influencerKey(variables.id), context.previousInfluencer);
       }
+      if (context?.previousFull) {
+        queryClient.setQueryData(fullKey(variables.id), context.previousFull);
+      }
       if (context?.previousInfluencers) {
-        queryClient.setQueryData(INFLUENCERS_QUERY_KEY, context.previousInfluencer);
+        queryClient.setQueryData(INFLUENCERS_QUERY_KEY, context.previousInfluencers);
       }
     },
     onSettled: (_data, _error, variables) => {
@@ -174,6 +212,7 @@ export function useUpdateInfluencer() {
       queryClient.invalidateQueries({ queryKey: INFLUENCERS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: influencerKey(variables.id) });
       queryClient.invalidateQueries({ queryKey: snapshotsKey(variables.id) });
+      queryClient.invalidateQueries({ queryKey: fullKey(variables.id) });
     },
   });
 }

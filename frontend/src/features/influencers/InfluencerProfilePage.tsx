@@ -16,11 +16,7 @@ import {
   useAddInfluencerNote,
   useAddInfluencerTag,
   useDeleteInfluencer,
-  useInfluencer,
-  useInfluencerCampaignHistory,
-  useInfluencerNotes,
-  useInfluencerSnapshots,
-  useInfluencerTags,
+  useInfluencerFull,
   useOrgTags,
   useRemoveInfluencerNote,
   useRemoveInfluencerTag,
@@ -67,12 +63,15 @@ function InfluencerProfilePage() {
 
   const { data: organization } = useOrganization()
   const { data: currentUser } = useAuthUser()
-  const { data: influencer, isLoading, isError } = useInfluencer(id)
-  const { data: tags = [] } = useInfluencerTags(id)
+  const { data: full, isLoading, isError } = useInfluencerFull(id)
   const { data: orgTags = [] } = useOrgTags()
-  const { data: notes = [], isLoading: notesLoading } = useInfluencerNotes(id)
-  const { data: snapshots = [] } = useInfluencerSnapshots(id)
-  const { data: campaignHistory = [], isLoading: campaignsLoading } = useInfluencerCampaignHistory(id)
+  const influencer = full?.influencer
+  const tags = full?.tags ?? []
+  const notes = full?.notes ?? []
+  const notesLoading = isLoading
+  const snapshots = full?.snapshots ?? []
+  const campaignHistory = full?.campaignHistory ?? []
+  const campaignsLoading = isLoading
 
   const addTag = useAddInfluencerTag(id ?? '')
   const removeTag = useRemoveInfluencerTag(id ?? '')

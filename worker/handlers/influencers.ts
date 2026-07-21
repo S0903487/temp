@@ -468,6 +468,83 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
   return json({ success: true });
 }
 
+// GET /api/influencers/:id/full — everything the creator profile page needs
+// (influencer, tags, notes, snapshots, campaign history) in a single D1
+// batch() round trip instead of 5 separate requests each paying their own
+// ~300ms D1 connection overhead.
+export async function getFull(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
+  const isAdmin = auth.role === 'admin';
+
+  const influencerStmt = isAdmin
+    ? env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id)
+    : env.DB.prepare('SELECT * FROM influencers WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId);
+
+  const tagsStmt = env.DB.prepare(
+    `SELECT t.id, t.name FROM influencer_tags it JOIN tags t ON t.id = it.tag_id WHERE it.influencer_id = ? ORDER BY t.name`
+  ).bind(id);
+
+  const notesStmt = env.DB.prepare(
+    'SELECT * FROM influencer_notes WHERE influencer_id = ? ORDER BY created_at DESC'
+  ).bind(id);
+
+  const snapshotsStmt = env.DB.prepare(
+    'SELECT * FROM influencer_snapshots WHERE influencer_id = ? ORDER BY date ASC'
+  ).bind(id);
+
+  const campaignsSql = isAdmin
+    ? `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+       FROM campaign_influencers ci
+       JOIN campaigns c ON c.id = ci.campaign_id
+       JOIN clients cl ON cl.id = c.client_id
+       WHERE ci.influencer_id = ?
+       ORDER BY c.start_date DESC`
+    : `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+       FROM campaign_influencers ci
+       JOIN campaigns c ON c.id = ci.campaign_id
+       JOIN clients cl ON cl.id = c.client_id
+       WHERE ci.influencer_id = ? AND cl.organization_id = ?
+       ORDER BY c.start_date DESC`;
+  const campaignsStmt = isAdmin
+    ? env.DB.prepare(campaignsSql).bind(id)
+    : env.DB.prepare(campaignsSql).bind(id, auth.organizationId);
+
+  const [influencerRes, tagsRes, notesRes, snapshotsRes, campaignsRes] = await env.DB.batch([
+    influencerStmt,
+    tagsStmt,
+    notesStmt,
+    snapshotsStmt,
+    campaignsStmt,
+  ]);
+
+  const influencerRow = influencerRes.results[0];
+  if (!influencerRow) return notFound();
+
+  return json({
+    influencer: toApi(influencerRow as Record<string, unknown>),
+    tags: tagsRes.results,
+    notes: notesRes.results.map((r: any) => ({ id: r.id, body: r.body, authorId: r.author_id, createdAt: r.created_at })),
+    snapshots: snapshotsRes.results.map((r: any) => ({
+      id: r.id,
+      date: r.date,
+      followers: r.followers,
+      averageViews: r.average_views,
+      averageLikes: r.average_likes,
+      averageComments: r.average_comments,
+      engagementRate: r.engagement_rate,
+    })),
+    campaignHistory: campaignsRes.results.map((r: any) => ({
+      campaignId: r.id,
+      name: r.name,
+      clientName: r.client_name,
+      status: r.status,
+      startDate: r.start_date,
+      endDate: r.end_date,
+      budget: r.budget,
+      addedAt: r.added_at,
+    })),
+  });
+}
+
 // GET /api/influencers/:id/campaigns — campaign history for a creator's profile page
 export async function getCampaigns(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
   const influencer = await getInfluencerById(env, auth, id);

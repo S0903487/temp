@@ -366,7 +366,9 @@ async function ensureSchemaUpToDate(db: any) {
       "CREATE INDEX IF NOT EXISTS idx_analytics_records_camp ON analytics_records(campaign_id)"
     ];
 
-    await db.batch(indexes.map(sql => db.prepare(sql))).catch(() => undefined);
+    for (const sql of indexes) {
+      await db.prepare(sql).run().catch(() => undefined);
+    }
 
     schemaChecked = true;
     console.log('Runtime schema healing checked and applied successfully.');
@@ -451,6 +453,9 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     if (id && !sub && method === 'GET') return influencerHandlers.getById(request, env, auth, id);
     if (id && !sub && (method === 'PUT' || method === 'PATCH')) return influencerHandlers.update(request, env, auth, id);
     if (id && !sub && method === 'DELETE') return influencerHandlers.remove(request, env, auth, id);
+
+    if (id && sub === 'full' && !subId && method === 'GET')
+      return influencerHandlers.getFull(request, env, auth, id);
 
     if (id && sub === 'campaigns' && !subId && method === 'GET')
       return influencerHandlers.getCampaigns(request, env, auth, id);

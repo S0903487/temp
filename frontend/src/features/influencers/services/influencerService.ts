@@ -54,6 +54,21 @@ export async function getInfluencer(id: string): Promise<Influencer> {
   return apiRequest<Influencer>(`/influencers/${id}`, { method: 'GET' });
 }
 
+// Composite fetch — influencer + tags + notes + snapshots + campaign history
+// in one request, backed by a single D1 batch() round trip on the Worker.
+// Used by the profile page instead of firing 5 separate requests.
+export interface InfluencerFull {
+  influencer: Influencer;
+  tags: Tag[];
+  notes: InfluencerNote[];
+  snapshots: InfluencerSnapshot[];
+  campaignHistory: InfluencerCampaignHistoryItem[];
+}
+
+export async function getInfluencerFull(id: string): Promise<InfluencerFull> {
+  return apiRequest<InfluencerFull>(`/influencers/${id}/full`, { method: 'GET' });
+}
+
 export async function createInfluencer(data: CreateInfluencerInput): Promise<Influencer> {
   return apiRequest<Influencer>('/influencers', {
     method: 'POST',
