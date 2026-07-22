@@ -201,6 +201,7 @@ export async function logout(request: Request, env: Env): Promise<Response> {
   if (token) {
     await env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
     sessionCache.delete(token);
+    await deleteSessionFromKV(env, token);
   }
   return json({ success: true });
 }
@@ -227,6 +228,63 @@ export async function forgotPassword(request: Request): Promise<Response> {
 }
 
 // ============ Shared auth middleware ============
+//
+// Every authenticated request on every endpoint in the app calls
+// authenticate(). Before this rewrite that meant one D1 JOIN (sessions +
+// users) per request, because the only cache was a plain in-memory Map —
+// which resets to empty every time Cloudflare spins up a fresh Worker
+// isolate (frequent, especially on low/medium traffic). KV fixes that: it's
+// shared across every isolate at the edge, so a session validated once
+// stays cheap to re-validate everywhere until it expires or is revoked.
+//
+// Cache tiers, fastest to slowest:
+//   1. In-memory Map  — sub-millisecond, but isolate-local (15s TTL)
+//   2. KV             — a few ms, shared globally (SESSION_KV_TTL_SECONDS)
+//   3. D1 JOIN        — fallback on cold cache; repopulates KV + memory
+//
+// Cloudflare's free KV tier caps writes at 1,000/day. Reads are cheap
+// (100k/day free) and dominate here since a cache hit never writes. Writes
+// only happen on login/register and on a KV cache miss, so this comfortably
+// supports a small-to-mid-size team; if you outgrow the write cap, the fix
+// is raising SESSION_KV_TTL_SECONDS (fewer, longer-lived writes) or moving
+// to a paid KV plan — not reverting to D1-per-request.
+
+const SESSION_KV_TTL_SECONDS = 600; // 10 minutes — balances freshness (role/freeze changes propagate within this window) against KV write volume
+
+function sessionKvKey(token: string): string {
+  return `session:${token}`;
+}
+
+async function readSessionFromKV(env: Env, token: string): Promise<AuthedRequest | null> {
+  try {
+    const raw = await env.SESSIONS.get(sessionKvKey(token));
+    return raw ? (JSON.parse(raw) as AuthedRequest) : null;
+  } catch (err) {
+    // KV is best-effort here — a read failure just means we fall through to D1.
+    console.error('Session KV read failed:', err);
+    return null;
+  }
+}
+
+async function writeSessionToKV(env: Env, token: string, authed: AuthedRequest): Promise<void> {
+  try {
+    await env.SESSIONS.put(sessionKvKey(token), JSON.stringify(authed), {
+      expirationTtl: SESSION_KV_TTL_SECONDS,
+    });
+  } catch (err) {
+    // Non-fatal: the request still succeeds off the D1 result, just without
+    // a warm cache for next time.
+    console.error('Session KV write failed:', err);
+  }
+}
+
+async function deleteSessionFromKV(env: Env, token: string): Promise<void> {
+  try {
+    await env.SESSIONS.delete(sessionKvKey(token));
+  } catch (err) {
+    console.error('Session KV delete failed:', err);
+  }
+}
 
 function extractToken(request: Request): string | null {
   const header = request.headers.get('Authorization');
@@ -242,11 +300,21 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
   if (!token) return null;
 
   const now = Date.now();
+
+  // Tier 1: in-memory (same isolate, near-zero cost)
   const cached = sessionCache.get(token);
   if (cached && (now - cached.cachedAt) < SESSION_CACHE_TTL_MS) {
     return cached.session;
   }
 
+  // Tier 2: KV (any isolate, no D1 hit)
+  const fromKV = await readSessionFromKV(env, token);
+  if (fromKV) {
+    sessionCache.set(token, { session: fromKV, cachedAt: now });
+    return fromKV;
+  }
+
+  // Tier 3: D1 (cold cache — repopulates tiers 1 and 2 below)
   const session = await env.DB.prepare(
     `SELECT s.user_id as user_id, s.expires_at as expires_at, u.organization_id as organization_id, u.role as role, u.is_frozen as is_frozen,
             u.name as user_name, u.email as user_email, u.created_at as user_created_at
@@ -260,6 +328,7 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
   if (new Date(session.expires_at as string).getTime() < now) {
     await env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
     sessionCache.delete(token);
+    await deleteSessionFromKV(env, token);
     return null;
   }
 
@@ -280,5 +349,6 @@ export async function authenticate(request: Request, env: Env): Promise<AuthedRe
   };
 
   sessionCache.set(token, { session: authed, cachedAt: now });
+  await writeSessionToKV(env, token, authed);
   return authed;
 }

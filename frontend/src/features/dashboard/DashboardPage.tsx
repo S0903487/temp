@@ -1,41 +1,42 @@
 import StatCard from '../../components/shared/StatCard'
 import { useAuthUser } from '../auth/hooks/useAuth'
 import { useOrganization } from '../organizations/hooks/useOrganization'
-import { useClients } from '../clients/hooks/useClients'
-import { useCampaigns } from '../campaigns/hooks/useCampaigns'
-import { useInfluencers } from '../influencers/hooks/useInfluencers'
+import { useDashboardSummary } from './hooks/useDashboardSummary'
 import { formatCurrency } from '../../lib/currency'
 import styles from './DashboardPage.module.css'
 
 function DashboardPage() {
   const { data: user } = useAuthUser()
   const { data: organization } = useOrganization()
-  const { data: clients, isLoading: clientsLoading } = useClients()
-  const { data: campaigns, isLoading: campaignsLoading } = useCampaigns()
-  const { data: influencers, isLoading: influencersLoading } = useInfluencers()
+  // One lean request (counts + top-5 rows computed in SQL) instead of
+  // downloading every client, campaign, and influencer row — including
+  // full-size base64 profile images — just to show three numbers and two
+  // 5-row preview tables.
+  const { data: summary, isLoading } = useDashboardSummary()
 
-  const isLoading = clientsLoading || campaignsLoading || influencersLoading
-  const activeCampaigns = campaigns?.filter((campaign) => campaign.status === 'active').length ?? 0
-  const newClients = clients?.filter((client) => client.status === 'prospect').length ?? 0
+  const activeCampaigns = summary?.campaigns.active ?? 0
+  const newClients = summary?.clients.newProspects ?? 0
+  const topCampaigns = summary?.campaigns.top ?? []
+  const topInfluencers = summary?.influencers.top ?? []
 
   const firstName = user?.name?.split(' ')[0]
 
   const stats = [
     {
       title: 'Influencers',
-      value: isLoading ? '—' : (influencers?.length ?? 0).toLocaleString(),
-      detail: isLoading ? 'Loading…' : `${influencers?.length ?? 0} in your roster`,
+      value: isLoading ? '—' : (summary?.influencers.total ?? 0).toLocaleString(),
+      detail: isLoading ? 'Loading…' : `${summary?.influencers.total ?? 0} in your roster`,
       accent: 'violet' as const,
     },
     {
       title: 'Campaigns',
-      value: isLoading ? '—' : (campaigns?.length ?? 0).toLocaleString(),
+      value: isLoading ? '—' : (summary?.campaigns.total ?? 0).toLocaleString(),
       detail: isLoading ? 'Loading…' : `${activeCampaigns} active now`,
       accent: 'cyan' as const,
     },
     {
       title: 'Clients',
-      value: isLoading ? '—' : (clients?.length ?? 0).toLocaleString(),
+      value: isLoading ? '—' : (summary?.clients.total ?? 0).toLocaleString(),
       detail: isLoading ? 'Loading…' : `${newClients} new prospects`,
       accent: 'amber' as const,
     },
@@ -68,11 +69,11 @@ function DashboardPage() {
         <div className="border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Campaigns</h2>
-            <span className="text-[10px] font-bold text-slate-400">Total: {campaigns?.length ?? 0}</span>
+            <span className="text-[10px] font-bold text-slate-400">Total: {summary?.campaigns.total ?? 0}</span>
           </div>
           {isLoading ? (
             <p className="text-xs text-slate-400">Loading active campaigns...</p>
-          ) : campaigns && campaigns.length > 0 ? (
+          ) : topCampaigns.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-xs">
                 <thead>
@@ -83,7 +84,7 @@ function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-slate-700">
-                  {campaigns.slice(0, 5).map((campaign) => (
+                  {topCampaigns.map((campaign) => (
                     <tr key={campaign.id} className="hover:bg-slate-50/50">
                       <td className="py-1.5 font-bold text-slate-900 truncate max-w-[180px]">
                         {campaign.name}
@@ -114,11 +115,11 @@ function DashboardPage() {
         <div className="border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pipeline Status Overview</h2>
-            <span className="text-[10px] font-bold text-slate-400">Active roster: {influencers?.length ?? 0}</span>
+            <span className="text-[10px] font-bold text-slate-400">Active roster: {summary?.influencers.total ?? 0}</span>
           </div>
           {isLoading ? (
             <p className="text-xs text-slate-400">Loading top creators...</p>
-          ) : influencers && influencers.length > 0 ? (
+          ) : topInfluencers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-xs">
                 <thead>
@@ -129,7 +130,7 @@ function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-slate-700">
-                  {influencers.slice(0, 5).map((creator) => (
+                  {topInfluencers.map((creator) => (
                     <tr key={creator.id} className="hover:bg-slate-50/50">
                       <td className="py-1.5">
                         <div className="truncate max-w-[150px] font-bold text-slate-900">

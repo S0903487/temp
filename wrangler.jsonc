@@ -34,5 +34,11 @@
       "remote": true,
       "migrations_dir": "migrations"
     }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "c7bc7629ff814853992f37ef6b07c1bd"
+    }
   ]
 }

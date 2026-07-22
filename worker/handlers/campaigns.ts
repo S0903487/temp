@@ -48,7 +48,44 @@ export async function list(_request: Request, env: Env, auth: AuthedRequest): Pr
   )
     .bind(auth.organizationId)
     .all();
-  return json(await Promise.all(results.map((r) => withInfluencerIds(env, r))));
+
+  if (results.length === 0) return json([]);
+
+  // Previously this fired one `SELECT influencer_id FROM campaign_influencers
+  // WHERE campaign_id = ?` per campaign via Promise.all — an N+1 that grows
+  // with your campaign count and eats into the 50-subrequest-per-request
+  // cap on Workers Free. One IN(...) query covers every campaign at once.
+  const campaignIds = results.map((r) => r.id as string);
+  const placeholders = campaignIds.map(() => '?').join(', ');
+  const { results: links } = await env.DB.prepare(
+    `SELECT campaign_id, influencer_id FROM campaign_influencers WHERE campaign_id IN (${placeholders})`
+  )
+    .bind(...campaignIds)
+    .all();
+
+  const influencerIdsByCampaign = new Map<string, string[]>();
+  for (const link of links) {
+    const campaignId = link.campaign_id as string;
+    const list = influencerIdsByCampaign.get(campaignId) ?? [];
+    list.push(link.influencer_id as string);
+    influencerIdsByCampaign.set(campaignId, list);
+  }
+
+  return json(
+    results.map((row) => ({
+      id: row.id,
+      clientId: row.client_id,
+      name: row.name,
+      description: row.description,
+      influencerIds: influencerIdsByCampaign.get(row.id as string) ?? [],
+      startDate: row.start_date,
+      endDate: row.end_date,
+      budget: row.budget,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }))
+  );
 }
 
 export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {

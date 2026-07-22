@@ -9,6 +9,7 @@ import * as analyticsHandlers from './handlers/analytics';
 import * as tagHandlers from './handlers/tags';
 import * as uploadHandlers from './handlers/uploads';
 import * as userHandlers from './handlers/users';
+import * as dashboardHandlers from './handlers/dashboard';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -422,6 +423,11 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
   if (resource === 'organizations' && (id === 'current' || !id)) {
     if (method === 'GET') return organizationHandlers.getCurrent(request, env, auth);
     if (method === 'PUT' || method === 'PATCH') return organizationHandlers.updateCurrent(request, env, auth);
+    return notFound();
+  }
+
+  if (resource === 'dashboard' && id === 'summary' && !sub) {
+    if (method === 'GET') return dashboardHandlers.getSummary(request, env, auth);
     return notFound();
   }
 
