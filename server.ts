@@ -155,7 +155,31 @@ class LocalD1Database {
   }
 }
 
+class LocalKVNamespace {
+  private store = new Map<string, { value: string; expiresAt?: number }>();
+
+  async get(key: string): Promise<string | null> {
+    const entry = this.store.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt && Date.now() > entry.expiresAt) {
+      this.store.delete(key);
+      return null;
+    }
+    return entry.value;
+  }
+
+  async put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void> {
+    const expiresAt = options?.expirationTtl ? Date.now() + options.expirationTtl * 1000 : undefined;
+    this.store.set(key, { value, expiresAt });
+  }
+
+  async delete(key: string): Promise<void> {
+    this.store.delete(key);
+  }
+}
+
 const localD1 = new LocalD1Database(sqliteDb);
+const localSessionsKV = new LocalKVNamespace();
 
 async function startServer() {
   const app = express();
@@ -201,6 +225,7 @@ async function startServer() {
       // Execute worker's fetch
       const env = {
         DB: localD1 as any,
+        SESSIONS: localSessionsKV as any,
         ASSETS: {
           fetch: async () => new Response('Asset serving not handled by worker stub', { status: 404 }),
         } as any,

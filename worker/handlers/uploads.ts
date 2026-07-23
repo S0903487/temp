@@ -30,6 +30,26 @@ export async function fetchUrl(request: Request, _env: Env, _auth: AuthedRequest
   const sourceUrl = body.url?.trim();
   if (!sourceUrl) return badRequest('url is required');
 
+  if (sourceUrl.startsWith('data:')) {
+    const matches = sourceUrl.match(/^data:([^;]+);base64,(.*)$/);
+    if (!matches) {
+      return badRequest('Invalid data URL format');
+    }
+    const contentType = matches[1] || 'image/webp';
+    const base64Data = matches[2];
+    try {
+      const binaryString = atob(base64Data);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return new Response(bytes, { headers: { 'Content-Type': contentType } });
+    } catch {
+      return badRequest('Invalid base64 encoding in data URL');
+    }
+  }
+
   let parsed: URL;
   try {
     parsed = new URL(sourceUrl);
@@ -37,7 +57,7 @@ export async function fetchUrl(request: Request, _env: Env, _auth: AuthedRequest
     return badRequest('Invalid url');
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return badRequest('url must be http(s)');
+    return badRequest('url must be http(s) or a data: URL');
   }
 
   let upstream: Response;

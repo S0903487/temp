@@ -7,7 +7,7 @@ export interface Env {
   // still hit D1 for auth. KV is edge-replicated and shared across every
   // isolate, so a session validated once is cheap to re-validate everywhere
   // for the life of the cache entry.
-  SESSIONS: KVNamespace;
+  SESSIONS?: KVNamespace;
 }
 
 export interface AuthedRequest {

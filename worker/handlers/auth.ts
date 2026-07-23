@@ -256,6 +256,7 @@ function sessionKvKey(token: string): string {
 }
 
 async function readSessionFromKV(env: Env, token: string): Promise<AuthedRequest | null> {
+  if (!env?.SESSIONS) return null;
   try {
     const raw = await env.SESSIONS.get(sessionKvKey(token));
     return raw ? (JSON.parse(raw) as AuthedRequest) : null;
@@ -267,6 +268,7 @@ async function readSessionFromKV(env: Env, token: string): Promise<AuthedRequest
 }
 
 async function writeSessionToKV(env: Env, token: string, authed: AuthedRequest): Promise<void> {
+  if (!env?.SESSIONS) return;
   try {
     await env.SESSIONS.put(sessionKvKey(token), JSON.stringify(authed), {
       expirationTtl: SESSION_KV_TTL_SECONDS,
@@ -279,6 +281,7 @@ async function writeSessionToKV(env: Env, token: string, authed: AuthedRequest):
 }
 
 async function deleteSessionFromKV(env: Env, token: string): Promise<void> {
+  if (!env?.SESSIONS) return;
   try {
     await env.SESSIONS.delete(sessionKvKey(token));
   } catch (err) {
