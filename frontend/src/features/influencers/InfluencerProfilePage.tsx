@@ -406,7 +406,14 @@ function InfluencerProfilePage() {
           if (!id) return
           updateInfluencer.mutate(
             { id, data },
-            { onSuccess: () => setIsEditOpen(false) }
+            {
+              onSuccess: (updated) => {
+                setIsEditOpen(false)
+                if (updated?.id && updated.id !== id) {
+                  navigate(`/influencers/${updated.id}`, { replace: true })
+                }
+              },
+            }
           )
         }}
       />

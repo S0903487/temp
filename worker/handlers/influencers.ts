@@ -436,6 +436,11 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   if (!existing) return notFound();
 
   const body = await readJson<InfluencerBody>(request);
+
+  if ('username' in body && (!body.username || !body.username.trim())) {
+    return badRequest('Username cannot be empty.');
+  }
+
   if (body.profileImage && body.profileImage.length > 200_000) {
     return badRequest('profileImage is too large — it should be a resized (256x256) image');
   }
@@ -443,88 +448,112 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 
   if (sets.length === 0) return badRequest('No fields to update');
 
-  // id is now `username.platform`. If either changes, the id must be
-  // renamed to match — otherwise the whole point of a deterministic,
-  // human-readable id (and the id-derivation bulkUpdate() relies on)
-  // silently breaks the moment someone edits a username typo.
+  // id is derived as `username.platform`. If either changes, the id must be
+  // renamed to match across all tables.
   const existingRow = existing as Record<string, unknown>;
-  const nextUsername = (body.username ?? (existingRow.username as string)) as string;
-  const nextPlatform = (body.platform ?? (existingRow.platform as string)) as string;
+  const nextUsername = (body.username !== undefined ? body.username : (existingRow.username as string)) || '';
+  const nextPlatform = (body.platform !== undefined ? body.platform : (existingRow.platform as string)) || 'Instagram';
+
+  if (!nextUsername.trim()) {
+    return badRequest('Username cannot be empty.');
+  }
+
   const newId = ('username' in body || 'platform' in body) ? slugifyInfluencerId(nextUsername, nextPlatform) : id;
+
+  if (newId === '.' || newId.startsWith('.')) {
+    return badRequest('Username must contain at least one letter or number.');
+  }
 
   let effectiveId = id;
   if (newId !== id) {
+    // Check if an influencer with the new ID already exists
+    const existingConflict = await env.DB.prepare('SELECT id FROM influencers WHERE id = ?').bind(newId).first();
+    if (existingConflict) {
+      return conflict(`An influencer with handle "${nextUsername}" on ${nextPlatform} already exists.`);
+    }
+
     try {
       await env.DB.batch([
+        env.DB.prepare('PRAGMA defer_foreign_keys = ON'),
+        env.DB.prepare('UPDATE influencers SET id = ? WHERE id = ?').bind(newId, id),
         env.DB.prepare('UPDATE campaign_influencers SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
         env.DB.prepare('UPDATE influencer_notes SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
         env.DB.prepare('UPDATE influencer_snapshots SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
         env.DB.prepare('UPDATE influencer_tags SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
-        env.DB.prepare('UPDATE influencers SET id = ? WHERE id = ?').bind(newId, id),
+        env.DB.prepare('UPDATE analytics_records SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
       ]);
       effectiveId = newId;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes('UNIQUE constraint failed')) {
-        return conflict(`Renaming to "${newId}" conflicts with an existing influencer on that platform.`);
+        return conflict(`An influencer with handle "${nextUsername}" on ${nextPlatform} already exists.`);
       }
-      throw err;
+      return badRequest(`Could not rename creator handle: ${message}`);
     }
   }
-  id = effectiveId; // reassign so every later reference in this function (snapshot insert, response) uses the renamed id
+  id = effectiveId; // reassign so every later reference uses the renamed id
 
-  sets.push('updated_at = ?');
-  values.push(nowIso());
-  values.push(id);
+  try {
+    sets.push('updated_at = ?');
+    values.push(nowIso());
+    values.push(id);
 
-  await env.DB.prepare(`UPDATE influencers SET ${sets.join(', ')} WHERE id = ?`)
-    .bind(...values)
-    .run();
-
-  const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
-
-  const snapColumns = await getSnapshotColumns(env.DB);
-  const growthFields: (keyof InfluencerBody)[] = ['followers', 'averageViews', 'averageLikes', 'averageComments', 'engagementRate'];
-  if (growthFields.some((field) => field in body)) {
-    const r = row as Record<string, unknown>;
-    const snapCols: string[] = ['id', 'influencer_id', 'date', 'followers', 'engagement_rate', 'created_at'];
-    const snapPlaceholders: string[] = ['?', '?', 'date(?)', '?', '?', '?'];
-    const snapVals: unknown[] = [
-      generateId('snap'),
-      id,
-      nowIso(),
-      r.followers,
-      r.engagement_rate,
-      nowIso()
-    ];
-
-    const snapViewsCol = snapColumns.includes('average_views') ? 'average_views' : (snapColumns.includes('total_views') ? 'total_views' : null);
-    if (snapViewsCol) {
-      snapCols.push(snapViewsCol);
-      snapPlaceholders.push('?');
-      snapVals.push(r.average_views !== undefined && r.average_views !== null ? r.average_views : (r.total_views !== undefined && r.total_views !== null ? r.total_views : 0));
-    }
-    const snapLikesCol = snapColumns.includes('average_likes') ? 'average_likes' : (snapColumns.includes('total_likes') ? 'total_likes' : null);
-    if (snapLikesCol) {
-      snapCols.push(snapLikesCol);
-      snapPlaceholders.push('?');
-      snapVals.push(r.average_likes !== undefined && r.average_likes !== null ? r.average_likes : (r.total_likes !== undefined && r.total_likes !== null ? r.total_likes : 0));
-    }
-    const snapCommentsCol = snapColumns.includes('average_comments') ? 'average_comments' : (snapColumns.includes('total_comments') ? 'total_comments' : null);
-    if (snapCommentsCol) {
-      snapCols.push(snapCommentsCol);
-      snapPlaceholders.push('?');
-      snapVals.push(r.average_comments !== undefined && r.average_comments !== null ? r.average_comments : (r.total_comments !== undefined && r.total_comments !== null ? r.total_comments : 0));
-    }
-
-    await env.DB.prepare(
-      `INSERT INTO influencer_snapshots (${snapCols.join(', ')}) VALUES (${snapPlaceholders.join(', ')})`
-    )
-      .bind(...snapVals)
+    await env.DB.prepare(`UPDATE influencers SET ${sets.join(', ')} WHERE id = ?`)
+      .bind(...values)
       .run();
-  }
 
-  return json(toApi(row as Record<string, unknown>));
+    const row = await env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id).first();
+    if (!row) return notFound();
+
+    const snapColumns = await getSnapshotColumns(env.DB);
+    const growthFields: (keyof InfluencerBody)[] = ['followers', 'averageViews', 'averageLikes', 'averageComments', 'engagementRate'];
+    if (growthFields.some((field) => field in body)) {
+      const r = row as Record<string, unknown>;
+      const snapCols: string[] = ['id', 'influencer_id', 'date', 'followers', 'engagement_rate', 'created_at'];
+      const snapPlaceholders: string[] = ['?', '?', 'date(?)', '?', '?', '?'];
+      const snapVals: unknown[] = [
+        generateId('snap'),
+        id,
+        nowIso(),
+        r.followers,
+        r.engagement_rate,
+        nowIso()
+      ];
+
+      const snapViewsCol = snapColumns.includes('average_views') ? 'average_views' : (snapColumns.includes('total_views') ? 'total_views' : null);
+      if (snapViewsCol) {
+        snapCols.push(snapViewsCol);
+        snapPlaceholders.push('?');
+        snapVals.push(r.average_views !== undefined && r.average_views !== null ? r.average_views : (r.total_views !== undefined && r.total_views !== null ? r.total_views : 0));
+      }
+      const snapLikesCol = snapColumns.includes('average_likes') ? 'average_likes' : (snapColumns.includes('total_likes') ? 'total_likes' : null);
+      if (snapLikesCol) {
+        snapCols.push(snapLikesCol);
+        snapPlaceholders.push('?');
+        snapVals.push(r.average_likes !== undefined && r.average_likes !== null ? r.average_likes : (r.total_likes !== undefined && r.total_likes !== null ? r.total_likes : 0));
+      }
+      const snapCommentsCol = snapColumns.includes('average_comments') ? 'average_comments' : (snapColumns.includes('total_comments') ? 'total_comments' : null);
+      if (snapCommentsCol) {
+        snapCols.push(snapCommentsCol);
+        snapPlaceholders.push('?');
+        snapVals.push(r.average_comments !== undefined && r.average_comments !== null ? r.average_comments : (r.total_comments !== undefined && r.total_comments !== null ? r.total_comments : 0));
+      }
+
+      await env.DB.prepare(
+        `INSERT INTO influencer_snapshots (${snapCols.join(', ')}) VALUES (${snapPlaceholders.join(', ')})`
+      )
+        .bind(...snapVals)
+        .run();
+    }
+
+    return json(toApi(row as Record<string, unknown>));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes('UNIQUE constraint failed')) {
+      return conflict(`An influencer with handle "${nextUsername}" on ${nextPlatform} already exists.`);
+    }
+    return badRequest(`Failed to update influencer: ${message}`);
+  }
 }
 
 // POST /api/influencers/bulk

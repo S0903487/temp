@@ -74,8 +74,11 @@ class LocalD1PreparedStatement {
   private stmt: Database.Statement;
   private boundArgs: any[] = [];
 
-  constructor(stmt: Database.Statement) {
+  sql: string;
+
+  constructor(stmt: Database.Statement, sql: string) {
     this.stmt = stmt;
+    this.sql = sql;
   }
 
   bind(...args: any[]) {
@@ -137,16 +140,24 @@ class LocalD1Database {
 
   prepare(sql: string) {
     const stmt = this.db.prepare(sql);
-    return new LocalD1PreparedStatement(stmt);
+    return new LocalD1PreparedStatement(stmt, sql);
   }
 
   async batch(statements: LocalD1PreparedStatement[]) {
-    // Cloudflare batch API stub (not heavily used in this app, but let's implement just in case)
-    const results = [];
-    for (const stmt of statements) {
-      results.push(await stmt.all());
-    }
-    return results;
+    const runInTransaction = this.db.transaction((stmts: LocalD1PreparedStatement[]) => {
+      const results = [];
+      for (const stmt of stmts) {
+        const trimmed = stmt.sql.trim().toUpperCase();
+        if (trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA')) {
+          results.push({ results: stmt.stmt.all(...stmt['boundArgs']) });
+        } else {
+          const info = stmt.stmt.run(...stmt['boundArgs']);
+          results.push({ results: [], meta: { changes: info.changes } });
+        }
+      }
+      return results;
+    });
+    return runInTransaction(statements);
   }
 
   async exec(sql: string) {
