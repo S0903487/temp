@@ -8,8 +8,9 @@ export async function list(_request: Request, env: Env, auth: AuthedRequest): Pr
     `SELECT u.id, u.organization_id, u.name, u.email, u.role, u.is_frozen, u.created_at, o.name as organization_name
      FROM users u
      LEFT JOIN organizations o ON o.id = u.organization_id
+     WHERE u.organization_id = ?
      ORDER BY u.created_at DESC`
-  ).all();
+  ).bind(auth.organizationId).all();
 
   return json(
     results.map((row: any) => ({

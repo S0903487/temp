@@ -123,12 +123,8 @@ function toApi(row: Record<string, unknown>) {
 }
 
 async function getInfluencerById(env: Env, auth: AuthedRequest, id: string) {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM influencers WHERE id = ?'
-    : 'SELECT * FROM influencers WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
+  const query = 'SELECT * FROM influencers WHERE id = ? AND organization_id = ?';
+  const stmt = env.DB.prepare(query).bind(id, auth.organizationId);
   return stmt.first();
 }
 
@@ -149,13 +145,8 @@ export async function list(request: Request, env: Env, auth: AuthedRequest): Pro
   const sortFieldParam = url.searchParams.get('sortField');
   const sortOrderParam = url.searchParams.get('sortOrder');
 
-  const conditions: string[] = [];
-  const bindArgs: unknown[] = [];
-
-  if (auth.role !== 'admin') {
-    conditions.push('organization_id = ?');
-    bindArgs.push(auth.organizationId);
-  }
+  const conditions: string[] = ['organization_id = ?'];
+  const bindArgs: unknown[] = [auth.organizationId];
 
   if (searchParam && searchParam.trim()) {
     const q = `%${searchParam.trim().toLowerCase()}%`;
@@ -682,11 +673,8 @@ export async function bulkUpdate(request: Request, env: Env, auth: AuthedRequest
 
   const runnable = resolved.filter((r): r is Extract<Resolved, { id: string }> => 'id' in r);
 
-  const orgClause = auth.role === 'admin' ? '' : ' AND organization_id = ?';
   const statements = runnable.map((r) =>
-    auth.role === 'admin'
-      ? env.DB.prepare(`UPDATE influencers SET ${r.sets.join(', ')} WHERE id = ?`).bind(...r.values)
-      : env.DB.prepare(`UPDATE influencers SET ${r.sets.join(', ')} WHERE id = ?${orgClause}`).bind(...r.values, auth.organizationId)
+    env.DB.prepare(`UPDATE influencers SET ${r.sets.join(', ')} WHERE id = ? AND organization_id = ?`).bind(...r.values, auth.organizationId)
   );
 
   const batchResults = statements.length > 0 ? await env.DB.batch(statements) : [];
@@ -752,14 +740,16 @@ export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest
     const stmt = env.DB.prepare(`
       INSERT INTO influencers (
         id, organization_id, full_name, username, platform, category, country, language,
-        followers, following, total_posts, engagement_rate, average_views, average_likes, average_comments,
-        email, phone, price_post, price_story, verified, brand_safe, status, pipeline_status,
-        notes, tags, bio, profile_image, profile_link, created_at, updated_at
+        followers, following, total_posts, first_joined_date, engagement_rate, average_views, average_likes, average_comments,
+        total_views, total_likes, total_comments, email, phone, price_post, price_story,
+        verified, brand_safe, status, pipeline_status, notes, tags, bio, profile_image, profile_link,
+        roi, cpa, cpi, ltv, created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?
       )
       ON CONFLICT(id) DO UPDATE SET
         full_name = excluded.full_name,
@@ -769,10 +759,14 @@ export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest
         followers = CASE WHEN excluded.followers > 0 THEN excluded.followers ELSE influencers.followers END,
         following = CASE WHEN excluded.following > 0 THEN excluded.following ELSE influencers.following END,
         total_posts = CASE WHEN excluded.total_posts > 0 THEN excluded.total_posts ELSE influencers.total_posts END,
+        first_joined_date = COALESCE(excluded.first_joined_date, influencers.first_joined_date),
         engagement_rate = CASE WHEN excluded.engagement_rate > 0 THEN excluded.engagement_rate ELSE influencers.engagement_rate END,
         average_views = CASE WHEN excluded.average_views > 0 THEN excluded.average_views ELSE influencers.average_views END,
         average_likes = CASE WHEN excluded.average_likes > 0 THEN excluded.average_likes ELSE influencers.average_likes END,
         average_comments = CASE WHEN excluded.average_comments > 0 THEN excluded.average_comments ELSE influencers.average_comments END,
+        total_views = CASE WHEN excluded.total_views > 0 THEN excluded.total_views ELSE influencers.total_views END,
+        total_likes = CASE WHEN excluded.total_likes > 0 THEN excluded.total_likes ELSE influencers.total_likes END,
+        total_comments = CASE WHEN excluded.total_comments > 0 THEN excluded.total_comments ELSE influencers.total_comments END,
         email = COALESCE(excluded.email, influencers.email),
         phone = COALESCE(excluded.phone, influencers.phone),
         price_post = COALESCE(excluded.price_post, influencers.price_post),
@@ -786,6 +780,10 @@ export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest
         bio = COALESCE(excluded.bio, influencers.bio),
         profile_image = COALESCE(excluded.profile_image, influencers.profile_image),
         profile_link = COALESCE(excluded.profile_link, influencers.profile_link),
+        roi = COALESCE(excluded.roi, influencers.roi),
+        cpa = COALESCE(excluded.cpa, influencers.cpa),
+        cpi = COALESCE(excluded.cpi, influencers.cpi),
+        ltv = COALESCE(excluded.ltv, influencers.ltv),
         updated_at = excluded.updated_at
     `).bind(
       id,
@@ -799,10 +797,14 @@ export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest
       cleanNum(item.followers, 0),
       cleanNum(item.following, 0),
       cleanNum(item.totalPosts, 0),
+      item.firstJoinedDate || null,
       cleanNum(item.engagementRate, 0),
       cleanNum(item.averageViews, 0),
       cleanNum(item.averageLikes, 0),
       cleanNum(item.averageComments, 0),
+      cleanNum(item.totalViews, 0),
+      cleanNum(item.totalLikes, 0),
+      cleanNum(item.totalComments, 0),
       item.email || null,
       item.phone || null,
       cleanNumOrNull(item.pricePost),
@@ -816,6 +818,10 @@ export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest
       item.bio || null,
       item.profileImage || null,
       item.profileLink || null,
+      cleanNumOrNull(item.roi),
+      cleanNumOrNull(item.cpa),
+      cleanNumOrNull(item.cpi),
+      cleanNumOrNull(item.ltv),
       now,
       now
     );
@@ -848,8 +854,6 @@ export async function bulkDelete(request: Request, env: Env, auth: AuthedRequest
   }
 
   const placeholders = ids.map(() => '?').join(',');
-  const orgClause = auth.role === 'admin' ? '' : ' AND organization_id = ?';
-  const orgArgs = auth.role === 'admin' ? [] : [auth.organizationId];
 
   await env.DB.batch([
     env.DB.prepare(`DELETE FROM influencer_snapshots WHERE influencer_id IN (${placeholders})`).bind(...ids),
@@ -859,8 +863,8 @@ export async function bulkDelete(request: Request, env: Env, auth: AuthedRequest
     env.DB.prepare(`DELETE FROM analytics_records WHERE influencer_id IN (${placeholders})`).bind(...ids),
   ]);
 
-  const deleteRes = await env.DB.prepare(`DELETE FROM influencers WHERE id IN (${placeholders})${orgClause}`)
-    .bind(...ids, ...orgArgs)
+  const deleteRes = await env.DB.prepare(`DELETE FROM influencers WHERE id IN (${placeholders}) AND organization_id = ?`)
+    .bind(...ids, auth.organizationId)
     .run();
 
   return json({
@@ -870,13 +874,7 @@ export async function bulkDelete(request: Request, env: Env, auth: AuthedRequest
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const checkQuery = auth.role === 'admin'
-    ? 'SELECT id FROM influencers WHERE id = ?'
-    : 'SELECT id FROM influencers WHERE id = ? AND organization_id = ?';
-  const checkStmt = auth.role === 'admin'
-    ? env.DB.prepare(checkQuery).bind(id)
-    : env.DB.prepare(checkQuery).bind(id, auth.organizationId);
-  const existing = await checkStmt.first();
+  const existing = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId).first();
   if (!existing) return notFound();
 
   // Explicitly clear out all child tables for this influencer
@@ -886,13 +884,7 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
   await env.DB.prepare('DELETE FROM campaign_influencers WHERE influencer_id = ?').bind(id).run();
   await env.DB.prepare('DELETE FROM analytics_records WHERE influencer_id = ?').bind(id).run();
 
-  const query = auth.role === 'admin'
-    ? 'DELETE FROM influencers WHERE id = ?'
-    : 'DELETE FROM influencers WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
-  await stmt.run();
+  await env.DB.prepare('DELETE FROM influencers WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId).run();
 
   return json({ success: true });
 }
@@ -902,11 +894,7 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
 // batch() round trip instead of 5 separate requests each paying their own
 // ~300ms D1 connection overhead.
 export async function getFull(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const isAdmin = auth.role === 'admin';
-
-  const influencerStmt = isAdmin
-    ? env.DB.prepare('SELECT * FROM influencers WHERE id = ?').bind(id)
-    : env.DB.prepare('SELECT * FROM influencers WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId);
+  const influencerStmt = env.DB.prepare('SELECT * FROM influencers WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId);
 
   const tagsStmt = env.DB.prepare(
     `SELECT t.id, t.name FROM influencer_tags it JOIN tags t ON t.id = it.tag_id WHERE it.influencer_id = ? ORDER BY t.name`
@@ -920,22 +908,13 @@ export async function getFull(_request: Request, env: Env, auth: AuthedRequest, 
     'SELECT * FROM influencer_snapshots WHERE influencer_id = ? ORDER BY date ASC'
   ).bind(id);
 
-  const campaignsSql = isAdmin
-    ? `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
-       FROM campaign_influencers ci
-       JOIN campaigns c ON c.id = ci.campaign_id
-       JOIN clients cl ON cl.id = c.client_id
-       WHERE ci.influencer_id = ?
-       ORDER BY c.start_date DESC`
-    : `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+  const campaignsSql = `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
        FROM campaign_influencers ci
        JOIN campaigns c ON c.id = ci.campaign_id
        JOIN clients cl ON cl.id = c.client_id
        WHERE ci.influencer_id = ? AND cl.organization_id = ?
        ORDER BY c.start_date DESC`;
-  const campaignsStmt = isAdmin
-    ? env.DB.prepare(campaignsSql).bind(id)
-    : env.DB.prepare(campaignsSql).bind(id, auth.organizationId);
+  const campaignsStmt = env.DB.prepare(campaignsSql).bind(id, auth.organizationId);
 
   const [influencerRes, tagsRes, notesRes, snapshotsRes, campaignsRes] = await env.DB.batch([
     influencerStmt,
@@ -979,22 +958,13 @@ export async function getCampaigns(_request: Request, env: Env, auth: AuthedRequ
   const influencer = await getInfluencerById(env, auth, id);
   if (!influencer) return notFound();
 
-  const sql = auth.role === 'admin'
-    ? `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
-       FROM campaign_influencers ci
-       JOIN campaigns c ON c.id = ci.campaign_id
-       JOIN clients cl ON cl.id = c.client_id
-       WHERE ci.influencer_id = ?
-       ORDER BY c.start_date DESC`
-    : `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
+  const sql = `SELECT c.id, c.name, c.status, c.start_date, c.end_date, c.budget, cl.name AS client_name, ci.added_at
        FROM campaign_influencers ci
        JOIN campaigns c ON c.id = ci.campaign_id
        JOIN clients cl ON cl.id = c.client_id
        WHERE ci.influencer_id = ? AND cl.organization_id = ?
        ORDER BY c.start_date DESC`;
-  const campaignStmt = auth.role === 'admin'
-    ? env.DB.prepare(sql).bind(id)
-    : env.DB.prepare(sql).bind(id, auth.organizationId);
+  const campaignStmt = env.DB.prepare(sql).bind(id, auth.organizationId);
   const { results } = await campaignStmt.all();
 
   return json(

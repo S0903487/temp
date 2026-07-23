@@ -22,22 +22,14 @@ function toApi(row: Record<string, unknown>) {
 }
 
 async function getClientById(env: Env, auth: AuthedRequest, id: string) {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM clients WHERE id = ?'
-    : 'SELECT * FROM clients WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
+  const query = 'SELECT * FROM clients WHERE id = ? AND organization_id = ?';
+  const stmt = env.DB.prepare(query).bind(id, auth.organizationId);
   return stmt.first();
 }
 
 export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM clients ORDER BY created_at DESC'
-    : 'SELECT * FROM clients WHERE organization_id = ? ORDER BY created_at DESC';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query)
-    : env.DB.prepare(query).bind(auth.organizationId);
+  const query = 'SELECT * FROM clients WHERE organization_id = ? ORDER BY created_at DESC';
+  const stmt = env.DB.prepare(query).bind(auth.organizationId);
   const { results } = await stmt.all();
   return json(results.map(toApi));
 }
@@ -99,13 +91,7 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const checkQuery = auth.role === 'admin'
-    ? 'SELECT id FROM clients WHERE id = ?'
-    : 'SELECT id FROM clients WHERE id = ? AND organization_id = ?';
-  const checkStmt = auth.role === 'admin'
-    ? env.DB.prepare(checkQuery).bind(id)
-    : env.DB.prepare(checkQuery).bind(id, auth.organizationId);
-  const existing = await checkStmt.first();
+  const existing = await env.DB.prepare('SELECT id FROM clients WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId).first();
   if (!existing) return notFound();
 
   // Clean up campaigns, campaign influencers, and analytics records belonging to this client's campaigns
@@ -113,13 +99,7 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
   await env.DB.prepare('DELETE FROM analytics_records WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
   await env.DB.prepare('DELETE FROM campaigns WHERE client_id = ?').bind(id).run();
 
-  const query = auth.role === 'admin'
-    ? 'DELETE FROM clients WHERE id = ?'
-    : 'DELETE FROM clients WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
-  await stmt.run();
+  await env.DB.prepare('DELETE FROM clients WHERE id = ? AND organization_id = ?').bind(id, auth.organizationId).run();
 
   return json({ success: true });
 }

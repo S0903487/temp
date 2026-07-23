@@ -66,7 +66,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
     }
 
     const username = getVal('username', 'handle', 'user', 'instagram', 'tiktok', 'youtube', 'social handle', 'creator handle')
-    const fullName = getVal('fullName', 'full_name', 'name', 'creator name', 'creator', 'influencer', 'title') || username
+    const fullName = getVal('fullName', 'full_name', 'name', 'creator name', 'creator', 'influencer', 'title', 'full name') || username
     const platform = getVal('platform', 'network', 'channel') || 'Instagram'
 
     if (!username && !fullName) return null
@@ -77,29 +77,66 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
       return isNaN(num) ? undefined : num
     }
 
+    const cleanBool = (val: unknown) => {
+      if (val === undefined || val === null || val === '') return undefined
+      if (typeof val === 'boolean') return val
+      const str = String(val).trim().toLowerCase()
+      return str === 'true' || str === 'yes' || str === '1'
+    }
+
     const platformStr = String(platform)
     const validPlatform = (['Instagram', 'TikTok', 'YouTube'].includes(platformStr) ? platformStr : 'Instagram') as 'Instagram' | 'TikTok' | 'YouTube'
+
+    const rawTags = getVal('tags', 'tag_list', 'tag')
+    let tagsList: string[] | undefined = undefined
+    if (Array.isArray(rawTags)) {
+      tagsList = rawTags.map(String)
+    } else if (typeof rawTags === 'string' && rawTags.trim()) {
+      try {
+        const parsed = JSON.parse(rawTags)
+        if (Array.isArray(parsed)) tagsList = parsed.map(String)
+        else tagsList = rawTags.split(/[,;]/).map((s) => s.trim()).filter(Boolean)
+      } catch {
+        tagsList = rawTags.split(/[,;]/).map((s) => s.trim()).filter(Boolean)
+      }
+    }
 
     return {
       id: getVal('id', 'influencer_id', 'profile_id') ? String(getVal('id', 'influencer_id', 'profile_id')) : undefined,
       fullName: String(fullName),
       username: username ? String(username).replace(/^@/, '').trim() : undefined,
       platform: validPlatform,
-      category: getVal('category', 'niche', 'industry', 'tags') ? String(getVal('category', 'niche', 'industry')) : undefined,
+      category: getVal('category', 'niche', 'industry') ? String(getVal('category', 'niche', 'industry')) : undefined,
       country: getVal('country', 'location', 'region') ? String(getVal('country', 'location', 'region')) : undefined,
       language: getVal('language', 'lang') ? String(getVal('language', 'lang')) : undefined,
       followers: cleanNumber(getVal('followers', 'follower_count', 'followers_count', 'audience')),
       following: cleanNumber(getVal('following', 'following_count')),
       totalPosts: cleanNumber(getVal('totalPosts', 'total_posts', 'posts')),
+      firstJoinedDate: getVal('firstJoinedDate', 'first_joined_date', 'joined_date') ? String(getVal('firstJoinedDate', 'first_joined_date', 'joined_date')) : undefined,
       engagementRate: cleanNumber(getVal('engagementRate', 'engagement_rate', 'engagement', 'eng_rate')),
       averageViews: cleanNumber(getVal('averageViews', 'average_views', 'views', 'avg_views')),
+      averageLikes: cleanNumber(getVal('averageLikes', 'average_likes', 'likes', 'avg_likes')),
+      averageComments: cleanNumber(getVal('averageComments', 'average_comments', 'comments', 'avg_comments')),
+      totalViews: cleanNumber(getVal('totalViews', 'total_views')),
+      totalLikes: cleanNumber(getVal('totalLikes', 'total_likes')),
+      totalComments: cleanNumber(getVal('totalComments', 'total_comments')),
       email: getVal('email', 'contact_email', 'mail') ? String(getVal('email', 'contact_email', 'mail')) : undefined,
       phone: getVal('phone', 'contact_phone', 'mobile') ? String(getVal('phone', 'contact_phone', 'mobile')) : undefined,
       pipelineStatus: getVal('pipelineStatus', 'pipeline_status', 'outreach_stage', 'stage', 'pipeline') ? String(getVal('pipelineStatus', 'pipeline_status', 'outreach_stage', 'stage', 'pipeline')) : 'New',
       status: getVal('status', 'health_status') ? String(getVal('status', 'health_status')) : 'Active',
-      pricePost: cleanNumber(getVal('pricePost', 'price_post', 'rate_post', 'price')),
-      priceStory: cleanNumber(getVal('priceStory', 'price_story', 'rate_story')),
-      bio: getVal('bio', 'description', 'notes') ? String(getVal('bio', 'description', 'notes')) : undefined,
+      pricePost: cleanNumber(getVal('pricePost', 'price_post', 'rate_post', 'price', 'price post')),
+      priceStory: cleanNumber(getVal('priceStory', 'price_story', 'rate_story', 'price story')),
+      verified: cleanBool(getVal('verified', 'is_verified')),
+      brandSafe: cleanBool(getVal('brandSafe', 'brand_safe', 'is_brand_safe')),
+      notes: getVal('notes', 'internal_notes', 'remarks') ? String(getVal('notes', 'internal_notes', 'remarks')) : undefined,
+      tags: tagsList,
+      bio: getVal('bio', 'description', 'about') ? String(getVal('bio', 'description', 'about')) : undefined,
+      profileImage: getVal('profileImage', 'profile_image', 'avatar', 'avatar_url', 'image') ? String(getVal('profileImage', 'profile_image', 'avatar', 'avatar_url', 'image')) : undefined,
+      profileLink: getVal('profileLink', 'profile_link', 'url', 'social_link', 'link') ? String(getVal('profileLink', 'profile_link', 'url', 'social_link', 'link')) : undefined,
+      roi: cleanNumber(getVal('roi')),
+      cpa: cleanNumber(getVal('cpa')),
+      cpi: cleanNumber(getVal('cpi')),
+      ltv: cleanNumber(getVal('ltv')),
     }
   }
 
