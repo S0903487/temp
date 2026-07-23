@@ -153,23 +153,90 @@ export default function InfluencersPage() {
     return sorted.slice(start, start + state.pageSize)
   }, [sorted, state.currentPage, state.pageSize])
 
-  // CSV Exporter Action (Selected or Filtered rows)
+  // CSV Exporter Action (Selected or Filtered rows with every single detail)
   const handleExportCSV = () => {
     const listToExport = state.selectedIds.length > 0
       ? sorted.filter((i) => state.selectedIds.includes(i.id))
       : sorted
 
-    const headers = ['Full Name', 'Username', 'Platform', 'Category', 'Followers', 'Engagement Rate', 'Email', 'Phone', 'Pipeline Status']
+    const headers = [
+      'ID',
+      'Full Name',
+      'Username',
+      'Platform',
+      'Category',
+      'Country',
+      'Language',
+      'Followers',
+      'Following',
+      'Total Posts',
+      'First Joined Date',
+      'Engagement Rate (%)',
+      'Average Views',
+      'Total Views',
+      'Average Likes',
+      'Total Likes',
+      'Average Comments',
+      'Total Comments',
+      'Email',
+      'Phone',
+      'Price Post',
+      'Price Story',
+      'Verified',
+      'Brand Safe',
+      'Status',
+      'Pipeline Status',
+      'Bio',
+      'Notes',
+      'Tags',
+      'Profile Image',
+      'Profile Link',
+      'ROI (%)',
+      'CPA ($)',
+      'CPI ($)',
+      'LTV ($)',
+      'Created By',
+      'Created At',
+    ]
+
     const rows = listToExport.map((i) => [
+      i.id,
       i.fullName,
       i.username || '',
       i.platform,
       i.category || '',
+      i.country || '',
+      i.language || '',
       i.followers,
+      i.following || 0,
+      i.totalPosts || 0,
+      i.firstJoinedDate || '',
       i.engagementRate,
+      i.averageViews || 0,
+      i.totalViews || 0,
+      i.averageLikes || 0,
+      i.totalLikes || 0,
+      i.averageComments || 0,
+      i.totalComments || 0,
       i.email || '',
       i.phone || '',
+      i.pricePost || '',
+      i.priceStory || '',
+      i.verified ? 'Yes' : 'No',
+      i.brandSafe ? 'Yes' : 'No',
+      i.status,
       i.pipelineStatus,
+      i.bio || '',
+      i.notes || '',
+      (i.tags || []).join('; '),
+      i.profileImage || '',
+      i.profileLink || '',
+      i.roi ?? '',
+      i.cpa ?? '',
+      i.cpi ?? '',
+      i.ltv ?? '',
+      i.createdByName || i.createdBy || '',
+      i.createdAt || '',
     ])
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [
@@ -180,7 +247,7 @@ export default function InfluencersPage() {
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `influenceos_creators_export_${new Date().toISOString().slice(0, 10)}.csv`)
+    link.setAttribute('download', `influenceos_creators_full_export_${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -240,12 +307,12 @@ export default function InfluencersPage() {
 
         {/* Floating Bulk Actions Bar when items selected */}
         {state.selectedIds.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-800 animate-in slide-in-from-bottom-4 duration-200 text-xs">
-            <div className="flex items-center gap-2 font-extrabold pr-3 border-r border-slate-700">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-slate-950 text-[10px]">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-xl border border-slate-200 animate-in slide-in-from-bottom-4 duration-200 text-xs">
+            <div className="flex items-center gap-2 font-bold pr-3 border-r border-slate-200">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-white text-[10px] font-bold">
                 {state.selectedIds.length}
               </span>
-              <span>Selected</span>
+              <span className="text-slate-800">Selected</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -257,7 +324,7 @@ export default function InfluencersPage() {
                   }
                 }}
                 defaultValue=""
-                className="bg-slate-800 text-white rounded border border-slate-700 px-2.5 py-1 text-xs font-bold cursor-pointer focus:ring-0"
+                className="bg-slate-50 text-slate-900 rounded border border-slate-200 px-2.5 py-1 text-xs font-semibold cursor-pointer focus:outline-none focus:border-black"
               >
                 <option value="" disabled>
                   Set Pipeline Stage...
@@ -272,7 +339,7 @@ export default function InfluencersPage() {
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1 rounded font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1 bg-black hover:bg-slate-800 text-white px-3 py-1 rounded font-bold transition cursor-pointer"
               >
                 <Download size={13} />
                 <span>Export ({state.selectedIds.length})</span>
@@ -281,7 +348,7 @@ export default function InfluencersPage() {
               <button
                 type="button"
                 onClick={handleBulkDelete}
-                className="inline-flex items-center gap-1 bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1 rounded font-bold transition cursor-pointer"
               >
                 <Trash2 size={13} />
                 <span>Delete</span>
@@ -291,7 +358,7 @@ export default function InfluencersPage() {
             <button
               type="button"
               onClick={() => state.setSelectedIds([])}
-              className="ml-2 rounded p-1 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              className="ml-1 rounded p-1 text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
               title="Deselect All"
             >
               <X size={14} />

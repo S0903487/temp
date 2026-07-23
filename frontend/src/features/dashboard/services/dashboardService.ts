@@ -4,6 +4,15 @@ export interface DashboardSummary {
   clients: {
     total: number;
     newProspects: number;
+    top?: Array<{
+      id: string;
+      name: string;
+      contactEmail: string | null;
+      industry: string | null;
+      status: string;
+      createdBy: string | null;
+      createdByName: string;
+    }>;
   };
   campaigns: {
     total: number;
@@ -18,6 +27,8 @@ export interface DashboardSummary {
       username: string | null;
       followers: number;
       pipelineStatus: string;
+      createdBy: string | null;
+      createdByName: string;
     }>;
   };
 }

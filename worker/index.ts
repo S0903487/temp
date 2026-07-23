@@ -346,6 +346,16 @@ async function ensureSchemaUpToDate(db: any) {
       if (!infCols.includes('first_joined_date')) {
         await db.prepare("ALTER TABLE influencers ADD COLUMN first_joined_date TEXT").run().catch(() => undefined);
       }
+      if (!infCols.includes('created_by')) {
+        await db.prepare("ALTER TABLE influencers ADD COLUMN created_by TEXT").run().catch(() => undefined);
+      }
+    }
+
+    // 2.4 Clients table
+    const clientInfo = await db.prepare("PRAGMA table_info(clients)").all();
+    const clientCols = (clientInfo?.results || []).map((c: any) => c.name);
+    if (clientCols.length > 0 && !clientCols.includes('created_by')) {
+      await db.prepare("ALTER TABLE clients ADD COLUMN created_by TEXT").run().catch(() => undefined);
     }
 
     // 3. Create database indexes for performance optimization

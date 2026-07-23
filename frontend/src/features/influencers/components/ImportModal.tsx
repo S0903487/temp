@@ -77,6 +77,14 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
       return isNaN(num) ? undefined : num
     }
 
+    const cleanBool = (val: unknown) => {
+      if (val === undefined || val === null) return undefined
+      const s = String(val).trim().toLowerCase()
+      if (s === 'true' || s === 'yes' || s === '1') return true
+      if (s === 'false' || s === 'no' || s === '0') return false
+      return undefined
+    }
+
     const platformStr = String(platform)
     const validPlatform = (['Instagram', 'TikTok', 'YouTube'].includes(platformStr) ? platformStr : 'Instagram') as 'Instagram' | 'TikTok' | 'YouTube'
 
@@ -85,21 +93,35 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
       fullName: String(fullName),
       username: username ? String(username).replace(/^@/, '').trim() : undefined,
       platform: validPlatform,
-      category: getVal('category', 'niche', 'industry', 'tags') ? String(getVal('category', 'niche', 'industry')) : undefined,
+      category: getVal('category', 'niche', 'industry') ? String(getVal('category', 'niche', 'industry')) : undefined,
       country: getVal('country', 'location', 'region') ? String(getVal('country', 'location', 'region')) : undefined,
       language: getVal('language', 'lang') ? String(getVal('language', 'lang')) : undefined,
       followers: cleanNumber(getVal('followers', 'follower_count', 'followers_count', 'audience')),
       following: cleanNumber(getVal('following', 'following_count')),
       totalPosts: cleanNumber(getVal('totalPosts', 'total_posts', 'posts')),
+      firstJoinedDate: getVal('firstJoinedDate', 'first_joined_date', 'joined_date') ? String(getVal('firstJoinedDate', 'first_joined_date', 'joined_date')) : undefined,
       engagementRate: cleanNumber(getVal('engagementRate', 'engagement_rate', 'engagement', 'eng_rate')),
       averageViews: cleanNumber(getVal('averageViews', 'average_views', 'views', 'avg_views')),
+      totalViews: cleanNumber(getVal('totalViews', 'total_views')),
+      averageLikes: cleanNumber(getVal('averageLikes', 'average_likes', 'avg_likes')),
+      totalLikes: cleanNumber(getVal('totalLikes', 'total_likes')),
+      averageComments: cleanNumber(getVal('averageComments', 'average_comments', 'avg_comments')),
+      totalComments: cleanNumber(getVal('totalComments', 'total_comments')),
       email: getVal('email', 'contact_email', 'mail') ? String(getVal('email', 'contact_email', 'mail')) : undefined,
       phone: getVal('phone', 'contact_phone', 'mobile') ? String(getVal('phone', 'contact_phone', 'mobile')) : undefined,
       pipelineStatus: getVal('pipelineStatus', 'pipeline_status', 'outreach_stage', 'stage', 'pipeline') ? String(getVal('pipelineStatus', 'pipeline_status', 'outreach_stage', 'stage', 'pipeline')) : 'New',
       status: getVal('status', 'health_status') ? String(getVal('status', 'health_status')) : 'Active',
       pricePost: cleanNumber(getVal('pricePost', 'price_post', 'rate_post', 'price')),
       priceStory: cleanNumber(getVal('priceStory', 'price_story', 'rate_story')),
-      bio: getVal('bio', 'description', 'notes') ? String(getVal('bio', 'description', 'notes')) : undefined,
+      verified: cleanBool(getVal('verified', 'is_verified')),
+      brandSafe: cleanBool(getVal('brandSafe', 'brand_safe', 'is_brand_safe')),
+      bio: getVal('bio', 'description') ? String(getVal('bio', 'description')) : undefined,
+      notes: getVal('notes', 'comments') ? String(getVal('notes', 'comments')) : undefined,
+      profileLink: getVal('profileLink', 'profile_link', 'url') ? String(getVal('profileLink', 'profile_link', 'url')) : undefined,
+      roi: cleanNumber(getVal('roi')),
+      cpa: cleanNumber(getVal('cpa')),
+      cpi: cleanNumber(getVal('cpi')),
+      ltv: cleanNumber(getVal('ltv')),
     }
   }
 
@@ -264,8 +286,8 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
       <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900">Bulk Creator Import Engine</h3>
-            <p className="text-[11px] text-slate-500">Upsert 50K+ creator profiles from Excel, CSV, or JSON spreadsheets.</p>
+            <h3 className="text-base font-semibold text-slate-900">Bulk Creator Import Engine</h3>
+            <p className="text-[11px] text-slate-500 font-medium">Upsert 50K+ creator profiles from Excel, CSV, or JSON spreadsheets.</p>
           </div>
           <button onClick={onClose} className="rounded border border-slate-200 p-1 text-slate-400 hover:bg-slate-50 transition cursor-pointer">
             <X size={16} />
@@ -275,7 +297,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
         {status === 'parsing' && (
           <div className="py-12 flex flex-col items-center justify-center text-center">
             <RefreshCw size={28} className="text-slate-900 animate-spin mb-3" />
-            <h4 className="text-sm font-extrabold text-slate-900">Parsing Spreadsheet Records...</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Parsing Spreadsheet Records...</h4>
             <p className="text-xs text-slate-500 mt-1">Normalizing handles, emails, engagement statistics and rates.</p>
           </div>
         )}
@@ -288,7 +310,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
                 style={{ width: `${progress.total ? (progress.current / progress.total) * 100 : 0}%` }}
               />
             </div>
-            <h4 className="text-sm font-extrabold text-slate-900">
+            <h4 className="text-sm font-semibold text-slate-900">
               Syncing {progress.current} of {progress.total} creators to database...
             </h4>
             <p className="text-xs text-slate-500 mt-1">Atomically updating handles and pipeline stages in high-throughput D1 batches.</p>
@@ -300,7 +322,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
             <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 border border-emerald-200">
               <Check size={24} />
             </div>
-            <h4 className="text-sm font-extrabold text-slate-900">Bulk Database Sync Complete</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Bulk Database Sync Complete</h4>
             <p className="text-xs text-slate-500 mt-1">Successfully upserted {parsedData.length} creators into your organization repository.</p>
           </div>
         )}
@@ -308,11 +330,11 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
         {status === 'error' && (
           <div className="py-6 flex flex-col items-center text-center">
             <AlertCircle size={28} className="text-red-500 mb-2" />
-            <h4 className="text-sm font-extrabold text-slate-900">Import Encountered an Error</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Import Encountered an Error</h4>
             <p className="text-xs text-red-600 mt-1 max-w-md bg-red-50 p-2.5 rounded border border-red-200">{errorMessage}</p>
             <button
               onClick={() => setStatus('idle')}
-              className="mt-4 px-4 py-1.5 bg-black text-white rounded text-xs font-bold hover:bg-slate-800 transition cursor-pointer"
+              className="mt-4 px-4 py-1.5 bg-black text-white rounded text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
             >
               Try Again
             </button>
@@ -322,11 +344,11 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
         {status === 'preview' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-slate-50 p-3 rounded border border-slate-200">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
                 <FileText size={16} className="text-slate-500" />
                 <span>{fileName}</span>
               </div>
-              <span className="text-xs font-extrabold bg-black text-white px-2 py-0.5 rounded">
+              <span className="text-xs font-semibold bg-black text-white px-2 py-0.5 rounded">
                 {parsedData.length} Creators Detected
               </span>
             </div>
@@ -393,7 +415,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
                     <FileSpreadsheet size={18} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-black transition">Spreadsheet / JSON Bulk Import</h4>
+                    <h4 className="text-xs font-semibold text-slate-900 group-hover:text-black transition">Spreadsheet / JSON Bulk Import</h4>
                     <p className="text-[10px] text-slate-500 mt-0.5">Upload .xlsx, .csv, or .json with auto-mapped handles, engagement, and rates.</p>
                   </div>
                 </button>
@@ -407,7 +429,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
                     <Camera size={18} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-black transition">Quick Social Handle Add</h4>
+                    <h4 className="text-xs font-semibold text-slate-900 group-hover:text-black transition">Quick Social Handle Add</h4>
                     <p className="text-[10px] text-slate-500 mt-0.5">Quickly import an Instagram, TikTok, or YouTube creator by handle.</p>
                   </div>
                 </button>
@@ -424,7 +446,7 @@ export function ImportModal({ isOpen, onClose, onManualClick, onImportSuccess }:
                     <Sparkles size={18} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-black transition">Single Manual Form Entry</h4>
+                    <h4 className="text-xs font-semibold text-slate-900 group-hover:text-black transition">Single Manual Form Entry</h4>
                     <p className="text-[10px] text-slate-500 mt-0.5">Add a specific partner manually to your roster with custom notes.</p>
                   </div>
                 </button>
