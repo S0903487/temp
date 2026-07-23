@@ -356,6 +356,15 @@ async function ensureSchemaUpToDate(db: any) {
       "CREATE INDEX IF NOT EXISTS idx_campaigns_client ON campaigns(client_id)",
       "CREATE INDEX IF NOT EXISTS idx_influencers_org ON influencers(organization_id)",
       "CREATE INDEX IF NOT EXISTS idx_influencers_created ON influencers(created_at)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_platform ON influencers(organization_id, platform)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_status ON influencers(organization_id, status)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_pipeline ON influencers(organization_id, pipeline_status)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_category ON influencers(organization_id, category)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_country ON influencers(organization_id, country)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_followers ON influencers(organization_id, followers DESC)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_org_eng ON influencers(organization_id, engagement_rate DESC)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_username ON influencers(username)",
+      "CREATE INDEX IF NOT EXISTS idx_influencers_full_name ON influencers(full_name)",
       "CREATE INDEX IF NOT EXISTS idx_tags_org ON tags(organization_id)",
       "CREATE INDEX IF NOT EXISTS idx_influencer_tags_inf ON influencer_tags(influencer_id)",
       "CREATE INDEX IF NOT EXISTS idx_influencer_tags_tag ON influencer_tags(tag_id)",
@@ -458,6 +467,8 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
     if (!id && method === 'POST') return influencerHandlers.create(request, env, auth);
 
     if (id === 'bulk' && !sub && method === 'POST') return influencerHandlers.bulkUpdate(request, env, auth);
+    if (id === 'bulk-upsert' && !sub && method === 'POST') return influencerHandlers.bulkUpsert(request, env, auth);
+    if (id === 'bulk-delete' && !sub && method === 'POST') return influencerHandlers.bulkDelete(request, env, auth);
 
     if (id && !sub && method === 'GET') return influencerHandlers.getById(request, env, auth, id);
     if (id && !sub && (method === 'PUT' || method === 'PATCH')) return influencerHandlers.update(request, env, auth, id);

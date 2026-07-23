@@ -14,9 +14,12 @@
     "db:migrate:local": "wrangler d1 execute influenceos-db --local --file=./schema.sql"
   },
   "dependencies": {
+    "@types/papaparse": "^5.5.2",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "papaparse": "^5.5.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

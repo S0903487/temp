@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { List, Kanban, Grid } from 'lucide-react'
+import { List, Kanban, Grid, Trash2, Download, X } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell'
 import { ColumnSelector } from './components/ColumnSelector'
 import { Pagination } from './components/Pagination'
@@ -18,8 +18,11 @@ import {
   useDeleteInfluencer,
   useInfluencers,
   useUpdateInfluencer,
+  useBulkDeleteInfluencers,
+  useBulkUpsertInfluencers,
 } from './hooks/useInfluencers'
 import type { PipelineStatus } from './types'
+import { PIPELINE_STATUSES } from './types'
 import type { SortField } from './components/InfluencerDataGrid'
 import type { CreateInfluencerInput } from './services/influencerService'
 
@@ -60,6 +63,23 @@ export default function InfluencersPage() {
   const createInfluencer = useCreateInfluencer()
   const updateInfluencer = useUpdateInfluencer()
   const deleteInfluencer = useDeleteInfluencer()
+  const bulkDelete = useBulkDeleteInfluencers()
+  const bulkUpsert = useBulkUpsertInfluencers()
+
+  const handleBulkStageChange = async (pipelineStatus: PipelineStatus) => {
+    if (state.selectedIds.length === 0) return
+    const items = state.selectedIds.map((id) => ({ id, pipelineStatus }))
+    await bulkUpsert.mutateAsync(items)
+    state.setSelectedIds([])
+  }
+
+  const handleBulkDelete = async () => {
+    if (state.selectedIds.length === 0) return
+    if (window.confirm(`Are you sure you want to delete ${state.selectedIds.length} selected creators? This cannot be undone.`)) {
+      await bulkDelete.mutateAsync(state.selectedIds)
+      state.setSelectedIds([])
+    }
+  }
 
   const state = useInfluencerState()
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -218,7 +238,66 @@ export default function InfluencersPage() {
           onApplyPreset={state.applyPreset}
         />
 
-        {/* View Mode Toolbar: Table, Grid or Kanban Board */}
+        {/* Floating Bulk Actions Bar when items selected */}
+        {state.selectedIds.length > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-800 animate-in slide-in-from-bottom-4 duration-200 text-xs">
+            <div className="flex items-center gap-2 font-extrabold pr-3 border-r border-slate-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-slate-950 text-[10px]">
+                {state.selectedIds.length}
+              </span>
+              <span>Selected</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleBulkStageChange(e.target.value as PipelineStatus)
+                    e.target.value = ''
+                  }
+                }}
+                defaultValue=""
+                className="bg-slate-800 text-white rounded border border-slate-700 px-2.5 py-1 text-xs font-bold cursor-pointer focus:ring-0"
+              >
+                <option value="" disabled>
+                  Set Pipeline Stage...
+                </option>
+                {PIPELINE_STATUSES.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1 rounded font-bold transition cursor-pointer"
+              >
+                <Download size={13} />
+                <span>Export ({state.selectedIds.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                className="inline-flex items-center gap-1 bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded font-bold transition cursor-pointer"
+              >
+                <Trash2 size={13} />
+                <span>Delete</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => state.setSelectedIds([])}
+              className="ml-2 rounded p-1 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              title="Deselect All"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
           <div className="flex items-center bg-white border border-slate-200 rounded p-0.5">
             <button

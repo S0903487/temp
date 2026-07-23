@@ -49,8 +49,69 @@ export interface CreateInfluencerInput {
 
 export type UpdateInfluencerInput = Partial<CreateInfluencerInput>;
 
-export async function listInfluencers(): Promise<Influencer[]> {
-  return apiRequest<Influencer[]>('/influencers', { method: 'GET' });
+export interface ListInfluencersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  platform?: string;
+  category?: string;
+  pipelineStatus?: string;
+  status?: string;
+  country?: string;
+  language?: string;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedInfluencersResponse {
+  items: Influencer[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export async function listInfluencers(params?: ListInfluencersParams): Promise<Influencer[]> {
+  if (!params) {
+    return apiRequest<Influencer[]>('/influencers', { method: 'GET' });
+  }
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  if (params.search) query.set('search', params.search);
+  if (params.platform) query.set('platform', params.platform);
+  if (params.category) query.set('category', params.category);
+  if (params.pipelineStatus) query.set('pipelineStatus', params.pipelineStatus);
+  if (params.status) query.set('status', params.status);
+  if (params.country) query.set('country', params.country);
+  if (params.language) query.set('language', params.language);
+  if (params.sortField) query.set('sortField', params.sortField);
+  if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+
+  const res = await apiRequest<PaginatedInfluencersResponse | Influencer[]>(`/influencers?${query.toString()}`, { method: 'GET' });
+  if (Array.isArray(res)) return res;
+  return res.items;
+}
+
+export async function listInfluencersPaginated(params: ListInfluencersParams): Promise<PaginatedInfluencersResponse> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  if (params.search) query.set('search', params.search);
+  if (params.platform) query.set('platform', params.platform);
+  if (params.category) query.set('category', params.category);
+  if (params.pipelineStatus) query.set('pipelineStatus', params.pipelineStatus);
+  if (params.status) query.set('status', params.status);
+  if (params.country) query.set('country', params.country);
+  if (params.language) query.set('language', params.language);
+  if (params.sortField) query.set('sortField', params.sortField);
+  if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+
+  const res = await apiRequest<PaginatedInfluencersResponse | Influencer[]>(`/influencers?${query.toString()}`, { method: 'GET' });
+  if (Array.isArray(res)) {
+    return { items: res, total: res.length, page: 1, limit: res.length, totalPages: 1 };
+  }
+  return res;
 }
 
 export async function getInfluencer(id: string): Promise<Influencer> {
@@ -102,6 +163,32 @@ export async function bulkUpdateInfluencers(items: BulkUpdateItem[]): Promise<Bu
   return apiRequest<BulkUpdateResponse>('/influencers/bulk', {
     method: 'POST',
     body: JSON.stringify({ items }),
+  });
+}
+
+export interface BulkUpsertResponse {
+  total: number;
+  processed: number;
+  successful: number;
+  items: Array<{ index: number; id: string; name: string }>;
+}
+
+export async function bulkUpsertInfluencers(items: BulkUpdateItem[]): Promise<BulkUpsertResponse> {
+  return apiRequest<BulkUpsertResponse>('/influencers/bulk-upsert', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+export interface BulkDeleteResponse {
+  total: number;
+  deleted: number;
+}
+
+export async function bulkDeleteInfluencers(ids: string[]): Promise<BulkDeleteResponse> {
+  return apiRequest<BulkDeleteResponse>('/influencers/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
   });
 }
 

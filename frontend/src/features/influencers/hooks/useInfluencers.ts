@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addInfluencerNote,
   addInfluencerTag,
+  bulkDeleteInfluencers,
+  bulkUpsertInfluencers,
   createInfluencer,
   deleteInfluencer,
   getInfluencer,
@@ -9,6 +11,7 @@ import {
   listInfluencerCampaignHistory,
   listInfluencerNotes,
   listInfluencers,
+  listInfluencersPaginated,
   listInfluencerSnapshots,
   listInfluencerTags,
   listOrgTags,
@@ -16,6 +19,41 @@ import {
   removeInfluencerTag,
   updateInfluencer,
 } from '../services/influencerService';
+import type {
+  BulkUpdateItem,
+  CreateInfluencerInput,
+  InfluencerFull,
+  ListInfluencersParams,
+  UpdateInfluencerInput,
+} from '../services/influencerService';
+
+export function usePaginatedInfluencers(params: ListInfluencersParams) {
+  return useQuery({
+    queryKey: ['influencers', 'paginated', params],
+    queryFn: () => listInfluencersPaginated(params),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useBulkUpsertInfluencers() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: BulkUpdateItem[]) => bulkUpsertInfluencers(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: INFLUENCERS_QUERY_KEY });
+    },
+  });
+}
+
+export function useBulkDeleteInfluencers() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteInfluencers(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: INFLUENCERS_QUERY_KEY });
+    },
+  });
+}
 import type { CreateInfluencerInput, UpdateInfluencerInput, InfluencerFull } from '../services/influencerService';
 import type { Influencer } from '../types';
 

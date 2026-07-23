@@ -105,6 +105,15 @@ CREATE INDEX IF NOT EXISTS idx_influencers_org ON influencers(organization_id);
 CREATE INDEX IF NOT EXISTS idx_influencers_platform ON influencers(platform);
 CREATE INDEX IF NOT EXISTS idx_influencers_status ON influencers(status);
 CREATE INDEX IF NOT EXISTS idx_influencers_pipeline ON influencers(pipeline_status);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_platform ON influencers(organization_id, platform);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_status ON influencers(organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_pipeline ON influencers(organization_id, pipeline_status);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_category ON influencers(organization_id, category);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_country ON influencers(organization_id, country);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_followers ON influencers(organization_id, followers DESC);
+CREATE INDEX IF NOT EXISTS idx_influencers_org_eng ON influencers(organization_id, engagement_rate DESC);
+CREATE INDEX IF NOT EXISTS idx_influencers_username ON influencers(username);
+CREATE INDEX IF NOT EXISTS idx_influencers_full_name ON influencers(full_name);
 
 -- ============ Tags (normalized, org-scoped, many-to-many) ============
 CREATE TABLE IF NOT EXISTS tags (

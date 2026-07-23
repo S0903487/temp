@@ -135,50 +135,121 @@ async function getInfluencerById(env: Env, auth: AuthedRequest, id: string) {
 const LIST_MAX_LIMIT = 500;
 
 export async function list(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  // profile_image is a small (~10-40KB) base64 data URL — a resized
-  // 256x256 WebP, never the original picked/fetched image (see
-  // frontend/src/lib/image.ts) — so returning it for every row here is
-  // cheap. This used to be the slowest request in the app back when
-  // profile_image held an unresized, multi-MB base64 original.
   const url = new URL(request.url);
   const limitParam = url.searchParams.get('limit');
   const offsetParam = url.searchParams.get('offset');
+  const pageParam = url.searchParams.get('page');
+  const searchParam = url.searchParams.get('search');
+  const platformParam = url.searchParams.get('platform');
+  const categoryParam = url.searchParams.get('category');
+  const pipelineStatusParam = url.searchParams.get('pipelineStatus');
+  const statusParam = url.searchParams.get('status');
+  const countryParam = url.searchParams.get('country');
+  const languageParam = url.searchParams.get('language');
+  const sortFieldParam = url.searchParams.get('sortField');
+  const sortOrderParam = url.searchParams.get('sortOrder');
 
-  // Pagination is opt-in for now: pass ?limit= to get { items, total, limit,
-  // offset } back. No ?limit= keeps today's "return every row" behavior so
-  // existing callers (the data grid, pipeline board) don't break — but at
-  // 50k+ rows that response is genuinely too large to ship to the browser
-  // in one go. Wiring the frontend list/grid/pipeline views to page through
-  // results with ?limit= is the necessary next step before real bulk data
-  // lands; this endpoint is ready for that, the UI isn't wired to it yet.
-  const orgFilter = auth.role === 'admin' ? '' : ' WHERE organization_id = ?';
-  const bindArgs = auth.role === 'admin' ? [] : [auth.organizationId];
+  const conditions: string[] = [];
+  const bindArgs: unknown[] = [];
 
-  if (limitParam !== null) {
-    const limit = Math.min(Math.max(parseInt(limitParam, 10) || 50, 1), LIST_MAX_LIMIT);
-    const offset = Math.max(parseInt(offsetParam ?? '0', 10) || 0, 0);
+  if (auth.role !== 'admin') {
+    conditions.push('organization_id = ?');
+    bindArgs.push(auth.organizationId);
+  }
+
+  if (searchParam && searchParam.trim()) {
+    const q = `%${searchParam.trim().toLowerCase()}%`;
+    conditions.push('(LOWER(full_name) LIKE ? OR LOWER(username) LIKE ? OR LOWER(email) LIKE ? OR LOWER(category) LIKE ? OR LOWER(country) LIKE ? OR LOWER(language) LIKE ? OR LOWER(bio) LIKE ? OR LOWER(tags) LIKE ?)');
+    bindArgs.push(q, q, q, q, q, q, q, q);
+  }
+
+  if (platformParam && platformParam !== 'All') {
+    conditions.push('platform = ?');
+    bindArgs.push(platformParam);
+  }
+
+  if (categoryParam && categoryParam !== 'All') {
+    conditions.push('category = ?');
+    bindArgs.push(categoryParam);
+  }
+
+  if (pipelineStatusParam && pipelineStatusParam !== 'All') {
+    conditions.push('pipeline_status = ?');
+    bindArgs.push(pipelineStatusParam);
+  }
+
+  if (statusParam && statusParam !== 'All') {
+    conditions.push('status = ?');
+    bindArgs.push(statusParam);
+  }
+
+  if (countryParam && countryParam !== 'All') {
+    conditions.push('LOWER(country) LIKE ?');
+    bindArgs.push(`%${countryParam.toLowerCase()}%`);
+  }
+
+  if (languageParam && languageParam !== 'All') {
+    conditions.push('LOWER(language) LIKE ?');
+    bindArgs.push(`%${languageParam.toLowerCase()}%`);
+  }
+
+  const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+
+  // Sort field mapping
+  const sortMap: Record<string, string> = {
+    fullName: 'full_name',
+    followers: 'followers',
+    following: 'following',
+    totalPosts: 'total_posts',
+    firstJoinedDate: 'first_joined_date',
+    engagementRate: 'engagement_rate',
+    category: 'category',
+    pipelineStatus: 'pipeline_status',
+    status: 'status',
+    country: 'country',
+    language: 'language',
+    averageViews: 'average_views',
+    averageLikes: 'average_likes',
+    averageComments: 'average_comments',
+    createdAt: 'created_at',
+  };
+
+  const sqlSortCol = sortFieldParam && sortMap[sortFieldParam] ? sortMap[sortFieldParam] : 'created_at';
+  const sqlSortOrder = sortOrderParam === 'asc' ? 'ASC' : 'DESC';
+  const orderClause = ` ORDER BY ${sqlSortCol} ${sqlSortOrder}`;
+
+  // If paginated parameters are supplied
+  if (limitParam !== null || pageParam !== null) {
+    const limit = Math.min(Math.max(parseInt(limitParam || '50', 10) || 50, 1), LIST_MAX_LIMIT);
+    let offset = 0;
+    if (pageParam !== null) {
+      const page = Math.max(parseInt(pageParam, 10) || 1, 1);
+      offset = (page - 1) * limit;
+    } else {
+      offset = Math.max(parseInt(offsetParam ?? '0', 10) || 0, 0);
+    }
 
     const [countRes, rowsRes] = await env.DB.batch([
-      env.DB.prepare(`SELECT COUNT(*) as count FROM influencers${orgFilter}`).bind(...bindArgs),
-      env.DB.prepare(
-        `SELECT * FROM influencers${orgFilter} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-      ).bind(...bindArgs, limit, offset),
+      env.DB.prepare(`SELECT COUNT(*) as count FROM influencers${whereClause}`).bind(...bindArgs),
+      env.DB.prepare(`SELECT * FROM influencers${whereClause}${orderClause} LIMIT ? OFFSET ?`).bind(...bindArgs, limit, offset),
     ]);
 
+    const total = (countRes.results[0]?.count as number) ?? 0;
+    const items = rowsRes.results.map(toApi);
+    const currentPage = pageParam ? Math.max(parseInt(pageParam, 10) || 1, 1) : Math.floor(offset / limit) + 1;
+
     return json({
-      items: rowsRes.results.map(toApi),
-      total: (countRes.results[0]?.count as number) ?? 0,
+      items,
+      total,
       limit,
       offset,
+      page: currentPage,
+      totalPages: Math.ceil(total / limit) || 1,
     });
   }
 
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM influencers ORDER BY created_at DESC'
-    : 'SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query)
-    : env.DB.prepare(query).bind(auth.organizationId);
+  const query = `SELECT * FROM influencers${whereClause}${orderClause}`;
+  const stmt = env.DB.prepare(query).bind(...bindArgs);
   const { results } = await stmt.all();
   return json(results.map(toApi));
 }
@@ -643,6 +714,158 @@ export async function bulkUpdate(request: Request, env: Env, auth: AuthedRequest
     updated,
     failed: items.length - updated,
     results,
+  });
+}
+
+// POST /api/influencers/bulk-upsert
+// Atomically inserts new creators or updates existing creators (by ID or handle)
+export async function bulkUpsert(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  const body = await readJson<{ items?: BulkUpdateItem[] }>(request);
+  const items = body.items;
+  if (!Array.isArray(items) || items.length === 0) {
+    return badRequest('items must be a non-empty array');
+  }
+  if (items.length > BULK_MAX_ITEMS) {
+    return badRequest(`items exceeds the ${BULK_MAX_ITEMS}-per-request limit — split into multiple requests of ${BULK_MAX_ITEMS} or fewer`);
+  }
+
+  const now = nowIso();
+  const statements: D1PreparedStatement[] = [];
+  const processedItems: Array<{ index: number; id: string; name: string }> = [];
+
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    const username = item.username?.trim() || '';
+    const platform = item.platform || 'Instagram';
+    let id = item.id;
+
+    if (!id && username) {
+      id = slugifyInfluencerId(username, platform);
+    }
+
+    if (!id) {
+      continue;
+    }
+
+    const fullName = item.fullName?.trim() || username || 'Creator ' + id;
+
+    const stmt = env.DB.prepare(`
+      INSERT INTO influencers (
+        id, organization_id, full_name, username, platform, category, country, language,
+        followers, following, total_posts, engagement_rate, average_views, average_likes, average_comments,
+        email, phone, price_post, price_story, verified, brand_safe, status, pipeline_status,
+        notes, tags, bio, profile_image, profile_link, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        full_name = excluded.full_name,
+        category = COALESCE(excluded.category, influencers.category),
+        country = COALESCE(excluded.country, influencers.country),
+        language = COALESCE(excluded.language, influencers.language),
+        followers = CASE WHEN excluded.followers > 0 THEN excluded.followers ELSE influencers.followers END,
+        following = CASE WHEN excluded.following > 0 THEN excluded.following ELSE influencers.following END,
+        total_posts = CASE WHEN excluded.total_posts > 0 THEN excluded.total_posts ELSE influencers.total_posts END,
+        engagement_rate = CASE WHEN excluded.engagement_rate > 0 THEN excluded.engagement_rate ELSE influencers.engagement_rate END,
+        average_views = CASE WHEN excluded.average_views > 0 THEN excluded.average_views ELSE influencers.average_views END,
+        average_likes = CASE WHEN excluded.average_likes > 0 THEN excluded.average_likes ELSE influencers.average_likes END,
+        average_comments = CASE WHEN excluded.average_comments > 0 THEN excluded.average_comments ELSE influencers.average_comments END,
+        email = COALESCE(excluded.email, influencers.email),
+        phone = COALESCE(excluded.phone, influencers.phone),
+        price_post = COALESCE(excluded.price_post, influencers.price_post),
+        price_story = COALESCE(excluded.price_story, influencers.price_story),
+        verified = COALESCE(excluded.verified, influencers.verified),
+        brand_safe = COALESCE(excluded.brand_safe, influencers.brand_safe),
+        status = COALESCE(excluded.status, influencers.status),
+        pipeline_status = COALESCE(excluded.pipeline_status, influencers.pipeline_status),
+        notes = COALESCE(excluded.notes, influencers.notes),
+        tags = COALESCE(excluded.tags, influencers.tags),
+        bio = COALESCE(excluded.bio, influencers.bio),
+        profile_image = COALESCE(excluded.profile_image, influencers.profile_image),
+        profile_link = COALESCE(excluded.profile_link, influencers.profile_link),
+        updated_at = excluded.updated_at
+    `).bind(
+      id,
+      auth.organizationId,
+      fullName,
+      username || null,
+      platform,
+      item.category || null,
+      item.country || null,
+      item.language || null,
+      cleanNum(item.followers, 0),
+      cleanNum(item.following, 0),
+      cleanNum(item.totalPosts, 0),
+      cleanNum(item.engagementRate, 0),
+      cleanNum(item.averageViews, 0),
+      cleanNum(item.averageLikes, 0),
+      cleanNum(item.averageComments, 0),
+      item.email || null,
+      item.phone || null,
+      cleanNumOrNull(item.pricePost),
+      cleanNumOrNull(item.priceStory),
+      item.verified ? 1 : 0,
+      item.brandSafe !== false ? 1 : 0,
+      item.status || 'Active',
+      item.pipelineStatus || 'New',
+      item.notes || null,
+      item.tags ? JSON.stringify(item.tags) : null,
+      item.bio || null,
+      item.profileImage || null,
+      item.profileLink || null,
+      now,
+      now
+    );
+
+    statements.push(stmt);
+    processedItems.push({ index, id, name: fullName });
+  }
+
+  if (statements.length === 0) {
+    return badRequest('No valid items to upsert. Each item requires a username or id.');
+  }
+
+  const batchResults = await env.DB.batch(statements);
+  const count = batchResults.reduce((acc, r) => acc + ((r?.meta?.changes ?? 0) > 0 ? 1 : 0), 0);
+
+  return json({
+    total: items.length,
+    processed: processedItems.length,
+    successful: count,
+    items: processedItems,
+  });
+}
+
+// POST /api/influencers/bulk-delete
+export async function bulkDelete(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  const body = await readJson<{ ids?: string[] }>(request);
+  const ids = body.ids;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return badRequest('ids must be a non-empty array');
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+  const orgClause = auth.role === 'admin' ? '' : ' AND organization_id = ?';
+  const orgArgs = auth.role === 'admin' ? [] : [auth.organizationId];
+
+  await env.DB.batch([
+    env.DB.prepare(`DELETE FROM influencer_snapshots WHERE influencer_id IN (${placeholders})`).bind(...ids),
+    env.DB.prepare(`DELETE FROM influencer_notes WHERE influencer_id IN (${placeholders})`).bind(...ids),
+    env.DB.prepare(`DELETE FROM influencer_tags WHERE influencer_id IN (${placeholders})`).bind(...ids),
+    env.DB.prepare(`DELETE FROM campaign_influencers WHERE influencer_id IN (${placeholders})`).bind(...ids),
+    env.DB.prepare(`DELETE FROM analytics_records WHERE influencer_id IN (${placeholders})`).bind(...ids),
+  ]);
+
+  const deleteRes = await env.DB.prepare(`DELETE FROM influencers WHERE id IN (${placeholders})${orgClause}`)
+    .bind(...ids, ...orgArgs)
+    .run();
+
+  return json({
+    total: ids.length,
+    deleted: deleteRes?.meta?.changes ?? 0,
   });
 }
 
