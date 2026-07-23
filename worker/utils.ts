@@ -14,6 +14,7 @@ export function errorResponse(message: string, status = 400): Response {
 export const notFound = () => errorResponse('Not found', 404);
 export const unauthorized = () => errorResponse('Unauthorized', 401);
 export const badRequest = (message = 'Bad request') => errorResponse(message, 400);
+export const conflict = (message = 'Conflict') => errorResponse(message, 409);
 
 export async function readJson<T>(request: Request): Promise<T> {
   try {
@@ -36,6 +37,30 @@ export class HttpError extends Error {
 export function generateId(prefix: string): string {
   const rand = Math.floor(10000000 + Math.random() * 90000000);
   return `${prefix}_${rand}`;
+}
+
+// Influencer IDs are `username.platform` (e.g. "makeupbyhajraadnan.instagram")
+// instead of a random ID. This is deliberate, not just cosmetic:
+//   - it's human-readable in URLs, logs, and D1 queries when you're
+//     debugging at 50k+ rows
+//   - the same person on two platforms gets two distinct, meaningful IDs
+//     ("makeupbyhajraadnan.instagram" vs "makeupbyhajraadnan.tiktok")
+//     instead of colliding or needing an arbitrary suffix
+//   - it makes bulk import/update deterministic: given a spreadsheet row
+//     with just a username + platform, you can compute the exact row to
+//     update without a lookup query first — see bulkUpdate() below, which
+//     depends on this
+export function slugifyInfluencerId(username: string, platform: string): string {
+  const slug = username
+    .trim()
+    .toLowerCase()
+    .replace(/^@/, '')            // strip a leading @ if pasted from a handle
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '') // strip accents
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const platformSlug = platform.trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return `${slug}.${platformSlug}`;
 }
 
 export function nowIso(): string {

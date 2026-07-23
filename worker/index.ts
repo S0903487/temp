@@ -456,6 +456,9 @@ async function routeApi(request: Request, env: Env, url: URL): Promise<Response>
   if (resource === 'influencers') {
     if (!id && method === 'GET') return influencerHandlers.list(request, env, auth);
     if (!id && method === 'POST') return influencerHandlers.create(request, env, auth);
+
+    if (id === 'bulk' && !sub && method === 'POST') return influencerHandlers.bulkUpdate(request, env, auth);
+
     if (id && !sub && method === 'GET') return influencerHandlers.getById(request, env, auth, id);
     if (id && !sub && (method === 'PUT' || method === 'PATCH')) return influencerHandlers.update(request, env, auth, id);
     if (id && !sub && method === 'DELETE') return influencerHandlers.remove(request, env, auth, id);

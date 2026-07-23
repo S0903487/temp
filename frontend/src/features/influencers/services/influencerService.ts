@@ -9,7 +9,10 @@ import type {
 
 export interface CreateInfluencerInput {
   fullName: string;
-  username?: string;
+  // Required, not optional — the backend derives the influencer's id from
+  // `username.platform` (e.g. "makeupbyhajraadnan.instagram"), so this is
+  // no longer just a display field.
+  username: string;
   platform?: Influencer['platform'];
   category?: string;
   country?: string;
@@ -67,6 +70,39 @@ export interface InfluencerFull {
 
 export async function getInfluencerFull(id: string): Promise<InfluencerFull> {
   return apiRequest<InfluencerFull>(`/influencers/${id}/full`, { method: 'GET' });
+}
+
+// Bulk update — the JSON/Excel import path. Each item identifies its row
+// by `id`, or by `username` + `platform` (no lookup needed, since the
+// backend derives id = `${username}.${platform}` the same way create()
+// does). Excel/CSV files should be parsed to this shape client-side
+// (e.g. with SheetJS) and sent in chunks of up to 500 rows — the backend
+// rejects a single request with more than that.
+export interface BulkUpdateItem extends Partial<CreateInfluencerInput> {
+  id?: string;
+}
+
+export interface BulkUpdateResult {
+  index: number;
+  id?: string;
+  success: boolean;
+  error?: string;
+}
+
+export interface BulkUpdateResponse {
+  total: number;
+  updated: number;
+  failed: number;
+  results: BulkUpdateResult[];
+}
+
+export const BULK_UPDATE_MAX_ITEMS = 500;
+
+export async function bulkUpdateInfluencers(items: BulkUpdateItem[]): Promise<BulkUpdateResponse> {
+  return apiRequest<BulkUpdateResponse>('/influencers/bulk', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
 }
 
 export async function createInfluencer(data: CreateInfluencerInput): Promise<Influencer> {

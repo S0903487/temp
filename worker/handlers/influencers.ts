@@ -1,5 +1,5 @@
 import type { AuthedRequest, Env } from '../types';
-import { badRequest, generateId, json, notFound, nowIso, readJson } from '../utils';
+import { badRequest, conflict, generateId, json, notFound, nowIso, readJson, slugifyInfluencerId } from '../utils';
 
 interface InfluencerBody {
   fullName?: string;
@@ -132,12 +132,47 @@ async function getInfluencerById(env: Env, auth: AuthedRequest, id: string) {
   return stmt.first();
 }
 
-export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+const LIST_MAX_LIMIT = 500;
+
+export async function list(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
   // profile_image is a small (~10-40KB) base64 data URL — a resized
   // 256x256 WebP, never the original picked/fetched image (see
   // frontend/src/lib/image.ts) — so returning it for every row here is
   // cheap. This used to be the slowest request in the app back when
   // profile_image held an unresized, multi-MB base64 original.
+  const url = new URL(request.url);
+  const limitParam = url.searchParams.get('limit');
+  const offsetParam = url.searchParams.get('offset');
+
+  // Pagination is opt-in for now: pass ?limit= to get { items, total, limit,
+  // offset } back. No ?limit= keeps today's "return every row" behavior so
+  // existing callers (the data grid, pipeline board) don't break — but at
+  // 50k+ rows that response is genuinely too large to ship to the browser
+  // in one go. Wiring the frontend list/grid/pipeline views to page through
+  // results with ?limit= is the necessary next step before real bulk data
+  // lands; this endpoint is ready for that, the UI isn't wired to it yet.
+  const orgFilter = auth.role === 'admin' ? '' : ' WHERE organization_id = ?';
+  const bindArgs = auth.role === 'admin' ? [] : [auth.organizationId];
+
+  if (limitParam !== null) {
+    const limit = Math.min(Math.max(parseInt(limitParam, 10) || 50, 1), LIST_MAX_LIMIT);
+    const offset = Math.max(parseInt(offsetParam ?? '0', 10) || 0, 0);
+
+    const [countRes, rowsRes] = await env.DB.batch([
+      env.DB.prepare(`SELECT COUNT(*) as count FROM influencers${orgFilter}`).bind(...bindArgs),
+      env.DB.prepare(
+        `SELECT * FROM influencers${orgFilter} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+      ).bind(...bindArgs, limit, offset),
+    ]);
+
+    return json({
+      items: rowsRes.results.map(toApi),
+      total: (countRes.results[0]?.count as number) ?? 0,
+      limit,
+      offset,
+    });
+  }
+
   const query = auth.role === 'admin'
     ? 'SELECT * FROM influencers ORDER BY created_at DESC'
     : 'SELECT * FROM influencers WHERE organization_id = ? ORDER BY created_at DESC';
@@ -169,6 +204,7 @@ function cleanNumOrNull(val: unknown): number | null {
 export async function create(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
   const body = await readJson<InfluencerBody>(request);
   if (!body.fullName) return badRequest('fullName is required');
+  if (!body.username) return badRequest('username is required — the profile ID is derived from username + platform');
   // The client resizes photos to a 256x256 WebP data URL (a few tens of
   // KB) before sending them — see frontend/src/lib/image.ts. This cap is
   // just a backstop against a buggy/malicious client sending something
@@ -177,7 +213,11 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     return badRequest('profileImage is too large — it should be a resized (256x256) image');
   }
 
-  const id = generateId('inf');
+  const platform = body.platform ?? 'Instagram';
+  const id = slugifyInfluencerId(body.username, platform);
+  if (id === '.' || id.startsWith('.')) {
+    return badRequest('username must contain at least one letter or number');
+  }
   const now = nowIso();
 
   const columns = await getInfluencerColumns(env.DB);
@@ -187,7 +227,7 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     { col: 'organization_id', val: auth.organizationId },
     { col: 'full_name', val: body.fullName },
     { col: 'username', val: body.username ?? null },
-    { col: 'platform', val: body.platform ?? 'Instagram' },
+    { col: 'platform', val: platform },
     { col: 'category', val: body.category ?? null },
     { col: 'country', val: body.country ?? null },
     { col: 'language', val: body.language ?? null },
@@ -234,11 +274,19 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
     }
   }
 
-  await env.DB.prepare(
-    `INSERT INTO influencers (${insertCols.join(', ')}) VALUES (${insertPlaceholders.join(', ')})`
-  )
-    .bind(...insertVals)
-    .run();
+  try {
+    await env.DB.prepare(
+      `INSERT INTO influencers (${insertCols.join(', ')}) VALUES (${insertPlaceholders.join(', ')})`
+    )
+      .bind(...insertVals)
+      .run();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes('UNIQUE constraint failed')) {
+      return conflict(`An influencer with username "${body.username}" on ${platform} already exists (id: ${id}).`);
+    }
+    throw err;
+  }
 
   // Seed the first growth snapshot so the profile's history chart has a
   // starting point immediately, same as the schema-level backfill.
@@ -317,58 +365,52 @@ const COLUMN_MAP: Record<keyof InfluencerBody, string> = {
   ltv: 'ltv',
 };
 
-export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const columns = await getInfluencerColumns(env.DB);
-  
-  const existing = await getInfluencerById(env, auth, id);
-  if (!existing) return notFound();
+const INFLUENCER_COLUMN_MAP: Record<keyof InfluencerBody, string> = {
+  fullName: 'full_name',
+  username: 'username',
+  platform: 'platform',
+  category: 'category',
+  country: 'country',
+  language: 'language',
+  followers: 'followers',
+  following: 'following',
+  totalPosts: 'total_posts',
+  firstJoinedDate: 'first_joined_date',
+  engagementRate: 'engagement_rate',
+  averageViews: 'average_views',
+  averageLikes: 'average_likes',
+  averageComments: 'average_comments',
+  totalViews: 'total_views',
+  totalLikes: 'total_likes',
+  totalComments: 'total_comments',
+  email: 'email',
+  phone: 'phone',
+  pricePost: 'price_post',
+  priceStory: 'price_story',
+  verified: 'verified',
+  brandSafe: 'brand_safe',
+  status: 'status',
+  pipelineStatus: 'pipeline_status',
+  notes: 'notes',
+  tags: 'tags',
+  bio: 'bio',
+  profileImage: 'profile_image',
+  profileLink: 'profile_link',
+  roi: 'roi',
+  cpa: 'cpa',
+  cpi: 'cpi',
+  ltv: 'ltv',
+};
 
-  const body = await readJson<InfluencerBody>(request);
-  if (body.profileImage && body.profileImage.length > 200_000) {
-    return badRequest('profileImage is too large — it should be a resized (256x256) image');
-  }
+// Shared by update() (single row, PATCH) and bulkUpdate() (many rows, one
+// D1 batch()) so the two code paths can't silently drift apart on which
+// fields are writable or how they're coerced.
+function buildInfluencerAssignments(body: InfluencerBody, columns: string[]): { sets: string[]; values: unknown[] } {
   const sets: string[] = [];
   const values: unknown[] = [];
 
-  const dynamicColumnMap: Record<keyof InfluencerBody, string> = {
-    fullName: 'full_name',
-    username: 'username',
-    platform: 'platform',
-    category: 'category',
-    country: 'country',
-    language: 'language',
-    followers: 'followers',
-    following: 'following',
-    totalPosts: 'total_posts',
-    firstJoinedDate: 'first_joined_date',
-    engagementRate: 'engagement_rate',
-    averageViews: 'average_views',
-    averageLikes: 'average_likes',
-    averageComments: 'average_comments',
-    totalViews: 'total_views',
-    totalLikes: 'total_likes',
-    totalComments: 'total_comments',
-    email: 'email',
-    phone: 'phone',
-    pricePost: 'price_post',
-    priceStory: 'price_story',
-    verified: 'verified',
-    brandSafe: 'brand_safe',
-    status: 'status',
-    pipelineStatus: 'pipeline_status',
-    notes: 'notes',
-    tags: 'tags',
-    bio: 'bio',
-    profileImage: 'profile_image',
-    profileLink: 'profile_link',
-    roi: 'roi',
-    cpa: 'cpa',
-    cpi: 'cpi',
-    ltv: 'ltv',
-  };
-
   for (const key of Object.keys(body) as (keyof InfluencerBody)[]) {
-    const column = dynamicColumnMap[key];
+    const column = INFLUENCER_COLUMN_MAP[key];
     if (!column || !columns.includes(column)) continue;
     let value: unknown = body[key];
     if (key === 'verified' || key === 'brandSafe') {
@@ -384,7 +426,52 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
     values.push(value);
   }
 
+  return { sets, values };
+}
+
+export async function update(request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
+  const columns = await getInfluencerColumns(env.DB);
+  
+  const existing = await getInfluencerById(env, auth, id);
+  if (!existing) return notFound();
+
+  const body = await readJson<InfluencerBody>(request);
+  if (body.profileImage && body.profileImage.length > 200_000) {
+    return badRequest('profileImage is too large — it should be a resized (256x256) image');
+  }
+  const { sets, values } = buildInfluencerAssignments(body, columns);
+
   if (sets.length === 0) return badRequest('No fields to update');
+
+  // id is now `username.platform`. If either changes, the id must be
+  // renamed to match — otherwise the whole point of a deterministic,
+  // human-readable id (and the id-derivation bulkUpdate() relies on)
+  // silently breaks the moment someone edits a username typo.
+  const existingRow = existing as Record<string, unknown>;
+  const nextUsername = (body.username ?? (existingRow.username as string)) as string;
+  const nextPlatform = (body.platform ?? (existingRow.platform as string)) as string;
+  const newId = ('username' in body || 'platform' in body) ? slugifyInfluencerId(nextUsername, nextPlatform) : id;
+
+  let effectiveId = id;
+  if (newId !== id) {
+    try {
+      await env.DB.batch([
+        env.DB.prepare('UPDATE campaign_influencers SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
+        env.DB.prepare('UPDATE influencer_notes SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
+        env.DB.prepare('UPDATE influencer_snapshots SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
+        env.DB.prepare('UPDATE influencer_tags SET influencer_id = ? WHERE influencer_id = ?').bind(newId, id),
+        env.DB.prepare('UPDATE influencers SET id = ? WHERE id = ?').bind(newId, id),
+      ]);
+      effectiveId = newId;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('UNIQUE constraint failed')) {
+        return conflict(`Renaming to "${newId}" conflicts with an existing influencer on that platform.`);
+      }
+      throw err;
+    }
+  }
+  id = effectiveId; // reassign so every later reference in this function (snapshot insert, response) uses the renamed id
 
   sets.push('updated_at = ?');
   values.push(nowIso());
@@ -438,6 +525,96 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
   }
 
   return json(toApi(row as Record<string, unknown>));
+}
+
+// POST /api/influencers/bulk
+//
+// Bulk-update up to BULK_MAX_ITEMS influencers in one request. Each item
+// identifies its row either by `id` directly, or by `username` + `platform`
+// — the latter works with NO lookup query, because id is deterministically
+// `username.platform`. That's the whole reason this scheme is worth having
+// once you're importing spreadsheets: the client (or a future Excel/CSV
+// importer) never needs to fetch existing IDs first, it can compute them.
+//
+// All updates in the request run as a single env.DB.batch() — one D1
+// round trip no matter how many rows are in the chunk, same pattern as the
+// dashboard summary and the influencer /full endpoint.
+//
+// This does NOT write growth snapshots per row (unlike the single-row PATCH)
+// — for a 50k-row import that would be 50k extra INSERTs for a feature
+// (the per-row growth chart) nobody's looking at mid-import. If you want
+// snapshot history from bulk imports later, that's a deliberate follow-up,
+// not an oversight.
+const BULK_MAX_ITEMS = 500;
+
+interface BulkUpdateItem extends InfluencerBody {
+  id?: string;
+}
+
+export async function bulkUpdate(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+  const body = await readJson<{ items?: BulkUpdateItem[] }>(request);
+  const items = body.items;
+  if (!Array.isArray(items) || items.length === 0) {
+    return badRequest('items must be a non-empty array');
+  }
+  if (items.length > BULK_MAX_ITEMS) {
+    return badRequest(`items exceeds the ${BULK_MAX_ITEMS}-per-request limit — split into multiple requests of ${BULK_MAX_ITEMS} or fewer`);
+  }
+
+  const columns = await getInfluencerColumns(env.DB);
+  const now = nowIso();
+
+  type Resolved = { index: number; id: string; sets: string[]; values: unknown[] } | { index: number; error: string };
+  const resolved: Resolved[] = items.map((item, index) => {
+    let id = item.id;
+    if (!id) {
+      if (!item.username) return { index, error: 'each item needs either "id" or "username" (+ optional "platform")' };
+      id = slugifyInfluencerId(item.username, item.platform ?? 'Instagram');
+    }
+    const { username: _u, platform: _p, id: _id, ...fields } = item;
+    const { sets, values } = buildInfluencerAssignments(fields as InfluencerBody, columns);
+    if (sets.length === 0) return { index, error: 'no updatable fields provided' };
+    sets.push('updated_at = ?');
+    values.push(now);
+    values.push(id);
+    return { index, id, sets, values };
+  });
+
+  const runnable = resolved.filter((r): r is Extract<Resolved, { id: string }> => 'id' in r);
+
+  const orgClause = auth.role === 'admin' ? '' : ' AND organization_id = ?';
+  const statements = runnable.map((r) =>
+    auth.role === 'admin'
+      ? env.DB.prepare(`UPDATE influencers SET ${r.sets.join(', ')} WHERE id = ?`).bind(...r.values)
+      : env.DB.prepare(`UPDATE influencers SET ${r.sets.join(', ')} WHERE id = ?${orgClause}`).bind(...r.values, auth.organizationId)
+  );
+
+  const batchResults = statements.length > 0 ? await env.DB.batch(statements) : [];
+
+  const results: Array<{ index: number; id?: string; success: boolean; error?: string }> = [];
+  let runnableIdx = 0;
+  for (const r of resolved) {
+    if ('error' in r) {
+      results.push({ index: r.index, success: false, error: r.error });
+      continue;
+    }
+    const dbResult = batchResults[runnableIdx++];
+    const changed = (dbResult?.meta?.changes ?? 0) > 0;
+    results.push({
+      index: r.index,
+      id: r.id,
+      success: changed,
+      error: changed ? undefined : 'not found (wrong id/username+platform, or belongs to a different organization)',
+    });
+  }
+
+  const updated = results.filter((r) => r.success).length;
+  return json({
+    total: items.length,
+    updated,
+    failed: items.length - updated,
+    results,
+  });
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
