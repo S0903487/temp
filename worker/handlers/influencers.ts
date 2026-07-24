@@ -122,19 +122,15 @@ function toApi(row: Record<string, unknown>) {
   };
 }
 
-async function getInfluencerById(env: Env, auth: AuthedRequest, id: string) {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM influencers WHERE id = ?'
-    : 'SELECT * FROM influencers WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
+async function getInfluencerById(env: Env, _auth: AuthedRequest, id: string) {
+  const query = 'SELECT * FROM influencers WHERE id = ?';
+  const stmt = env.DB.prepare(query).bind(id);
   return stmt.first();
 }
 
 const LIST_MAX_LIMIT = 500;
 
-export async function list(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+export async function list(request: Request, env: Env, _auth: AuthedRequest): Promise<Response> {
   const url = new URL(request.url);
   const limitParam = url.searchParams.get('limit');
   const offsetParam = url.searchParams.get('offset');
@@ -151,11 +147,6 @@ export async function list(request: Request, env: Env, auth: AuthedRequest): Pro
 
   const conditions: string[] = [];
   const bindArgs: unknown[] = [];
-
-  if (auth.role !== 'admin') {
-    conditions.push('organization_id = ?');
-    bindArgs.push(auth.organizationId);
-  }
 
   if (searchParam && searchParam.trim()) {
     const q = `%${searchParam.trim().toLowerCase()}%`;

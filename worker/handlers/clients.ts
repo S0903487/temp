@@ -21,23 +21,15 @@ function toApi(row: Record<string, unknown>) {
   };
 }
 
-async function getClientById(env: Env, auth: AuthedRequest, id: string) {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM clients WHERE id = ?'
-    : 'SELECT * FROM clients WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
+async function getClientById(env: Env, _auth: AuthedRequest, id: string) {
+  const query = 'SELECT * FROM clients WHERE id = ?';
+  const stmt = env.DB.prepare(query).bind(id);
   return stmt.first();
 }
 
-export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  const query = auth.role === 'admin'
-    ? 'SELECT * FROM clients ORDER BY created_at DESC'
-    : 'SELECT * FROM clients WHERE organization_id = ? ORDER BY created_at DESC';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query)
-    : env.DB.prepare(query).bind(auth.organizationId);
+export async function list(_request: Request, env: Env, _auth: AuthedRequest): Promise<Response> {
+  const query = 'SELECT * FROM clients ORDER BY created_at DESC';
+  const stmt = env.DB.prepare(query);
   const { results } = await stmt.all();
   return json(results.map(toApi));
 }
@@ -99,12 +91,8 @@ export async function update(request: Request, env: Env, auth: AuthedRequest, id
 }
 
 export async function remove(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  const checkQuery = auth.role === 'admin'
-    ? 'SELECT id FROM clients WHERE id = ?'
-    : 'SELECT id FROM clients WHERE id = ? AND organization_id = ?';
-  const checkStmt = auth.role === 'admin'
-    ? env.DB.prepare(checkQuery).bind(id)
-    : env.DB.prepare(checkQuery).bind(id, auth.organizationId);
+  const checkQuery = 'SELECT id FROM clients WHERE id = ?';
+  const checkStmt = env.DB.prepare(checkQuery).bind(id);
   const existing = await checkStmt.first();
   if (!existing) return notFound();
 
@@ -113,12 +101,8 @@ export async function remove(_request: Request, env: Env, auth: AuthedRequest, i
   await env.DB.prepare('DELETE FROM analytics_records WHERE campaign_id IN (SELECT id FROM campaigns WHERE client_id = ?)').bind(id).run();
   await env.DB.prepare('DELETE FROM campaigns WHERE client_id = ?').bind(id).run();
 
-  const query = auth.role === 'admin'
-    ? 'DELETE FROM clients WHERE id = ?'
-    : 'DELETE FROM clients WHERE id = ? AND organization_id = ?';
-  const stmt = auth.role === 'admin'
-    ? env.DB.prepare(query).bind(id)
-    : env.DB.prepare(query).bind(id, auth.organizationId);
+  const query = 'DELETE FROM clients WHERE id = ?';
+  const stmt = env.DB.prepare(query).bind(id);
   await stmt.run();
 
   return json({ success: true });

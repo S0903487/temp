@@ -186,7 +186,7 @@ export default function AccountsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900">Signed-up User accounts</h2>
-            <p className="text-xs text-slate-500">Only Admin role accounts can access this panel.</p>
+            <p className="text-xs text-slate-500">View and manage registered user accounts in the platform.</p>
           </div>
         </div>
 

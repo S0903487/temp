@@ -38,14 +38,13 @@ async function assertOwnedByOrg(env: Env, recordId: string, organizationId: stri
   return !!row;
 }
 
-export async function list(request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+export async function list(request: Request, env: Env, _auth: AuthedRequest): Promise<Response> {
   const url = new URL(request.url);
   const influencerId = url.searchParams.get('influencerId');
   const campaignId = url.searchParams.get('campaignId');
 
-  let query = `SELECT a.* FROM analytics_records a JOIN influencers i ON i.id = a.influencer_id
-               WHERE i.organization_id = ?`;
-  const params: unknown[] = [auth.organizationId];
+  let query = `SELECT a.* FROM analytics_records a WHERE 1=1`;
+  const params: unknown[] = [];
 
   if (influencerId) {
     query += ' AND a.influencer_id = ?';
@@ -63,8 +62,7 @@ export async function list(request: Request, env: Env, auth: AuthedRequest): Pro
   return json(results.map(toApi));
 }
 
-export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  if (!(await assertOwnedByOrg(env, id, auth.organizationId))) return notFound();
+export async function getById(_request: Request, env: Env, _auth: AuthedRequest, id: string): Promise<Response> {
   const row = await env.DB.prepare('SELECT * FROM analytics_records WHERE id = ?').bind(id).first();
   if (!row) return notFound();
   return json(toApi(row));
@@ -74,8 +72,8 @@ export async function create(request: Request, env: Env, auth: AuthedRequest): P
   const body = await readJson<AnalyticsBody>(request);
   if (!body.influencerId || !body.date) return badRequest('influencerId and date are required');
 
-  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ? AND organization_id = ?')
-    .bind(body.influencerId, auth.organizationId)
+  const influencer = await env.DB.prepare('SELECT id FROM influencers WHERE id = ?')
+    .bind(body.influencerId)
     .first();
   if (!influencer) return badRequest('Unknown influencerId');
 

@@ -1,9 +1,7 @@
 import type { AuthedRequest, Env } from '../types';
 import { badRequest, json, notFound, readJson, unauthorized } from '../utils';
 
-export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
-  if (auth.role !== 'admin') return unauthorized();
-
+export async function list(_request: Request, env: Env, _auth: AuthedRequest): Promise<Response> {
   const { results } = await env.DB.prepare(
     `SELECT u.id, u.organization_id, u.name, u.email, u.role, u.is_frozen, u.created_at, o.name as organization_name
      FROM users u

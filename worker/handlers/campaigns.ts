@@ -41,12 +41,10 @@ async function assertOwnedByOrg(env: Env, campaignId: string, organizationId: st
   return !!row;
 }
 
-export async function list(_request: Request, env: Env, auth: AuthedRequest): Promise<Response> {
+export async function list(_request: Request, env: Env, _auth: AuthedRequest): Promise<Response> {
   const { results } = await env.DB.prepare(
-    `SELECT c.* FROM campaigns c JOIN clients cl ON cl.id = c.client_id
-     WHERE cl.organization_id = ? ORDER BY c.created_at DESC`
+    `SELECT c.* FROM campaigns c ORDER BY c.created_at DESC`
   )
-    .bind(auth.organizationId)
     .all();
 
   if (results.length === 0) return json([]);
@@ -88,8 +86,7 @@ export async function list(_request: Request, env: Env, auth: AuthedRequest): Pr
   );
 }
 
-export async function getById(_request: Request, env: Env, auth: AuthedRequest, id: string): Promise<Response> {
-  if (!(await assertOwnedByOrg(env, id, auth.organizationId))) return notFound();
+export async function getById(_request: Request, env: Env, _auth: AuthedRequest, id: string): Promise<Response> {
   const row = await env.DB.prepare('SELECT * FROM campaigns WHERE id = ?').bind(id).first();
   if (!row) return notFound();
   return json(await withInfluencerIds(env, row));
