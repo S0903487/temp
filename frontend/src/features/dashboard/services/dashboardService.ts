@@ -12,6 +12,8 @@ export interface DashboardSummary {
       status: string;
       createdBy: string | null;
       createdByName: string;
+      organizationId?: string;
+      isMe?: boolean;
     }>;
   };
   campaigns: {
@@ -29,6 +31,8 @@ export interface DashboardSummary {
       pipelineStatus: string;
       createdBy: string | null;
       createdByName: string;
+      organizationId?: string;
+      isMe?: boolean;
     }>;
   };
 }

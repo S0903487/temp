@@ -26,9 +26,9 @@ function DashboardPage() {
     const influencers = summary?.influencers.top ?? []
     if (managerFilter === 'all') return influencers
     if (managerFilter === 'me') {
-      return influencers.filter((i) => i.createdByName === 'You' || i.createdBy === user?.id)
+      return influencers.filter((i) => i.isMe || i.createdByName === 'You' || (user?.organizationId && i.organizationId === user.organizationId))
     }
-    return influencers.filter((i) => i.createdByName !== 'You' && i.createdBy !== user?.id)
+    return influencers.filter((i) => !i.isMe && i.createdByName !== 'You' && (!user?.organizationId || i.organizationId !== user.organizationId))
   }, [summary?.influencers.top, managerFilter, user])
 
   // Filter clients/brands by creator/manager status
@@ -36,9 +36,9 @@ function DashboardPage() {
     const clients = summary?.clients.top ?? []
     if (managerFilter === 'all') return clients
     if (managerFilter === 'me') {
-      return clients.filter((c) => c.createdByName === 'You' || c.createdBy === user?.id)
+      return clients.filter((c) => c.isMe || c.createdByName === 'You' || (user?.organizationId && c.organizationId === user.organizationId))
     }
-    return clients.filter((c) => c.createdByName !== 'You' && c.createdBy !== user?.id)
+    return clients.filter((c) => !c.isMe && c.createdByName !== 'You' && (!user?.organizationId || c.organizationId !== user.organizationId))
   }, [summary?.clients.top, managerFilter, user])
 
   const stats = [
@@ -176,11 +176,11 @@ function DashboardPage() {
                         </td>
                         <td className="py-2 text-right">
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold ${
-                            creator.createdByName === 'You'
+                            creator.isMe || creator.createdByName === 'You'
                               ? 'bg-slate-100 text-slate-800 border border-slate-200'
                               : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                           }`}>
-                            {creator.createdByName}
+                            {creator.isMe || creator.createdByName === 'You' ? 'You' : 'Created by Other'}
                           </span>
                         </td>
                       </tr>
@@ -241,11 +241,11 @@ function DashboardPage() {
                         </td>
                         <td className="py-2 text-right">
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold ${
-                            client.createdByName === 'You'
+                            client.isMe || client.createdByName === 'You'
                               ? 'bg-slate-100 text-slate-800 border border-slate-200'
-                              : 'bg-purple-50 text-purple-700 border border-purple-200'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                           }`}>
-                            {client.createdByName}
+                            {client.isMe || client.createdByName === 'You' ? 'You' : 'Created by Other'}
                           </span>
                         </td>
                       </tr>
