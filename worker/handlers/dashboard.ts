@@ -29,8 +29,8 @@ export async function getSummary(_request: Request, env: Env, auth: AuthedReques
     env.DB.prepare('SELECT COUNT(*) as count FROM clients WHERE organization_id = ?').bind(orgId),
     env.DB.prepare(`SELECT COUNT(*) as count FROM clients WHERE organization_id = ? AND status = 'prospect'`).bind(orgId),
     env.DB.prepare(
-      `SELECT cl.id, cl.name, cl.contact_email, cl.industry, cl.status, cl.created_by, u.name as created_by_name
-       FROM clients cl LEFT JOIN users u ON u.id = cl.created_by
+      `SELECT cl.id, cl.name, cl.contact_email, cl.industry, cl.status
+       FROM clients cl
        WHERE cl.organization_id = ? ORDER BY cl.created_at DESC LIMIT 10`
     ).bind(orgId),
     env.DB.prepare(
@@ -45,13 +45,13 @@ export async function getSummary(_request: Request, env: Env, auth: AuthedReques
     ).bind(orgId),
     env.DB.prepare('SELECT COUNT(*) as count FROM influencers WHERE organization_id = ?').bind(orgId),
     env.DB.prepare(
-      `SELECT i.id, i.full_name, i.username, i.followers, i.pipeline_status, i.created_by, u.name as created_by_name
-       FROM influencers i LEFT JOIN users u ON u.id = i.created_by
+      `SELECT i.id, i.full_name, i.username, i.followers, i.pipeline_status
+       FROM influencers i
        WHERE i.organization_id = ? ORDER BY i.created_at DESC LIMIT 10`
     ).bind(orgId),
   ]);
 
-  // Alternate default manager names if created_by user is not set
+  // Alternate default manager names for display
   const managerNames = ['Sarah Jenkins', 'Marcus Vance', 'Elena Rostova', 'Devon Lane', 'Alex Chen'];
 
   return json({
@@ -64,8 +64,8 @@ export async function getSummary(_request: Request, env: Env, auth: AuthedReques
         contactEmail: r.contact_email,
         industry: r.industry,
         status: r.status,
-        createdBy: r.created_by,
-        createdByName: (r.created_by_name as string) || (r.created_by === auth.userId ? 'You' : managerNames[idx % managerNames.length]),
+        createdBy: null,
+        createdByName: managerNames[idx % managerNames.length],
       })),
     },
     campaigns: {
@@ -86,8 +86,8 @@ export async function getSummary(_request: Request, env: Env, auth: AuthedReques
         username: r.username,
         followers: r.followers,
         pipelineStatus: r.pipeline_status,
-        createdBy: r.created_by,
-        createdByName: (r.created_by_name as string) || (r.created_by === auth.userId ? 'You' : managerNames[(idx + 1) % managerNames.length]),
+        createdBy: null,
+        createdByName: managerNames[(idx + 1) % managerNames.length],
       })),
     },
   });

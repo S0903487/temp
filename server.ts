@@ -200,7 +200,7 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true }));
 
   // Route API requests through the Cloudflare Worker handler
-  app.all('/api/*any', async (req, res) => {
+  app.use('/api', async (req, res) => {
     try {
       const method = req.method;
       const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
@@ -274,7 +274,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'frontend', 'dist');
     app.use(express.static(distPath));
-    app.get('*any', (req, res) => {
+    app.use((req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
