@@ -239,7 +239,8 @@ export async function list(request: Request, env: Env, _auth: AuthedRequest): Pr
     });
   }
 
-  const query = `SELECT * FROM influencers${whereClause}${orderClause}`;
+  // Safety cap for unpaginated queries to ensure fast responses even with 5-figure datasets
+  const query = `SELECT * FROM influencers${whereClause}${orderClause} LIMIT 500`;
   const stmt = env.DB.prepare(query).bind(...bindArgs);
   const { results } = await stmt.all();
   return json(results.map(toApi));

@@ -114,6 +114,7 @@ CREATE INDEX IF NOT EXISTS idx_influencers_org_followers ON influencers(organiza
 CREATE INDEX IF NOT EXISTS idx_influencers_org_eng ON influencers(organization_id, engagement_rate DESC);
 CREATE INDEX IF NOT EXISTS idx_influencers_username ON influencers(username);
 CREATE INDEX IF NOT EXISTS idx_influencers_full_name ON influencers(full_name);
+CREATE INDEX IF NOT EXISTS idx_influencers_created ON influencers(created_at DESC);
 
 -- ============ Tags (normalized, org-scoped, many-to-many) ============
 CREATE TABLE IF NOT EXISTS tags (
