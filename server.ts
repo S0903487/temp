@@ -11,13 +11,31 @@ import worker from './worker/index.js';
 const PORT = 3000;
 const DB_PATH = path.join(process.cwd(), 'influenceos.db');
 
-// Initialize local SQLite database
-const dbExists = fs.existsSync(DB_PATH);
-const sqliteDb = new Database(DB_PATH);
+// Initialize local SQLite database with corruption recovery
+function getDatabase(): Database.Database {
+  try {
+    const db = new Database(DB_PATH);
+    db.pragma('journal_mode = WAL');
+    db.pragma('synchronous = NORMAL');
+    db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+    return db;
+  } catch (err: any) {
+    console.error('Corrupted or invalid database detected, recreating fresh database:', err?.message || err);
+    try {
+      if (fs.existsSync(DB_PATH)) fs.unlinkSync(DB_PATH);
+      if (fs.existsSync(`${DB_PATH}-wal`)) fs.unlinkSync(`${DB_PATH}-wal`);
+      if (fs.existsSync(`${DB_PATH}-shm`)) fs.unlinkSync(`${DB_PATH}-shm`);
+    } catch (e) {
+      console.error('Failed to remove corrupted db files:', e);
+    }
+    const db = new Database(DB_PATH);
+    db.pragma('journal_mode = WAL');
+    db.pragma('synchronous = NORMAL');
+    return db;
+  }
+}
 
-// Optimize SQLite database for virtualized filesystems (like Cloud Run) to eliminate 20s latency
-sqliteDb.pragma('journal_mode = WAL');
-sqliteDb.pragma('synchronous = NORMAL');
+const sqliteDb = getDatabase();
 
 // If database is new, apply schema.sql
 try {
@@ -25,7 +43,6 @@ try {
   if (!tables) {
     console.log('Initializing database schema...');
     const schemaSql = fs.readFileSync(path.join(process.cwd(), 'schema.sql'), 'utf-8');
-    // Remove PRAGMA foreign_keys = ON; from start if needed, but better-sqlite3 handles it.
     sqliteDb.exec(schemaSql);
     console.log('Database schema initialized successfully!');
   }

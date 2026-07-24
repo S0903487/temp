@@ -54,7 +54,7 @@ export function useBulkDeleteInfluencers() {
     },
   });
 }
-import type { CreateInfluencerInput, UpdateInfluencerInput, InfluencerFull } from '../services/influencerService';
+
 import type { Influencer } from '../types';
 
 const INFLUENCERS_QUERY_KEY = ['influencers'];
